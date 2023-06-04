@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint ./src/**/*.{tsx,ts}",
     "preview": "vite preview",
+    "format": "prettier --write ./src/**/*.{tsx,ts}",
+    "lint": "eslint --fix ./src/**/*.{tsx,ts}",
+    "fix": "npm run format && npm run lint",
     "test": "jest"
   },
   "keywords": [],
