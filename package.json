@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint ./src/**/*.{tsx,ts}",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^29.5.2",
     "@types/node": "^20.2.5",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
@@ -20,6 +22,7 @@
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.8.0",
+    "jest": "^29.5.0",
     "prettier": "^2.8.8",
     "typescript": "^5.0.2",
     "vite": "^4.3.9"
