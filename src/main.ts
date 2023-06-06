@@ -1,5 +1,5 @@
 import "./style.css";
 
-(document.querySelector("#app") as HTMLDivElement)!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>Hello World</div>
 `;
