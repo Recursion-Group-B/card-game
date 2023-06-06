@@ -8,9 +8,15 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "format": "prettier --write ./src/**/*.{tsx,ts}",
-    "lint": "eslint --fix ./src/**/*.{tsx,ts}",
+    "lint": "eslint ./src/**/*.{tsx,ts}",
     "fix": "npm run format && npm run lint",
-    "test": "jest"
+    "test": "jest",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "npm run fix"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -28,7 +34,8 @@
     "prettier": "^2.8.8",
     "typescript": "^5.0.2",
     "vite": "^4.3.9",
-    "vite-tsconfig-paths": "^4.2.0"
+    "vite-tsconfig-paths": "^4.2.0",
+    "husky": "^8.0.0"
   },
   "dependencies": {
     "bootstrap": "^5.3.0"
