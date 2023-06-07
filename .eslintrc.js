@@ -4,8 +4,8 @@ module.exports = {
         "es2021": true
     },
     "extends": [
-        "airbnb",
-        "airbnb-typescript",
+        "airbnb-base",
+        "airbnb-typescript/base",
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "prettier",
