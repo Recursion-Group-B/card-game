@@ -40,7 +40,8 @@
     "vite-tsconfig-paths": "^4.2.0"
   },
   "dependencies": {
-    "bootstrap": "^5.3.0"
+    "bootstrap": "^5.3.0",
+    "phaser": "^3.60.0"
   },
   "volta": {
     "node": "18.15.0",
