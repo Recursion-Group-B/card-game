@@ -1,4 +1,7 @@
-export default function slider() {
+export default function setAnimation() {
+  /**
+   * selectGameスライダー
+   * */
   const target = document.getElementById("target");
   const leftBtn = document.getElementById("leftBtn");
   const rightBtn = document.getElementById("rightBtn");
@@ -70,4 +73,19 @@ export default function slider() {
   (rightBtn as HTMLElement).addEventListener("click", () => {
     slideJump(1, "right");
   });
+
+  /**
+   *  menuBtnアニメーション
+   */
+  const nav = document.querySelector("#navArea");
+  const toggleBtn = document.querySelector(".toggleBtn");
+  const mask = document.querySelector("#mask");
+
+  (toggleBtn as HTMLDivElement).onclick = () => {
+    nav?.classList.toggle("open");
+  };
+
+  (mask as HTMLDivElement).onclick = () => {
+    nav?.classList.toggle("open");
+  };
 }

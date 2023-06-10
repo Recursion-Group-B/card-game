@@ -1,25 +1,21 @@
 import "./style.scss";
-import * as bootstrap from "bootstrap";
 import Home from "./page/home";
-import slider from "./page/home/components/slider";
+import setAnimation from "./page/home/components/setAnimation";
+import setScreen from "./page/home/components/setScreen";
 
-// home挿入
+// html挿入
 (document.querySelector("#app") as HTMLDivElement).innerHTML = `
   ${Home}
 `;
 
-// selectGameスライダー
-slider();
+/**
+ * [アニメーション挿入]
+ * Menu
+ * Slider
+ */
+setAnimation();
 
-// menuBtnアニメーション
-const nav = document.querySelector("#navArea");
-const toggleBtn = document.querySelector(".toggleBtn");
-const mask = document.querySelector("#mask");
-
-(toggleBtn as HTMLDivElement).onclick = () => {
-  nav?.classList.toggle("open");
-};
-
-(mask as HTMLDivElement).onclick = () => {
-  nav?.classList.toggle("open");
-};
+/**
+ * [画面遷移]
+ */
+setScreen();
