@@ -1,7 +1,7 @@
 import "./style.scss";
-import Home from "./page/home";
-import setAnimation from "./page/home/components/setAnimation";
-import setScreen from "./page/home/components/setScreen";
+import Home from "./pages/home";
+import setAnimation from "./components/setAnimation";
+import setScreen from "./components/setScreen";
 
 // html挿入
 (document.querySelector("#app") as HTMLDivElement).innerHTML = `
