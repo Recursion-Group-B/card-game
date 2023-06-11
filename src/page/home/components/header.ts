@@ -6,7 +6,7 @@ const headers = `
                 <ul>
                     <li id="nav-signup"><a href="#">SignUp</a></li>
                     <li id="nav-login"><a href="#">Login</a></li>
-                    <li id="nav-mypage"><a href="#">MyPage</a></li>
+                    <li id="nav-myPage"><a href="#">MyPage</a></li>
                 </ul>
             </div>
         </nav>

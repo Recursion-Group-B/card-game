@@ -2,6 +2,7 @@ import headers from "./components/header";
 import selectDiff from "./components/selectDiff";
 import selectGame from "./components/selectGame";
 import { signup, login } from "./components/login";
+import myPage from "./components/myPage";
 
 const Home = `
     <div id="header" class="d-flex justify-content-between ps-2 pe-3">
@@ -19,6 +20,9 @@ const Home = `
     </div>
     <div id="login" class="d-none page">
         ${login}
+    </div>
+    <div id="myPage" class="d-none page">
+        ${myPage}
     </div>
 `;
 
