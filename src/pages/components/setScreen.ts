@@ -16,6 +16,7 @@ export default function setScreen() {
   const forgot = document.getElementById("forgot");
   const login = document.getElementById("login");
   const myPage = document.getElementById("myPage");
+  const navHome = document.getElementById("nav-home");
   const navSignUp = document.getElementById("nav-signup");
   const navLogin = document.getElementById("nav-login");
   const nav = document.querySelector("#navArea");
@@ -26,6 +27,14 @@ export default function setScreen() {
     // 現在の表示Page
     previousEle = document.querySelector<HTMLDivElement>("#app .d-block");
     toggleScreen(previousEle as HTMLDivElement, home as HTMLDivElement);
+  };
+
+  // navHome to Home
+  (navHome as HTMLDivElement).onclick = () => {
+    // 現在の表示Page
+    previousEle = document.querySelector<HTMLDivElement>("#app .d-block");
+    toggleScreen(previousEle as HTMLDivElement, home as HTMLDivElement);
+    nav?.classList.toggle("open");
   };
 
   // navSignUp to signup

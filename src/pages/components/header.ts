@@ -4,6 +4,7 @@ const headers = `
         <nav>
             <div class="inner">
                 <ul>
+                    <li id="nav-home"><a href="#">Home</a></li>
                     <li id="nav-signup"><a href="#">SignUp</a></li>
                     <li id="nav-login"><a href="#">Login</a></li>
                     <li id="nav-myPage"><a href="#">MyPage</a></li>
