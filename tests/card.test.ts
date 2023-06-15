@@ -29,7 +29,7 @@ describe("Card", () => {
 
     test("should return the correct rank number for other games", () => {
       const card = new Card("A", "spade");
-      expect(card.getRankNumber("speed")).toEqual(1);
+      expect(card.getRankNumber("speed")).toEqual(14);
     });
 
     test("should return 0 if the rank does not exist", () => {

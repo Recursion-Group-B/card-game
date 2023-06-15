@@ -58,7 +58,7 @@ export default class Card {
         break;
       default:
         rankToNum = {
-          A: 1,
+          A: 14,
           "2": 2,
           "3": 3,
           "4": 4,
