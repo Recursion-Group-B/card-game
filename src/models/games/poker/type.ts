@@ -4,6 +4,7 @@ export type PlayerType = {
   name: string;
   playerType: string;
   chips: number;
+  bet: number;
   hand: Array<Card>;
 };
 

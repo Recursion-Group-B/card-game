@@ -9,20 +9,14 @@ export default class PokerPlayer extends Player {
 
   private handScore: HandScore;
 
-  constructor({ name, playerType, chips, hand }: PlayerType) {
-    super(name, playerType, chips, hand);
+  constructor({ name, playerType, chips, bet, hand }: PlayerType) {
+    super(name, playerType, chips, bet, hand);
     this.handScore = {
       role: 0,
       highCard: 0,
     };
     this.suitDict = new Map();
     this.rankDict = new Map();
-  }
-
-  bet(amount: number): number {
-    const currentChips: number = this.getChips - amount;
-    this.setChips = currentChips;
-    return amount;
   }
 
   call(amount: number): number {
