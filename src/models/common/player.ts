@@ -39,5 +39,17 @@ export default abstract class Player {
     return this.bet;
   }
 
+  set setChips(chips: number) {
+    this.chips = chips;
+  }
+
+  set setBet(bet: number) {
+    this.bet = bet;
+  }
+
+  addCardToHand(card: Card) {
+    this.hand.push(card);
+  }
+
   abstract calculateHandScore(): number;
 }
