@@ -1,4 +1,5 @@
 import Card from "./card";
+import { HandScore } from "../games/poker/type";
 
 export default abstract class Player {
   private name: string;
@@ -7,15 +8,12 @@ export default abstract class Player {
 
   private chips: number;
 
-  private bet: number;
+  private hand: Array<Card> | null;
 
-  private hand: Array<Card>;
-
-  constructor(name: string, playerType: string, chips: number, bet: number, hand: Array<Card>) {
+  constructor(name: string, playerType: string, chips: number, hand: Array<Card>) {
     this.name = name;
     this.playerType = playerType;
     this.chips = chips;
-    this.bet = bet;
     this.hand = hand;
   }
 
@@ -27,17 +25,21 @@ export default abstract class Player {
     return this.playerType;
   }
 
+  set setChips(amount: number) {
+    this.chips = amount;
+  }
+
   get getChips() {
     return this.chips;
+  }
+
+  set setHand(hand: Card[] | null) {
+    this.hand = hand;
   }
 
   get getHand() {
     return this.hand;
   }
 
-  get getBet() {
-    return this.bet;
-  }
-
-  abstract calculateHandScore(): number;
+  abstract calculateHandScore(): number | HandScore;
 }
