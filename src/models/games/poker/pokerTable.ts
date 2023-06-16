@@ -1,5 +1,5 @@
-import Deck from "src/models/common/deck";
-import Card from "src/models/common/card";
+import Deck from "../../common/deck";
+import Card from "../../common/card";
 import PokerPlayer from "./pokerPlayer";
 
 export default class PokerTable {
@@ -13,13 +13,15 @@ export default class PokerTable {
 
   constructor(player: PokerPlayer) {
     this.deck = new Deck();
-    this.players = [player, new PokerPlayer("CPU", "CPU", 1000, 10, undefined)];
+    this.players = [player];
     this.pot = [0];
     this.returnPot = 0;
     this.deck.shuffle();
   }
 
-  // addCpu():void{}
+  addPlayer(player: PokerPlayer): void {
+    this.players.push(player);
+  }
   // deleteCpu():void{}
 
   /**
@@ -34,6 +36,14 @@ export default class PokerTable {
 
   change(amount: number): Card[] | undefined {
     return this.deck.draw(amount);
+  }
+
+  get getAllHand(): Card[][] {
+    return this.players.map((player) => player.getHand as Card[]);
+  }
+
+  get getPlayers(): PokerPlayer[] {
+    return this.players;
   }
 
   set setPot(amount: number) {
