@@ -1,6 +1,6 @@
 import Player from "../../common/player";
 import Card from "../../common/card";
-import { SuitDict, RankDict, HandScore, PlayerType } from "./type";
+import { SuitDict, RankDict, HandScore } from "./type";
 
 export default class PokerPlayer extends Player {
   private suitDict: SuitDict;
@@ -9,7 +9,9 @@ export default class PokerPlayer extends Player {
 
   private handScore: HandScore;
 
-  constructor({ name, playerType, chips, bet, hand }: PlayerType) {
+  private handList: number[][];
+
+  constructor(name: string, playerType: string, chips: number, bet: number, hand: Card[]) {
     super(name, playerType, chips, bet, hand);
     this.handScore = {
       role: 0,
@@ -17,6 +19,16 @@ export default class PokerPlayer extends Player {
     };
     this.suitDict = new Map();
     this.rankDict = new Map();
+    this.makeDict();
+    this.handList = this.handSort();
+  }
+
+  get getSuitDict() {
+    return this.suitDict;
+  }
+
+  get getRankDict() {
+    return this.rankDict;
   }
 
   call(amount: number): number {
@@ -48,42 +60,36 @@ export default class PokerPlayer extends Player {
     });
   }
 
+  handSort(): number[][] {
+    const sortDict = [...this.rankDict].sort((a, b) => a[0] - b[0]);
+    return sortDict;
+  }
+
+  get getHandList() {
+    return this.handList;
+  }
+
   // 連続判定
   hasChainRank(): boolean {
-    const list = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const rank of this.rankDict.keys()) {
-      list.push(rank);
-    }
-    list.sort((a, b) => a - b);
-
-    let diff = 0;
-    for (let i = 0; i < list.length - 1; i + 1) {
-      diff = list[i + 1] - list[i];
-      if (diff !== 1) return false;
-    }
-    return true;
+    const rankList = Array.from(this.handList, (ele) => ele[0]);
+    const compareList = Array(5)
+      .fill(Math.min(...rankList))
+      .map((value, index) => value + index);
+    return rankList.every((ele) => compareList.includes(ele));
   }
 
   // ペア判定
   hasPair(pairNum: number, type?: string): boolean {
-    const pairList = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const pair of this.rankDict.values()) {
-      pairList.push(pair);
-    }
-
     if (type === "twoPair") {
-      const temp = pairList.filter((ele) => ele === pairNum);
-      return temp.length === 2;
+      const pair = this.handList.filter((ele) => ele[1] === pairNum);
+      return pair.length === 2;
     }
 
     // 一つのペアがある場合
-    return pairList.some((ele) => ele === pairNum);
+    return this.handList.some((ele) => ele[1] === pairNum);
   }
 
   calculateHandScore(): HandScore {
-    this.makeDict();
     // ロイヤルストレートフラッシュ
     if (
       this.suitDict.size === 1 &&
