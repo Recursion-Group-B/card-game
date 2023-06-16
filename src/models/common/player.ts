@@ -8,11 +8,17 @@ export default abstract class Player {
 
   private chips: number;
 
-  private bet: number;
+  private bet: number | undefined;
 
-  private hand: Array<Card> | null;
+  private hand: Array<Card> | undefined;
 
-  constructor(name: string, playerType: string, chips: number, bet: number, hand: Array<Card>) {
+  constructor(
+    name: string,
+    playerType: string,
+    chips: number,
+    bet: number,
+    hand: Card[] | undefined
+  ) {
     this.name = name;
     this.playerType = playerType;
     this.chips = chips;
@@ -32,7 +38,7 @@ export default abstract class Player {
     return this.chips;
   }
 
-  set setHand(hand: Card[] | null) {
+  set setHand(hand: Card[] | undefined) {
     this.hand = hand;
   }
 

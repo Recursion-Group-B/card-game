@@ -11,7 +11,13 @@ export default class PokerPlayer extends Player {
 
   private handList: number[][];
 
-  constructor(name: string, playerType: string, chips: number, bet: number, hand: Card[]) {
+  constructor(
+    name: string,
+    playerType: string,
+    chips: number,
+    bet: number,
+    hand: Card[] | undefined
+  ) {
     super(name, playerType, chips, bet, hand);
     this.handScore = {
       role: 0,
@@ -38,7 +44,7 @@ export default class PokerPlayer extends Player {
   }
 
   fold(): void {
-    this.setHand = null;
+    this.setHand = undefined;
   }
 
   /**

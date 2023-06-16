@@ -21,7 +21,18 @@ export default class Deck {
     }
   }
 
-  draw(): Card | undefined {
+  draw(): Card | undefined;
+  draw(amount: number): Card[] | undefined;
+  draw(amount?: number): Card | Card[] | undefined {
+    // 複数枚ドロー
+    if ((amount as number) > 0) {
+      const cardList = Array(amount)
+        .fill(null)
+        .map(() => this.cards.pop());
+      return cardList as Card[];
+    }
+
+    // 1枚ドロー
     return this.cards.pop();
   }
 

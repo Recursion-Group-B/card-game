@@ -43,12 +43,12 @@ describe("pokerPlayer", () => {
     expect(player.hasChainRank()).toBe(true);
   });
 
-  test("should return role", () => {
+  test("should return role 9", () => {
     expect(player.calculateHandScore()).toEqual({ role: 9, highCard: 0 });
   });
 
-  test("should hand null", () => {
+  test("should hand undefined", () => {
     player.fold();
-    expect(player.getHand).toBe(null);
+    expect(player.getHand).toBe(undefined);
   });
 });
