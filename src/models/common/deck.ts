@@ -1,15 +1,17 @@
+import Phaser from "phaser";
 import Card from "./card";
 
 export default class Deck {
   private cards: Array<Card> = [];
 
-  constructor() {
+  constructor(private scene: Phaser.Scene, private x: number, private y: number) {
     const suits = ["heart", "diamond", "club", "spade"];
     const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
     suits.forEach((suit) => {
       ranks.forEach((rank) => {
-        this.cards.push(new Card(rank, suit));
+        const imagePath = `${suit}${rank}`;
+        this.cards.push(new Card(this.scene, x, y, rank, suit, imagePath));
       });
     });
   }
