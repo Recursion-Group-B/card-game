@@ -2,22 +2,26 @@ const selectGame = `
 <div class="slider">
     <div id="imgList" class="d-none">
         <div id="poker" class="slider-item">
-            <a href="#">
+            <h3>Poker</h3>
+            <a href="src/scenes/games/poker/game.html">
                 <img src="public/pokerImg.png" class="img-fit">
             </a>
         </div>
         <div id="blackjack" class="slider-item">
-            <a href="#">
+            <h3>BlackJack</h3>
+            <a href="src/scenes/games/blackjack/game.html">
                 <img src="public/blackjackImg.png" class="img-fit">
             </a>
         </div>
         <div id="war" class="slider-item">
-            <a href="#">
+            <h3>War</h3>
+            <a href="src/scenes/games/war/game.html">
                 <img src="public/warImg.png" class="img-fit">
             </a>
         </div>
         <div id="speed" class="slider-item">
-            <a href="#">
+            <h3>Speed</h3>
+            <a href="src/scenes/games/speed/game.html">
                 <img src="public/speedImg.png" class="img-fit">
             </a>
         </div>
