@@ -1,6 +1,6 @@
 import PokerPlayer from "../src/models/games/poker/pokerPlayer";
 import Card from "../src/models/common/card";
-import PokerTable from "../src/models/games/poker/pokerTable";
+import PokerTable from "../src/scenes/games/poker/pokerTableScene";
 
 describe("pokerTable", () => {
   const deck = [

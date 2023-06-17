@@ -2,7 +2,7 @@ const selectGame = `
 <div class="slider">
     <div id="imgList" class="d-none">
         <div id="poker" class="slider-item">
-            <a href="#">
+            <a href="src/scenes/games/poker/game.html">
                 <img src="public/pokerImg.png" class="img-fit">
             </a>
         </div>

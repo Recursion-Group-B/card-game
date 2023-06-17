@@ -1,3 +1,4 @@
+import { resolve } from "path";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -5,7 +6,13 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [tsconfigPaths()],
   build: {
-    outDir: "../dist",
+    outDir: "dist",
+    rollupOptions: {
+      input: {
+        home: resolve(__dirname, "index.html"),
+        poker: resolve(__dirname, "src/scenes/games/poker/game.html"),
+      },
+    },
   },
   server: {
     port: 3000,
