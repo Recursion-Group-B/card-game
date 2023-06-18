@@ -9,14 +9,13 @@ export default abstract class Player {
 
   private bet: number;
 
-  private hand: Array<Card>;
+  private hand: Array<Card> = [];
 
-  constructor(name: string, playerType: string, chips: number, bet: number, hand: Array<Card>) {
+  constructor(name: string, playerType: string, chips: number, bet: number) {
     this.name = name;
     this.playerType = playerType;
     this.chips = chips;
     this.bet = bet;
-    this.hand = hand;
   }
 
   get getName() {
