@@ -5,7 +5,9 @@ export default class Card extends Phaser.GameObjects.Image {
 
   private suit: string;
 
-  private imagePath: string;
+  private textureKey: string;
+
+  private isBackSide: boolean;
 
   constructor(
     scene: Phaser.Scene,
@@ -13,14 +15,16 @@ export default class Card extends Phaser.GameObjects.Image {
     y: number,
     rank: string,
     suit: string,
-    imagePath: string
+    textureKey: string,
+    isBackSide: boolean
   ) {
-    super(scene, x, y, `${suit}${rank}`);
+    super(scene, x, y, "cardBack");
     this.rank = rank;
     this.suit = suit;
-    this.imagePath = imagePath;
+    this.textureKey = textureKey;
+    this.isBackSide = isBackSide;
     scene.add.existing(this);
-    this.setScale(0.115);
+    this.setScale(0.6);
   }
 
   get getSuit() {
@@ -31,12 +35,21 @@ export default class Card extends Phaser.GameObjects.Image {
     return this.rank;
   }
 
+  get getTextureKey() {
+    return this.textureKey;
+  }
+
   /**
-   * カードの表面の画像フレーム取得
-   * @returns カードの表面の画像ファイル名
+   * 指定の位置まで移動するアニメーション
    */
-  getAtlasFrame(): string {
-    return `card-${this.suit}-${this.rank}.png`;
+  moveTo(toX: number, toY: number, delay: number): void {
+    this.scene.tweens.add({
+      targets: this,
+      x: toX,
+      y: toY,
+      duration: delay,
+      ease: "Linear",
+    });
   }
 
   /**
