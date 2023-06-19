@@ -1,5 +1,8 @@
 import Phaser from "phaser";
 
+const CARD_SCALE_FRONT = 0.115;
+const CARD_SCALE_BACK = 0.6;
+
 export default class Card extends Phaser.GameObjects.Image {
   private rank: string;
 
@@ -24,7 +27,7 @@ export default class Card extends Phaser.GameObjects.Image {
     this.textureKey = textureKey;
     this.isBackSide = isBackSide;
     scene.add.existing(this);
-    this.setScale(0.6);
+    this.setScale(CARD_SCALE_BACK);
   }
 
   get getSuit() {
@@ -50,6 +53,17 @@ export default class Card extends Phaser.GameObjects.Image {
       duration: delay,
       ease: "Linear",
     });
+  }
+
+  /**
+   * カードを表面にするアニメーション
+   */
+  flipToFront(): void {
+    if (this.isBackSide) {
+      this.setTexture(this.textureKey);
+      this.isBackSide = false;
+      this.setScale(CARD_SCALE_FRONT);
+    }
   }
 
   /**
