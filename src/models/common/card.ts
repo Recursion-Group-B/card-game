@@ -67,6 +67,48 @@ export default class Card extends Phaser.GameObjects.Image {
   }
 
   /**
+   * ドラッグ可能状態への設定とドラッグ時のイベント設定
+   */
+  makeDraggable(): void {
+    this.setDraggable();
+    this.setDragEvents();
+  }
+
+  /**
+   * ドラッグ可能な状態に設定
+   */
+  private setDraggable(): void {
+    this.setInteractive();
+    this.scene.input.setDraggable(this);
+  }
+
+  /**
+   * ドラッグ時のイベント設定
+   */
+  private setDragEvents(): void {
+    let startX: number;
+    let startY: number;
+
+    // ドラッグ開始時のイベント
+    this.on("dragstart", () => {
+      startX = this.x;
+      startY = this.y;
+    });
+
+    // ドラッグ中のイベント
+    this.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+      this.x = dragX;
+      this.y = dragY;
+    });
+
+    // ドラッグ終了時のイベント
+    this.on("dragend", () => {
+      this.x = startX;
+      this.y = startY;
+    });
+  }
+
+  /**
    * gameType毎にカードのrankを返す
    */
   getRankNumber(gameType: string): number {
