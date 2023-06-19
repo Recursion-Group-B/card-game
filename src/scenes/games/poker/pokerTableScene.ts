@@ -64,3 +64,4 @@ export default class PokerTable {
     return this.returnPot;
   }
 }
+(game as HTMLDivElement).innerHTML = "Poker!!!";
