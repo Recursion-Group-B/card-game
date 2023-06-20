@@ -16,6 +16,10 @@ export default class Card {
     return this.rank;
   }
 
+  get getCardKey(): string {
+    return this.suit + this.rank;
+  }
+
   /**
    * gameType毎にカードのrankを返す
    */
@@ -24,7 +28,7 @@ export default class Card {
     switch (gameType) {
       case "blackjack":
         rankToNum = {
-          A: 11,
+          Ace: 11,
           "2": 2,
           "3": 3,
           "4": 4,
@@ -34,14 +38,14 @@ export default class Card {
           "8": 8,
           "9": 9,
           "10": 10,
-          J: 10,
-          Q: 10,
-          K: 10,
+          Jack: 10,
+          Queen: 10,
+          King: 10,
         };
         break;
       case "war":
         rankToNum = {
-          A: 14,
+          Ace: 14,
           "2": 2,
           "3": 3,
           "4": 4,
@@ -51,14 +55,14 @@ export default class Card {
           "8": 8,
           "9": 9,
           "10": 10,
-          J: 11,
-          Q: 12,
-          K: 13,
+          Jack: 11,
+          Queen: 12,
+          King: 13,
         };
         break;
       default:
         rankToNum = {
-          A: 14,
+          Ace: 14,
           "2": 2,
           "3": 3,
           "4": 4,
@@ -68,9 +72,9 @@ export default class Card {
           "8": 8,
           "9": 9,
           "10": 10,
-          J: 11,
-          Q: 12,
-          K: 13,
+          Jack: 11,
+          Queen: 12,
+          King: 13,
         };
         break;
     }

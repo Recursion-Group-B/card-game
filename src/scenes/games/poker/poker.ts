@@ -1,8 +1,13 @@
-import Example from "./draw";
+import "../../../style.scss";
+import PokerTable from "./pokerTableScene";
 
 const config = {
   type: Phaser.AUTO,
-  width: 1024,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
+  width: 1200,
   height: 600,
   physics: {
     default: "arcade",
@@ -11,7 +16,7 @@ const config = {
       debug: true,
     },
   },
-  scene: [Example],
+  scene: [PokerTable],
 };
 
 const game = new Phaser.Game(config);

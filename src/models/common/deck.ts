@@ -4,8 +4,8 @@ export default class Deck {
   private cards: Array<Card> = [];
 
   constructor() {
-    const suits = ["heart", "diamond", "club", "spade"];
-    const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+    const suits = ["hearts", "diamonds", "clubs", "spades"];
+    const ranks = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
 
     suits.forEach((suit) => {
       ranks.forEach((rank) => {
