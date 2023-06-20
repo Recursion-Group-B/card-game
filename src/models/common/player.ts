@@ -10,20 +10,13 @@ export default abstract class Player {
 
   private bet: number | undefined;
 
-  private hand: Array<Card> | undefined;
+  private hand: Array<Card> | undefined = [];
 
-  constructor(
-    name: string,
-    playerType: string,
-    chips: number,
-    bet: number,
-    hand: Card[] | undefined
-  ) {
+  constructor(name: string, playerType: string, chips: number, bet: number) {
     this.name = name;
     this.playerType = playerType;
     this.chips = chips;
     this.bet = bet;
-    this.hand = hand;
   }
 
   get getName() {
@@ -38,8 +31,8 @@ export default abstract class Player {
     return this.chips;
   }
 
-  set setHand(hand: Card[] | undefined) {
-    this.hand = hand;
+  set setHand(cards: Card[] | undefined) {
+    (this.hand as Card[] | undefined) = cards;
   }
 
   get getHand() {

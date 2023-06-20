@@ -1,15 +1,23 @@
+import Phaser from "phaser";
 import Card from "./card";
+
+const SUITS = ["hearts", "diamonds", "clubs", "spades"];
+const RANKS = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
 
 export default class Deck {
   private cards: Array<Card> = [];
 
-  constructor() {
-    const suits = ["hearts", "diamonds", "clubs", "spades"];
-    const ranks = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
-
+  constructor(
+    private scene: Phaser.Scene,
+    private x: number,
+    private y: number,
+    suits = SUITS,
+    ranks = RANKS
+  ) {
     suits.forEach((suit) => {
       ranks.forEach((rank) => {
-        this.cards.push(new Card(rank, suit));
+        const textureKey = `${suit}${rank}`;
+        this.cards.push(new Card(this.scene, x, y, rank, suit, textureKey, true));
       });
     });
   }
@@ -42,5 +50,9 @@ export default class Deck {
 
   getCards(): Array<Card> {
     return [...this.cards];
+  }
+
+  isEmpty(): boolean {
+    return this.cards.length === 0;
   }
 }

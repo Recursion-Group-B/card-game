@@ -9,22 +9,17 @@ export default class PokerPlayer extends Player {
 
   private handScore: HandScore;
 
-  private handList: number[][];
+  private handList: number[][] | undefined;
 
-  constructor(
-    name: string,
-    playerType: string,
-    chips: number,
-    bet: number,
-    hand: Card[] | undefined
-  ) {
-    super(name, playerType, chips, bet, hand);
+  constructor(name: string, playerType: string, chips: number, bet: number) {
+    super(name, playerType, chips, bet);
     this.handScore = {
       role: 0,
       highCard: 0,
     };
     this.suitDict = new Map();
     this.rankDict = new Map();
+    this.handList = undefined;
   }
 
   get getSuitDict() {
@@ -75,7 +70,7 @@ export default class PokerPlayer extends Player {
 
   // 連続判定
   hasChainRank(): boolean {
-    const rankList = Array.from(this.handList, (ele) => ele[0]);
+    const rankList = Array.from(this.handList as number[][], (ele) => ele[0]);
     const compareList = Array(5)
       .fill(Math.min(...rankList))
       .map((value, index) => value + index);
@@ -85,12 +80,12 @@ export default class PokerPlayer extends Player {
   // ペア判定
   hasPair(pairNum: number, type?: string): boolean {
     if (type === "twoPair") {
-      const pair = this.handList.filter((ele) => ele[1] === pairNum);
+      const pair = (this.handList as number[][]).filter((ele) => ele[1] === pairNum);
       return pair.length === 2;
     }
 
     // 一つのペアがある場合
-    return this.handList.some((ele) => ele[1] === pairNum);
+    return (this.handList as number[][]).some((ele) => ele[1] === pairNum);
   }
 
   calculateHandScore(): HandScore {
