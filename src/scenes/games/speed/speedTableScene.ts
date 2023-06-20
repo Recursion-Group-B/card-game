@@ -15,6 +15,8 @@ export default class SpeedTableScene extends TableScene {
 
   private dropZones: Array<Zone> = [];
 
+  private dropZoneCards: Array<Card> = []; // [右側の台札Card, 左がの台札Card]
+
   constructor() {
     super({});
 
@@ -47,6 +49,10 @@ export default class SpeedTableScene extends TableScene {
 
     this.createPlayerDecks();
     this.dealCards();
+
+    // デバッグ
+    console.log(this.dropZoneCards[0].getRank);
+    console.log(this.dropZoneCards[1].getRank);
   }
 
   update(): void {
@@ -79,6 +85,8 @@ export default class SpeedTableScene extends TableScene {
     if (card) {
       const animationDuration = 600;
       card.moveTo(dropZone.x, dropZone.y, animationDuration);
+
+      this.dropZoneCards.push(card);
 
       // カードを裏返す
       this.time.delayedCall(1500, () => {
@@ -151,10 +159,31 @@ export default class SpeedTableScene extends TableScene {
         card.disableInteractive();
 
         card.setDepth((cardDepth += 1)); // カードを最前面に配置し、次のカードがさらに前面に来るようにdepth値を増やす
+
+        const dropZoneIndex = this.dropZones.indexOf(dropZone);
+        if (dropZoneIndex !== -1) {
+          this.dropZoneCards[dropZoneIndex] = card;
+        }
       } else {
         card.returnToOrigin();
       }
     });
+  }
+
+  /**
+   * カードが配置可能か判定
+   */
+  private canDropCard(card: Card, dropZone: Zone): boolean {
+    let canDropCard = false;
+
+    this.dropZones.forEach((cardDropZone: Zone, index: number) => {
+      if (dropZone === cardDropZone) {
+        canDropCard =
+          canDropCard ||
+          PlayScene.isNextRank(this.dropCardRanks[index], card.getRankNumber("speed"));
+      }
+    });
+    return canDropCard;
   }
 
   /**
@@ -176,9 +205,6 @@ export default class SpeedTableScene extends TableScene {
       } else if (player.getPlayerType === "cpu") {
         Phaser.Display.Align.In.Center(dropZone, this.gameZone as GameObject, -PLAYER_ZONE_OFFSET);
       }
-
-      // 座標を取得
-      const { x, y, width, height } = dropZone;
 
       dropZone.setInteractive().on("pointerdown", () => console.log("Zone clicked!"));
       this.dropZones.push(dropZone);
