@@ -25,13 +25,13 @@ export default class SpeedTableScene extends TableScene {
   }
 
   preload(): void {
-    this.load.image("table", "./public/assets/images/tableGreen.png");
-    this.load.image("cardBack", "./public/assets/images/card_back_red.png");
+    this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.image("cardBack", "/public/assets/images/card_back_red.png");
 
     // トランプ読み込み
     SUITS.forEach((suit) => {
       RANKS.forEach((rank) => {
-        this.load.image(`${suit}${rank}`, `./public/assets/images/${suit}${rank}.png`);
+        this.load.image(`${suit}${rank}`, `/public/assets/images/${suit}${rank}.png`);
       });
     });
   }
@@ -185,3 +185,31 @@ export default class SpeedTableScene extends TableScene {
     });
   }
 }
+
+const config: Phaser.Types.Core.GameConfig = {
+  type: Phaser.AUTO,
+  width: D_WIDTH,
+  height: D_HEIGHT,
+  antialias: false,
+  scene: SpeedTableScene,
+  mode: Phaser.Scale.FIT,
+  parent: "game-content",
+  autoCenter: Phaser.Scale.CENTER_BOTH,
+  min: {
+    width: 720,
+    height: 345,
+  },
+  max: {
+    width: 1920,
+    height: 920,
+  },
+  fps: {
+    target: 60,
+    forceSetTimeOut: true,
+  },
+  physics: {
+    default: "arcade",
+  },
+};
+
+const phaser = new Phaser.Game(config);
