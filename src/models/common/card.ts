@@ -138,7 +138,7 @@ export default class Card extends Phaser.GameObjects.Image {
           K: 10,
         };
         break;
-      case "war":
+      case "poker":
         rankToNum = {
           A: 14,
           "2": 2,
@@ -157,7 +157,7 @@ export default class Card extends Phaser.GameObjects.Image {
         break;
       default:
         rankToNum = {
-          A: 14,
+          A: 1,
           "2": 2,
           "3": 3,
           "4": 4,

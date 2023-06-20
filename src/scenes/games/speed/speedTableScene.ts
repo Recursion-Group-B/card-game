@@ -153,12 +153,12 @@ export default class SpeedTableScene extends TableScene {
     let cardDepth = 0;
 
     this.input.on("drop", (pointer: Phaser.Input.Pointer, card: Card, dropZone: Zone) => {
-      // カードがドロップゾーン上にあるか確認
-      if (Phaser.Geom.Rectangle.Overlaps(dropZone.getBounds(), card.getBounds())) {
+      if (this.canDropCard(card, dropZone)) {
         card.setPosition(dropZone.x, dropZone.y);
         card.disableInteractive();
 
-        card.setDepth((cardDepth += 1)); // カードを最前面に配置し、次のカードがさらに前面に来るようにdepth値を増やす
+        // カードを最前面に配置し、次のカードがさらに前面に来るようにdepth値を増やす
+        card.setDepth((cardDepth += 1));
 
         const dropZoneIndex = this.dropZones.indexOf(dropZone);
         if (dropZoneIndex !== -1) {
@@ -174,16 +174,30 @@ export default class SpeedTableScene extends TableScene {
    * カードが配置可能か判定
    */
   private canDropCard(card: Card, dropZone: Zone): boolean {
-    let canDropCard = false;
+    let canDropCardFlag = false;
 
     this.dropZones.forEach((cardDropZone: Zone, index: number) => {
       if (dropZone === cardDropZone) {
-        canDropCard =
-          canDropCard ||
-          PlayScene.isNextRank(this.dropCardRanks[index], card.getRankNumber("speed"));
+        const isConsecutiveRank = SpeedTableScene.isConsecutiveCard(
+          Number(this.dropZoneCards[index].getRankNumber("speed")),
+          card.getRankNumber("speed")
+        );
+
+        if (isConsecutiveRank) {
+          canDropCardFlag = true;
+        }
       }
     });
-    return canDropCard;
+
+    return canDropCardFlag;
+  }
+
+  /**
+   * ドロップしたカードが連続したランクか判定
+   */
+  private static isConsecutiveCard(rank1: number, rank2: number): boolean {
+    const diff = Math.abs(rank1 - rank2);
+    return diff === 1 || diff === 12;
   }
 
   /**
