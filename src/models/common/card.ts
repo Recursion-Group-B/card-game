@@ -91,6 +91,7 @@ export default class Card extends Phaser.GameObjects.Image {
 
     // ドラッグ開始時のイベント
     this.on("dragstart", () => {
+      this.setDepth(Number.MAX_SAFE_INTEGER);
       startX = this.x;
       startY = this.y;
     });
@@ -103,9 +104,15 @@ export default class Card extends Phaser.GameObjects.Image {
 
     // ドラッグ終了時のイベント
     this.on("dragend", () => {
-      this.x = startX;
-      this.y = startY;
+      this.returnToOrigin();
     });
+  }
+
+  /**
+   * カードを元の位置に戻す関数
+   */
+  returnToOrigin(): void {
+    this.setPosition(this.input?.dragStartX, this.input?.dragStartY);
   }
 
   /**
