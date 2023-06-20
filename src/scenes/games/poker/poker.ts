@@ -1,5 +1,8 @@
+import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import "../../../style.scss";
 import PokerTable from "./pokerTableScene";
+
+const player = new PokerPlayer("motsu", "player", 1000, 0, undefined);
 
 const config = {
   type: Phaser.AUTO,
@@ -16,7 +19,7 @@ const config = {
       debug: true,
     },
   },
-  scene: [PokerTable],
+  scene: [new PokerTable(player)],
 };
 
 const game = new Phaser.Game(config);

@@ -12,6 +12,8 @@ export default class PokerTable extends Phaser.Scene {
 
   private returnPot: number;
 
+  private deckObject: Phaser.GameObjects.Image[];
+
   constructor(player: PokerPlayer) {
     super({ key: "poker" });
     this.deck = new Deck();
@@ -19,6 +21,7 @@ export default class PokerTable extends Phaser.Scene {
     this.pot = [0];
     this.returnPot = 0;
     this.deck.shuffle();
+    this.deckObject = [];
   }
 
   addCPU(player: PokerPlayer): void {
@@ -32,7 +35,7 @@ export default class PokerTable extends Phaser.Scene {
   dealCards(): void {
     this.players.forEach((player) => {
       /* eslint-disable no-param-reassign */
-      player.setHand = this.deck.draw(5);
+      player.setHand = this.deck.draw(5) as Card[];
     });
   }
 
@@ -75,16 +78,35 @@ export default class PokerTable extends Phaser.Scene {
   }
 
   create() {
-    // phaser3 assetsからカード情報取得
-    const frames = this.textures.get("cards").getFrameNames();
-
-    // 背面とジョーカー抜き配列
-    const deck = frames.filter((ele) => ele !== "back" && ele !== "joker");
-    deck.forEach((cardKey) => {
-      const img = this.add.image(100, 100, "cards", cardKey).setInteractive();
+    // deck
+    this.deck.getCards().forEach((card) => {
+      const img = this.add.image(100, 100, "cards", card.getCardKey).setInteractive();
+      this.deckObject.push(img);
+      console.log(img.frame.name);
     });
+    console.log(this.deckObject);
 
-    console.log(deck);
+    /**
+     * Deal
+     */
+    const deal = this.add
+      .text(400, 130, "deal!")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    deal.on(
+      "pointerdown",
+      function (this: PokerTable, pointer: Phaser.Input.Pointer) {
+        console.log(pointer);
+        this.dealCards();
+        this.players.forEach((player) => {
+          console.log(player.getHand);
+        });
+      },
+      this
+    );
 
     this.input.on(
       "gameobjectdown",
@@ -100,24 +122,6 @@ export default class PokerTable extends Phaser.Scene {
           ease: "Power1",
         });
         this.children.bringToTop(gameObject);
-      },
-      this
-    );
-
-    /**
-     * Deal
-     */
-    const draw = this.add
-      .text(400, 130, "deal!")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    draw.on(
-      "pointerdown",
-      (this: Phaser.Scene, pointer: Phaser.Input.Pointer) => {
-        console.log(pointer);
       },
       this
     );

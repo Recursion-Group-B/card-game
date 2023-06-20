@@ -25,8 +25,6 @@ export default class PokerPlayer extends Player {
     };
     this.suitDict = new Map();
     this.rankDict = new Map();
-    this.makeDict();
-    this.handList = this.handSort();
   }
 
   get getSuitDict() {
@@ -96,6 +94,9 @@ export default class PokerPlayer extends Player {
   }
 
   calculateHandScore(): HandScore {
+    this.makeDict();
+    this.handList = this.handSort();
+
     // ロイヤルストレートフラッシュ
     if (
       this.suitDict.size === 1 &&
