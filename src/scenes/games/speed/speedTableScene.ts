@@ -8,8 +8,6 @@ import Player from "../../../models/common/player";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
-// const SUITS = ["heart", "diamond", "club", "spade"];
-// const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
 export default class SpeedTableScene extends TableScene {
   private playerDecks: Array<Deck> = [];
@@ -30,15 +28,6 @@ export default class SpeedTableScene extends TableScene {
   preload(): void {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
-
-    // this.load.image("cardBack", "/public/assets/images/card_back_red.png");
-
-    // トランプ読み込み
-    // SUITS.forEach((suit) => {
-    //   RANKS.forEach((rank) => {
-    //     this.load.image(`${suit}${rank}`, `/public/assets/images/${suit}${rank}.png`);
-    //   });
-    // });
   }
 
   create(): void {
@@ -156,7 +145,6 @@ export default class SpeedTableScene extends TableScene {
    * カードのドロップイベント作成
    */
   private createCardDropEvent(): void {
-    let cardDepth = 0;
     this.input.on("drop", (pointer: Phaser.Input.Pointer, card: Card, dropZone: Zone) => {
       if (this.canDropCard(card, dropZone)) {
         card.setPosition(dropZone.x, dropZone.y);
@@ -165,8 +153,7 @@ export default class SpeedTableScene extends TableScene {
         this.players[0].removeCardFromHand(card);
         this.replaceDroppedCard(card, 0);
 
-        // カードを最前面に配置し、次のカードがさらに前面に来るようにdepth値を増やす
-        card.setDepth((cardDepth += 1));
+        this.children.bringToTop(card);
 
         const dropZoneIndex = this.dropZones.indexOf(dropZone);
         if (dropZoneIndex !== -1) {
@@ -210,8 +197,7 @@ export default class SpeedTableScene extends TableScene {
         // カード設定
         newCard.makeDraggable();
         newCard.setIsBackSide = false;
-        newCard.setTexture(newCard.getTextureKey);
-        newCard.setScale(0.115);
+        newCard.setTexture("cards", newCard.getTextureKey);
 
         this.players[playerIndex].addCardToHand(newCard);
 
@@ -316,8 +302,7 @@ export default class SpeedTableScene extends TableScene {
       if (newCard) {
         player.addCardToHand(newCard);
         newCard.setIsBackSide = false;
-        newCard.setTexture(newCard.getTextureKey);
-        newCard.setScale(0.115);
+        newCard.setTexture("cards", newCard.getTextureKey);
 
         newCard.moveTo(beforeMoveX, beforeMoveY, 300);
         this.children.bringToTop(newCard);
