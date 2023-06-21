@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-const CARD_SCALE_FRONT = 0.115;
+const CARD_SCALE_FRONT = 0.6;
 const CARD_SCALE_BACK = 0.6;
 
 export default class Card extends Phaser.GameObjects.Image {
@@ -21,7 +21,7 @@ export default class Card extends Phaser.GameObjects.Image {
     textureKey: string,
     isBackSide: boolean
   ) {
-    super(scene, x, y, "cardBack");
+    super(scene, x, y, "cards", "back");
     this.rank = rank;
     this.suit = suit;
     this.textureKey = textureKey;
@@ -36,6 +36,10 @@ export default class Card extends Phaser.GameObjects.Image {
 
   get getRank() {
     return this.rank;
+  }
+
+  get getCardKey(): string {
+    return this.suit + this.rank;
   }
 
   get getTextureKey() {
@@ -60,7 +64,7 @@ export default class Card extends Phaser.GameObjects.Image {
    */
   flipToFront(): void {
     if (this.isBackSide) {
-      this.setTexture(this.textureKey);
+      this.setTexture("cards", this.textureKey);
       this.isBackSide = false;
       this.setScale(CARD_SCALE_FRONT);
     }
@@ -123,7 +127,7 @@ export default class Card extends Phaser.GameObjects.Image {
     switch (gameType) {
       case "blackjack":
         rankToNum = {
-          A: 11,
+          Ace: 11,
           "2": 2,
           "3": 3,
           "4": 4,
@@ -133,14 +137,14 @@ export default class Card extends Phaser.GameObjects.Image {
           "8": 8,
           "9": 9,
           "10": 10,
-          J: 10,
-          Q: 10,
-          K: 10,
+          Jack: 10,
+          Queen: 10,
+          King: 10,
         };
         break;
       case "war":
         rankToNum = {
-          A: 14,
+          Ace: 14,
           "2": 2,
           "3": 3,
           "4": 4,
@@ -150,14 +154,14 @@ export default class Card extends Phaser.GameObjects.Image {
           "8": 8,
           "9": 9,
           "10": 10,
-          J: 11,
-          Q: 12,
-          K: 13,
+          Jack: 11,
+          Queen: 12,
+          King: 13,
         };
         break;
       default:
         rankToNum = {
-          A: 14,
+          Ace: 14,
           "2": 2,
           "3": 3,
           "4": 4,
@@ -167,9 +171,9 @@ export default class Card extends Phaser.GameObjects.Image {
           "8": 8,
           "9": 9,
           "10": 10,
-          J: 11,
-          Q: 12,
-          K: 13,
+          Jack: 11,
+          Queen: 12,
+          King: 13,
         };
         break;
     }
