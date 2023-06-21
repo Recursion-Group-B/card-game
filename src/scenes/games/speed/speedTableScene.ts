@@ -8,8 +8,8 @@ import Player from "../../../models/common/player";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
-const SUITS = ["heart", "diamond", "club", "spade"];
-const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+// const SUITS = ["heart", "diamond", "club", "spade"];
+// const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
 export default class SpeedTableScene extends TableScene {
   private playerDecks: Array<Deck> = [];
@@ -28,15 +28,17 @@ export default class SpeedTableScene extends TableScene {
   }
 
   preload(): void {
+    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
-    this.load.image("cardBack", "/public/assets/images/card_back_red.png");
+
+    // this.load.image("cardBack", "/public/assets/images/card_back_red.png");
 
     // トランプ読み込み
-    SUITS.forEach((suit) => {
-      RANKS.forEach((rank) => {
-        this.load.image(`${suit}${rank}`, `/public/assets/images/${suit}${rank}.png`);
-      });
-    });
+    // SUITS.forEach((suit) => {
+    //   RANKS.forEach((rank) => {
+    //     this.load.image(`${suit}${rank}`, `/public/assets/images/${suit}${rank}.png`);
+    //   });
+    // });
   }
 
   create(): void {
@@ -59,9 +61,9 @@ export default class SpeedTableScene extends TableScene {
     });
   }
 
-  update(): void {
-    console.log("update!!");
-  }
+  // update(): void {
+  //   console.log("update!!");
+  // }
 
   /**
    * カードの初期配置処理
@@ -69,8 +71,8 @@ export default class SpeedTableScene extends TableScene {
   dealCards(): void {
     let dropZonesIndex = 0;
     this.players.forEach((player, index) => {
-      this.dealHandCards(player, index);
-      this.dealLeadCards(player, index, this.dropZones[dropZonesIndex]);
+      this.dealHandCards(player as SpeedPlayer, index);
+      this.dealLeadCards(player as SpeedPlayer, index, this.dropZones[dropZonesIndex]);
       dropZonesIndex += 1;
     });
   }
@@ -83,7 +85,7 @@ export default class SpeedTableScene extends TableScene {
     if (!this.playerDecks[playerIndex].isEmpty()) {
       card = this.playerDecks[playerIndex].draw();
     } else {
-      card = player.getHand.pop();
+      card = (player.getHand as Card[]).pop();
     }
 
     if (card) {
@@ -141,8 +143,8 @@ export default class SpeedTableScene extends TableScene {
    */
   private createPlayerDecks(): void {
     this.playerDecks = [
-      new Deck(this, 920, 620, ["heart", "diamond"]),
-      new Deck(this, 400, 295, ["spade", "club"]),
+      new Deck(this, 920, 620, ["hearts", "diamonds"]),
+      new Deck(this, 400, 295, ["spades", "clubs"]),
     ];
 
     this.playerDecks.forEach((deck) => {
@@ -255,6 +257,9 @@ export default class SpeedTableScene extends TableScene {
    */
   private canPlayCard(player: SpeedPlayer): boolean {
     const hand = player.getHand;
+    if (!hand) {
+      return false;
+    }
     return hand.some((card) =>
       this.dropZoneCards.some((dropCard) =>
         SpeedTableScene.isConsecutiveCard(
@@ -272,20 +277,23 @@ export default class SpeedTableScene extends TableScene {
     player: SpeedPlayer
   ): [Card | undefined, number | undefined, number | undefined] {
     const hand = player.getHand;
-    for (let i = 0; i < hand.length; i += 1) {
-      const currCard = hand[i];
-      for (let dropZoneIndex = 0; dropZoneIndex < this.dropZoneCards.length; dropZoneIndex += 1) {
-        if (
-          SpeedTableScene.isConsecutiveCard(
-            currCard.getRankNumber("speed"),
-            this.dropZoneCards[dropZoneIndex].getRankNumber("speed")
-          )
-        ) {
-          player.removeCardFromHand(currCard);
-          return [currCard, this.dropZones[dropZoneIndex].x, this.dropZones[dropZoneIndex].y];
+    if (hand) {
+      for (let i = 0; i < hand.length; i += 1) {
+        const currCard = hand[i];
+        for (let dropZoneIndex = 0; dropZoneIndex < this.dropZoneCards.length; dropZoneIndex += 1) {
+          if (
+            SpeedTableScene.isConsecutiveCard(
+              currCard.getRankNumber("speed"),
+              this.dropZoneCards[dropZoneIndex].getRankNumber("speed")
+            )
+          ) {
+            player.removeCardFromHand(currCard);
+            return [currCard, this.dropZones[dropZoneIndex].x, this.dropZones[dropZoneIndex].y];
+          }
         }
       }
     }
+
     return [undefined, undefined, undefined];
   }
 

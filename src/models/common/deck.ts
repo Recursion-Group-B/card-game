@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import Card from "./card";
 
-const SUITS = ["heart", "diamond", "club", "spade"];
-const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const SUITS = ["hearts", "diamonds", "clubs", "spades"];
+const RANKS = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
 
 export default class Deck {
   private cards: Array<Card> = [];
@@ -29,7 +29,18 @@ export default class Deck {
     }
   }
 
-  draw(): Card | undefined {
+  draw(): Card | undefined;
+  draw(amount: number): Card[] | undefined;
+  draw(amount?: number): Card | Card[] | undefined {
+    // 複数枚ドロー
+    if ((amount as number) > 0) {
+      const cardList = Array(amount)
+        .fill(null)
+        .map(() => this.cards.pop());
+      return cardList as Card[];
+    }
+
+    // 1枚ドロー
     return this.cards.pop();
   }
 

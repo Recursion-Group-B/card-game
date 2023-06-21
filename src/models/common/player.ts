@@ -1,4 +1,5 @@
 import Card from "./card";
+import { HandScore } from "../games/poker/type";
 
 export default abstract class Player {
   private name: string;
@@ -7,9 +8,9 @@ export default abstract class Player {
 
   private chips: number;
 
-  private bet: number;
+  private bet: number | undefined;
 
-  private hand: Array<Card> = [];
+  private hand: Array<Card> | undefined = [];
 
   constructor(name: string, playerType: string, chips: number, bet: number) {
     this.name = name;
@@ -30,6 +31,10 @@ export default abstract class Player {
     return this.chips;
   }
 
+  set setHand(cards: Card[] | undefined) {
+    (this.hand as Card[] | undefined) = cards;
+  }
+
   get getHand() {
     return this.hand;
   }
@@ -47,15 +52,17 @@ export default abstract class Player {
   }
 
   addCardToHand(card: Card) {
-    this.hand.push(card);
+    (this.hand as Card[]).push(card);
   }
 
   removeCardFromHand(card: Card): void {
-    const index = this.hand.findIndex((handCard) => handCard === card);
-    if (index !== -1) {
-      this.hand.splice(index, 1);
-    } else {
-      throw new Error("Card not found in hand.");
+    if (this.hand) {
+      const index = this.hand.findIndex((handCard) => handCard === card);
+      if (index !== -1) {
+        this.hand?.splice(index, 1);
+      } else {
+        throw new Error("Card not found in hand.");
+      }
     }
   }
 
