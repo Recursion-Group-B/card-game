@@ -4,6 +4,7 @@ import Card from "../../../models/common/card";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
+import Player from "../../../models/common/player";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -45,6 +46,17 @@ export default class SpeedTableScene extends TableScene {
     this.createCardDropEvent();
     this.createPlayerDecks();
     this.dealCards();
+
+    // CPUのゲームループ
+    // TODD 難易度によってdelayの感覚を短くする
+    this.time.delayedCall(7000, () => {
+      this.time.addEvent({
+        delay: 5000,
+        callback: this.playCpu,
+        callbackScope: this,
+        loop: true,
+      });
+    });
   }
 
   update(): void {
@@ -187,7 +199,7 @@ export default class SpeedTableScene extends TableScene {
   }
 
   /**
-   * ドロップしたカードの位置に新しいカードを配置
+   * ドロップしたカードの元いた位置に新しいカードを配置
    */
   replaceDroppedCard(droppedCard: Card, playerIndex: number): void {
     if (this.playerDecks[playerIndex].getDeckSize() > 0) {
@@ -215,6 +227,98 @@ export default class SpeedTableScene extends TableScene {
   private static isConsecutiveCard(rank1: number, rank2: number): boolean {
     const diff = Math.abs(rank1 - rank2);
     return diff === 1 || diff === 12;
+  }
+
+  /**
+   * CPUのゲーム進行
+   */
+  private playCpu(): void {
+    // CPUが出せるカードがあるかチェック
+    if (this.canPlayCard(this.players[1])) {
+      console.log("CPUは出せるカードがあります");
+
+      // 出せるカードを取得
+      // 移動先の台札の座標を取得
+      const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(this.players[1]);
+
+      // カードを出す
+      if (dropCard && toX && toY) {
+        console.log(this.players[1].getHand);
+        this.moveCardHandToLead(dropCard, toX, toY);
+        console.log(this.players[1].getHand);
+      }
+    }
+  }
+
+  /**
+   * 手札に出せるカードがあるかチェック
+   */
+  private canPlayCard(player: SpeedPlayer): boolean {
+    const hand = player.getHand;
+    return hand.some((card) =>
+      this.dropZoneCards.some((dropCard) =>
+        SpeedTableScene.isConsecutiveCard(
+          card.getRankNumber("speed"),
+          dropCard.getRankNumber("speed")
+        )
+      )
+    );
+  }
+
+  /**
+   * 配置するカードと配置する座標の取得
+   */
+  private getAvailableCardAndCoordinate(
+    player: SpeedPlayer
+  ): [Card | undefined, number | undefined, number | undefined] {
+    const hand = player.getHand;
+    for (let i = 0; i < hand.length; i += 1) {
+      const currCard = hand[i];
+      for (let dropZoneIndex = 0; dropZoneIndex < this.dropZoneCards.length; dropZoneIndex += 1) {
+        if (
+          SpeedTableScene.isConsecutiveCard(
+            currCard.getRankNumber("speed"),
+            this.dropZoneCards[dropZoneIndex].getRankNumber("speed")
+          )
+        ) {
+          player.removeCardFromHand(currCard);
+          return [currCard, this.dropZones[dropZoneIndex].x, this.dropZones[dropZoneIndex].y];
+        }
+      }
+    }
+    return [undefined, undefined, undefined];
+  }
+
+  /**
+   * 手札から台札にカードを移動する
+   * ※基本CPUしか使わない
+   */
+  private moveCardHandToLead(card: Card, toX: number, toY: number): void {
+    const playerDeck = this.playerDecks[1];
+    const player = this.players[1];
+
+    const beforeMoveX = card.x;
+    const beforeMoveY = card.y;
+
+    card.moveTo(toX, toY, 300);
+
+    // カードを手札に補充する
+    if (playerDeck.getDeckSize() > 0) {
+      const newCard = playerDeck.draw();
+      if (newCard) {
+        player.addCardToHand(newCard);
+        newCard.setIsBackSide = false;
+        newCard.setTexture(newCard.getTextureKey);
+        newCard.setScale(0.115);
+
+        newCard.moveTo(beforeMoveX, beforeMoveY, 300);
+        this.children.bringToTop(newCard);
+
+        // TODO dropZoneCardsを更新する
+        console.log(this.dropZoneCards[0]);
+        console.log(this.dropZoneCards[1]);
+      }
+    }
   }
 
   /**
