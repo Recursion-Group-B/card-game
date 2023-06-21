@@ -42,6 +42,10 @@ export default class Card extends Phaser.GameObjects.Image {
     return this.textureKey;
   }
 
+  set setIsBackSide(isBackSideVisible: boolean) {
+    this.isBackSide = isBackSideVisible;
+  }
+
   /**
    * 指定の位置まで移動するアニメーション
    */

@@ -50,5 +50,14 @@ export default abstract class Player {
     this.hand.push(card);
   }
 
+  removeCardFromHand(card: Card): void {
+    const index = this.hand.findIndex((handCard) => handCard === card);
+    if (index !== -1) {
+      this.hand.splice(index, 1);
+    } else {
+      throw new Error("Card not found in hand.");
+    }
+  }
+
   abstract calculateHandScore(): number;
 }

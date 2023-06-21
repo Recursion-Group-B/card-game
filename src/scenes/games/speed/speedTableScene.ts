@@ -15,7 +15,7 @@ export default class SpeedTableScene extends TableScene {
 
   private dropZones: Array<Zone> = [];
 
-  private dropZoneCards: Array<Card> = []; // [右側の台札Card, 左がの台札Card]
+  private dropZoneCards: Array<Card> = []; // [右側の台札Card, 左側の台札Card]
 
   constructor() {
     super({});
@@ -40,19 +40,11 @@ export default class SpeedTableScene extends TableScene {
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-
-    // Zoneをクリックできるように設定
     this.createGameZone();
     this.createDropZones();
-
     this.createCardDropEvent();
-
     this.createPlayerDecks();
     this.dealCards();
-
-    // デバッグ
-    console.log(this.dropZoneCards[0].getRank);
-    console.log(this.dropZoneCards[1].getRank);
   }
 
   update(): void {
@@ -151,11 +143,13 @@ export default class SpeedTableScene extends TableScene {
    */
   private createCardDropEvent(): void {
     let cardDepth = 0;
-
     this.input.on("drop", (pointer: Phaser.Input.Pointer, card: Card, dropZone: Zone) => {
       if (this.canDropCard(card, dropZone)) {
         card.setPosition(dropZone.x, dropZone.y);
         card.disableInteractive();
+
+        this.players[0].removeCardFromHand(card);
+        this.replaceDroppedCard(card, 0);
 
         // カードを最前面に配置し、次のカードがさらに前面に来るようにdepth値を増やす
         card.setDepth((cardDepth += 1));
@@ -190,6 +184,29 @@ export default class SpeedTableScene extends TableScene {
     });
 
     return canDropCardFlag;
+  }
+
+  /**
+   * ドロップしたカードの位置に新しいカードを配置
+   */
+  replaceDroppedCard(droppedCard: Card, playerIndex: number): void {
+    if (this.playerDecks[playerIndex].getDeckSize() > 0) {
+      const newCard = this.playerDecks[playerIndex].draw();
+      if (newCard) {
+        // カード設定
+        newCard.makeDraggable();
+        newCard.setIsBackSide = false;
+        newCard.setTexture(newCard.getTextureKey);
+        newCard.setScale(0.115);
+
+        this.players[playerIndex].addCardToHand(newCard);
+
+        // 移動先の座標を取得
+        const toX = droppedCard.input?.dragStartX;
+        const toY = droppedCard.input?.dragStartY;
+        if (toX && toY) newCard?.moveTo(toX, toY, 300);
+      }
+    }
   }
 
   /**
