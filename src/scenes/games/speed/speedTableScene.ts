@@ -295,6 +295,18 @@ export default class SpeedTableScene extends TableScene {
     const beforeMoveY = card.y;
 
     card.moveTo(toX, toY, 300);
+    this.children.bringToTop(card);
+
+    // Determine the dropZone based on toX and toY coordinates
+    const targetDropZone = this.dropZones.find(
+      (dropZone) => dropZone.x === toX && dropZone.y === toY
+    );
+    if (targetDropZone) {
+      const dropZoneIndex = this.dropZones.indexOf(targetDropZone);
+      if (dropZoneIndex !== -1) {
+        this.dropZoneCards[dropZoneIndex] = card;
+      }
+    }
 
     // カードを手札に補充する
     if (playerDeck.getDeckSize() > 0) {
@@ -305,11 +317,10 @@ export default class SpeedTableScene extends TableScene {
         newCard.setTexture("cards", newCard.getTextureKey);
 
         newCard.moveTo(beforeMoveX, beforeMoveY, 300);
-        this.children.bringToTop(newCard);
 
         // TODO dropZoneCardsを更新する
-        console.log(this.dropZoneCards[0]);
-        console.log(this.dropZoneCards[1]);
+        console.log(this.dropZoneCards[0].getRank);
+        console.log(this.dropZoneCards[1].getRank);
       }
     }
   }

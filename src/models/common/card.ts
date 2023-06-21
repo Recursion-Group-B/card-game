@@ -102,6 +102,7 @@ export default class Card extends Phaser.GameObjects.Image {
       this.setDepth(Number.MAX_SAFE_INTEGER);
       startX = this.x;
       startY = this.y;
+      this.scene.children.bringToTop(this);
     });
 
     // ドラッグ中のイベント
