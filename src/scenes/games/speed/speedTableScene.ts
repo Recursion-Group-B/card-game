@@ -4,6 +4,7 @@ import Card from "../../../models/common/card";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
+import TimeEvent = Phaser.Time.TimerEvent;
 import Player from "../../../models/common/player";
 
 const D_WIDTH = 1320;
@@ -15,6 +16,10 @@ export default class SpeedTableScene extends TableScene {
   private dropZones: Array<Zone> = [];
 
   private dropZoneCards: Array<Card> = []; // [右側の台札Card, 左側の台札Card]
+
+  private cpuPlayTimeEvent: TimeEvent | undefined;
+
+  private stallCheckTimeEvent: TimeEvent | undefined;
 
   constructor() {
     super({});
@@ -41,18 +46,30 @@ export default class SpeedTableScene extends TableScene {
     // CPUのゲームループ
     // TODD 難易度によってdelayの感覚を短くする
     this.time.delayedCall(7000, () => {
-      this.time.addEvent({
-        delay: 5000,
+      this.cpuPlayTimeEvent = this.time.addEvent({
+        delay: 4000,
         callback: this.playCpu,
+        callbackScope: this,
+        loop: true,
+      });
+    });
+
+    // ゲーム停滞時のカード配布
+    this.time.delayedCall(7000, () => {
+      this.stallCheckTimeEvent = this.time.addEvent({
+        delay: 5000,
+        callback: this.checkGameStallAndDrawCard,
         callbackScope: this,
         loop: true,
       });
     });
   }
 
-  // update(): void {
-  //   console.log("update!!");
-  // }
+  //   update(): void {
+  //     console.log("update!!");
+  //     console.log(this.dropZoneCards[0].getRank);
+  //     console.log(this.dropZoneCards[1].getRank);
+  //   }
 
   /**
    * カードの初期配置処理
@@ -80,8 +97,9 @@ export default class SpeedTableScene extends TableScene {
     if (card) {
       const animationDuration = 600;
       card.moveTo(dropZone.x, dropZone.y, animationDuration);
+      this.children.bringToTop(card);
 
-      this.dropZoneCards.push(card);
+      this.dropZoneCards[playerIndex] = card;
 
       // カードを裏返す
       this.time.delayedCall(1500, () => {
@@ -231,9 +249,7 @@ export default class SpeedTableScene extends TableScene {
 
       // カードを出す
       if (dropCard && toX && toY) {
-        console.log(this.players[1].getHand);
         this.moveCardHandToLead(dropCard, toX, toY);
-        console.log(this.players[1].getHand);
       }
     }
   }
@@ -318,10 +334,35 @@ export default class SpeedTableScene extends TableScene {
 
         newCard.moveTo(beforeMoveX, beforeMoveY, 300);
 
-        // TODO dropZoneCardsを更新する
+        console.log("現在の台札");
         console.log(this.dropZoneCards[0].getRank);
         console.log(this.dropZoneCards[1].getRank);
       }
+    }
+  }
+
+  private checkGameStallAndDrawCard(): void {
+    if (!this.canPlayCard(this.players[0]) && !this.canPlayCard(this.players[1])) {
+      console.log("ゲームが停滞したのでdealLeadCardsを実行");
+      // capプレイ停止
+      this.cpuPlayTimeEvent?.remove();
+
+      // 台札にカードをセット
+      let dropZonesIndex = 0;
+      this.players.forEach((player, index) => {
+        this.dealLeadCards(player, index, this.dropZones[dropZonesIndex]);
+        dropZonesIndex += 1;
+      });
+
+      // cpuプレイ再開
+      this.time.delayedCall(3000, () => {
+        this.cpuPlayTimeEvent = this.time.addEvent({
+          delay: 4000,
+          callback: this.playCpu,
+          callbackScope: this,
+          loop: true,
+        });
+      });
     }
   }
 
