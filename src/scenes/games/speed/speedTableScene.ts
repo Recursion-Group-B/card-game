@@ -25,6 +25,8 @@ export default class SpeedTableScene extends TableScene {
 
   private result: string | undefined; // WIN or LOSE or DRAW
 
+  private isCountDown: boolean | undefined;
+
   constructor() {
     super({});
 
@@ -417,7 +419,11 @@ export default class SpeedTableScene extends TableScene {
       // インターバルの後にカウントダウン開始とCPUプレイ再開
       this.time.delayedCall(2000, () => {
         this.setInitialTime = 2;
+        this.isCountDown = true;
         this.startCountDownEvent();
+
+        // 既存の delayedCall があればクリアします
+        this.cpuPlayTimeEvent?.remove();
 
         // cpuプレイ再開
         this.time.delayedCall(3000, () => {
