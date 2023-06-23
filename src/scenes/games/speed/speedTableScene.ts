@@ -21,6 +21,8 @@ export default class SpeedTableScene extends TableScene {
 
   private stallCheckTimeEvent: TimeEvent | undefined;
 
+  private countDownEvent: TimeEvent | undefined;
+
   constructor() {
     super({});
 
@@ -42,6 +44,11 @@ export default class SpeedTableScene extends TableScene {
     this.createCardDropEvent();
     this.createPlayerDecks();
     this.dealCards();
+
+    // ゲームのカウントダウン
+    this.time.delayedCall(3000, () => {
+      this.startCountDownEvent();
+    });
 
     // CPUのゲームループ
     // TODD 難易度によってdelayの感覚を短くする
@@ -131,9 +138,6 @@ export default class SpeedTableScene extends TableScene {
       const card = this.playerDecks[playerIndex].draw();
 
       if (card) {
-        if (player.getPlayerType === "player") {
-          card.makeDraggable();
-        }
         player.addCardToHand(card);
         card.moveTo(startPosX + i * cardInterval * direction, startPosY, i * animationDelay);
 
@@ -143,6 +147,46 @@ export default class SpeedTableScene extends TableScene {
         });
       }
     }
+  }
+
+  /**
+   * カウントダウンイベントを開始
+   */
+  private startCountDownEvent(): void {
+    this.createCountDownText();
+    this.changeCardDraggable(false);
+
+    this.countDownEvent = this.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        this.countDownCallback(() => {
+          if (this.countDownEvent) {
+            this.countDownEvent.remove();
+            this.changeCardDraggable(true);
+          }
+        });
+      },
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  /**
+   * カードのドラッグを有効/無効にするメソッド。
+   * プレイヤー以外には適用しない
+   */
+  private changeCardDraggable(draggable: boolean): void {
+    this.players.forEach((player) => {
+      if (player.getPlayerType === "player") {
+        player.getHand?.forEach((card) => {
+          if (draggable) {
+            card.makeDraggable();
+          } else {
+            card.disableInteractive();
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -313,7 +357,7 @@ export default class SpeedTableScene extends TableScene {
     card.moveTo(toX, toY, 300);
     this.children.bringToTop(card);
 
-    // Determine the dropZone based on toX and toY coordinates
+    // toX座標とtoY座標に基づいてドロップゾーンを決定する
     const targetDropZone = this.dropZones.find(
       (dropZone) => dropZone.x === toX && dropZone.y === toY
     );
@@ -354,13 +398,20 @@ export default class SpeedTableScene extends TableScene {
         dropZonesIndex += 1;
       });
 
-      // cpuプレイ再開
-      this.time.delayedCall(3000, () => {
-        this.cpuPlayTimeEvent = this.time.addEvent({
-          delay: 4000,
-          callback: this.playCpu,
-          callbackScope: this,
-          loop: true,
+      // インターバルの後にカウントダウン開始とCPUプレイ再開
+      this.time.delayedCall(2000, () => {
+        // カウントダウン開始
+        this.setInitialTime = 2;
+        this.startCountDownEvent();
+
+        // cpuプレイ再開
+        this.time.delayedCall(3000, () => {
+          this.cpuPlayTimeEvent = this.time.addEvent({
+            delay: 4000,
+            callback: this.playCpu,
+            callbackScope: this,
+            loop: true,
+          });
         });
       });
     }
