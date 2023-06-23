@@ -144,7 +144,7 @@ export default class PokerTableScene extends TableScene {
    */
   changeCards(): void {
     const change = this.add
-      .text(400, 800, "Change")
+      .text(400, 700, "Change")
       .setFontSize(20)
       .setFontFamily("Arial")
       .setOrigin(0.5)
@@ -178,7 +178,7 @@ export default class PokerTableScene extends TableScene {
    */
   compareCards(): void {
     const compare = this.add
-      .text(500, 800, "Compare")
+      .text(500, 700, "Compare")
       .setFontSize(20)
       .setFontFamily("Arial")
       .setOrigin(0.5)
@@ -213,7 +213,7 @@ export default class PokerTableScene extends TableScene {
 
   init(): void {
     const init = this.add
-      .text(600, 800, "Restart")
+      .text(600, 700, "Restart")
       .setFontSize(20)
       .setFontFamily("Arial")
       .setOrigin(0.5)
@@ -227,9 +227,13 @@ export default class PokerTableScene extends TableScene {
           (child) =>
             (child as Card) instanceof Card || (child as Phaser.GameObjects.Text).name === "winner"
         );
-        console.log(destroyList);
         destroyList.forEach((element) => {
           element.destroy();
+        });
+
+        // プレイヤーのデータを初期化
+        this.players.forEach((player) => {
+          (player as PokerPlayer).init();
         });
 
         // 新しくデッキを組む

@@ -49,6 +49,14 @@ export default class PokerPlayer extends Player {
     this.addCardToHand(addCards);
   }
 
+  init(): void {
+    this.rankDict.clear();
+    this.suitDict.clear();
+    this.handScore.role = 0;
+    this.handScore.highCard = 0;
+    this.handList = undefined;
+  }
+
   /**
    * 判定のため、Mapオブジェクト作成
    *  */
