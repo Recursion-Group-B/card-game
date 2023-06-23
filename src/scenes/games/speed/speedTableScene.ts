@@ -23,7 +23,7 @@ export default class SpeedTableScene extends TableScene {
 
   private countDownEvent: TimeEvent | undefined;
 
-  private result: string | undefined; // win or lose or draw
+  private result: string | undefined; // WIN or LOSE or DRAW
 
   constructor() {
     super({});
@@ -82,9 +82,13 @@ export default class SpeedTableScene extends TableScene {
       this.stallCheckTimeEvent?.remove();
       this.countDownEvent?.remove();
 
-      // TODO ゲームの結果画面出力
-      console.log(this.result);
-      //this.displayResult();
+      // ゲームresult画面
+      if (this.result) {
+        this.displayResult(this.result, 0);
+
+        // TODO result画面のBGM設定
+        // TODO chipやスコアの更新
+      }
     }
   }
 
@@ -445,7 +449,7 @@ export default class SpeedTableScene extends TableScene {
       this.result = "win";
       this.gameState = "endGame";
     } else {
-      this.result = "loss";
+      this.result = "lose";
       this.gameState = "endGame";
     }
   }

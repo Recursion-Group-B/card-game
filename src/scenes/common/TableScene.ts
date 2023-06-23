@@ -88,6 +88,58 @@ export default abstract class TableScene extends Phaser.Scene {
   }
 
   /**
+   * リザルト画面表示
+   * TODO 取得したお金も表示できた方が良いかも
+   * TODO デザインも後々直したい
+   */
+  protected displayResult(result: string, winAmount: number): void {
+    const resultColor = "#ff0";
+    const backgroundColor = "rgba(0,0,0,0.5)";
+
+    let resultMessage = "";
+    switch (result) {
+      case "win":
+        resultMessage = "YOU WIN!!";
+        break;
+      case "lose":
+        resultMessage = "YOU LOSE...";
+        break;
+      default:
+        resultMessage = "DRAW";
+    }
+
+    const resultStyle = {
+      font: "bold 60px Arial",
+      fill: resultColor,
+      stroke: "#000000",
+      strokeThickness: 9,
+      boundsAlignH: "center",
+      boundsAlignV: "middle",
+      backgroundColor,
+      padding: {
+        top: 15,
+        bottom: 15,
+        left: 15,
+        right: 15,
+      },
+      borderRadius: 10,
+    };
+
+    // テキストオブジェクトを作成
+    const resultText = this.add.text(0, 0, resultMessage, resultStyle);
+
+    Phaser.Display.Align.In.Center(
+      resultText,
+      this.add.zone(
+        this.cameras.main.width / 2,
+        this.cameras.main.height / 2,
+        this.cameras.main.width,
+        this.cameras.main.height
+      )
+    );
+  }
+
+  /**
    * TODO ゲームサイズなどは後々決めましょう
    */
   protected createGameZone(): void {
