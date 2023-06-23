@@ -1,8 +1,10 @@
+import "../../../style.scss";
 import Phaser from "phaser";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
 import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import TableScene from "../../common/TableScene";
+import { HandScore } from "../../../models/games/poker/type";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -37,10 +39,6 @@ export default class PokerTableScene extends TableScene {
     });
   }
 
-  change(amount: number): Card[] | undefined {
-    return (this.deck as Deck).draw(amount);
-  }
-
   get getAllHand(): Card[][] {
     return this.players.map((player) => player.getHand as Card[]);
   }
@@ -64,22 +62,183 @@ export default class PokerTableScene extends TableScene {
   }
 
   makeDeck() {
-    this.deck = new Deck(this, 400, 300);
+    this.deck = new Deck(this, 650, 450);
+    this.deck.shuffle();
   }
 
   /**
-   * phaser3
+   * phaser3 画像ロード
    */
   preload() {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
   }
 
+  /**
+   * phaser3 描画
+   */
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-    this.makeDeck();
 
-    console.log(this.deck?.getCards());
+    this.makeDeck();
+    this.dealCards();
+    this.dealHand();
+
+    this.clickToUp();
+    this.changeCards();
+    this.compareCards();
+    this.init();
+  }
+
+  /**
+   * 手札配布
+   */
+  dealHand() {
+    const playerPositionX = 400;
+    const playerPositionY = 600;
+    const cpuPositionX = 400;
+    const cpuPositionY = 300;
+    const cardSize = {
+      x: 100,
+      y: 150,
+    };
+
+    this.players.forEach((player) => {
+      console.log(player.getHand);
+      player.getHand?.forEach((card, index) => {
+        if (player.getPlayerType === "player") {
+          card.moveTo(playerPositionX + index * cardSize.x, playerPositionY, 500);
+          setTimeout(() => card.flipToFront(), 800);
+          card.setInteractive();
+        } else if (player.getPlayerType === "cpu") {
+          card.moveTo(cpuPositionX + index * cardSize.x, cpuPositionY, 500);
+        }
+      });
+    });
+  }
+
+  /**
+   * クリック時にポップアップするアニメーション
+   */
+  clickToUp(): void {
+    this.input.on("gameobjectdown", (pointer: Phaser.Input.Pointer, gameObject: Card) => {
+      // Cardオブジェクト以外無効
+      if (!(gameObject instanceof Card)) return;
+      if (!gameObject.getClickStatus) {
+        this.tweens.add({
+          targets: gameObject,
+          y: { value: gameObject.y - 10, ease: "Power4" },
+        });
+      } else {
+        this.tweens.add({
+          targets: gameObject,
+          y: { value: gameObject.y + 10, ease: "Power4" },
+        });
+      }
+      (gameObject as Card).toggleClickStatus();
+    });
+  }
+
+  /**
+   * チェンジ
+   */
+  changeCards(): void {
+    const change = this.add
+      .text(400, 800, "Change")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    change.on(
+      "pointerdown",
+      function changeCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        this.players.forEach((player) => {
+          // data
+          const changeList = (player.getHand as Card[]).filter(
+            (child) => (child as Card).getClickStatus === true
+          ) as Card[];
+          if (changeList.length)
+            (player as PokerPlayer).change(
+              changeList,
+              (this.deck as Deck).draw(changeList.length) as Card[]
+            );
+
+          // phaser描画
+          changeList.forEach((card) => card.destroy());
+          this.dealHand();
+        });
+      },
+      this
+    );
+  }
+
+  /**
+   * 手札を比較する
+   */
+  compareCards(): void {
+    const compare = this.add
+      .text(500, 800, "Compare")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    const handScoreList: HandScore[] = [];
+    const scoreList: number[] = [];
+
+    compare.on(
+      "pointerdown",
+      function compareCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        this.players.forEach((player) => {
+          // ハンドを表へ
+          player.getHand?.forEach((card) => {
+            card.flipToFront();
+          });
+          const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
+          console.log(handScore.role);
+          handScoreList.push(handScore);
+          scoreList.push(handScore.role);
+        });
+
+        const max = Math.max(...scoreList);
+        const winner = this.players[handScoreList.findIndex((score) => score.role === max)];
+        this.add
+          .text(400, 400, `${winner.getName}`, { fontFamily: "Arial Black", fontSize: 80 })
+          .setName("winner");
+      },
+      this
+    );
+  }
+
+  init(): void {
+    const init = this.add
+      .text(600, 800, "Restart")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    init.on(
+      "pointerdown",
+      function initGame(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        // カードオブジェクト削除
+        const destroyList = this.children.list.filter(
+          (child) =>
+            (child as Card) instanceof Card || (child as Phaser.GameObjects.Text).name === "winner"
+        );
+        console.log(destroyList);
+        destroyList.forEach((element) => {
+          element.destroy();
+        });
+
+        // 新しくデッキを組む
+        this.makeDeck();
+        this.dealCards();
+        this.dealHand();
+      },
+      this
+    );
   }
 }
 

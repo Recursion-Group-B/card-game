@@ -26,6 +26,10 @@ export default class PokerPlayer extends Player {
     return this.suitDict;
   }
 
+  get getHandList() {
+    return this.handList;
+  }
+
   get getRankDict() {
     return this.rankDict;
   }
@@ -40,11 +44,15 @@ export default class PokerPlayer extends Player {
     this.setHand = undefined;
   }
 
+  change(deleteCards: Card[], addCards: Card[]) {
+    this.deleteCardsToHand(deleteCards);
+    this.addCardToHand(addCards);
+  }
+
   /**
    * 判定のため、Mapオブジェクト作成
-   * Map<key, 枚数>
    *  */
-  makeDict(): void {
+  private makeDict(): void {
     (this.getHand as Card[]).forEach((card) => {
       // suit
       if (this.suitDict.has(card.getSuit)) {
@@ -59,17 +67,16 @@ export default class PokerPlayer extends Player {
     });
   }
 
-  handSort(): number[][] {
+  private handSort(): number[][] {
     const sortDict = [...this.rankDict].sort((a, b) => a[0] - b[0]);
     return sortDict;
   }
 
-  get getHandList() {
-    return this.handList;
-  }
-
-  // 連続判定
-  hasChainRank(): boolean {
+  /**
+   * 連続判定
+   * @returns: boolean
+   */
+  private hasChainRank(): boolean {
     const rankList = Array.from(this.handList as number[][], (ele) => ele[0]);
     const compareList = Array(5)
       .fill(Math.min(...rankList))
@@ -77,8 +84,13 @@ export default class PokerPlayer extends Player {
     return rankList.every((ele) => compareList.includes(ele));
   }
 
-  // ペア判定
-  hasPair(pairNum: number, type?: string): boolean {
+  /**
+   * ペア判定
+   * @param pairNum: ペアとなるランク
+   * @param type: 役の文字列型
+   * @returns boolean
+   */
+  private hasPair(pairNum: number, type?: string): boolean {
     if (type === "twoPair") {
       const pair = (this.handList as number[][]).filter((ele) => ele[1] === pairNum);
       return pair.length === 2;
@@ -88,6 +100,10 @@ export default class PokerPlayer extends Player {
     return (this.handList as number[][]).some((ele) => ele[1] === pairNum);
   }
 
+  /**
+   * 自分のハンドのスコアを取得する
+   * @returns: HandScore
+   */
   calculateHandScore(): HandScore {
     this.makeDict();
     this.handList = this.handSort();
