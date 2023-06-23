@@ -5,7 +5,6 @@ import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
-import Player from "../../../models/common/player";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -24,8 +23,6 @@ export default class SpeedTableScene extends TableScene {
   private countDownEvent: TimeEvent | undefined;
 
   private result: string | undefined; // WIN or LOSE or DRAW
-
-  private isCountDown: boolean | undefined;
 
   constructor() {
     super({});
@@ -299,12 +296,7 @@ export default class SpeedTableScene extends TableScene {
    * CPUのゲーム進行
    */
   private playCpu(): void {
-    // CPUが出せるカードがあるかチェック
     if (this.canPlayCard(this.players[1])) {
-      console.log("CPUは出せるカードがあります");
-
-      // 出せるカードを取得
-      // 移動先の台札の座標を取得
       const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(this.players[1]);
 
       // カードを出す
@@ -393,10 +385,6 @@ export default class SpeedTableScene extends TableScene {
         newCard.setTexture("cards", newCard.getTextureKey);
 
         newCard.moveTo(beforeMoveX, beforeMoveY, 300);
-
-        console.log("現在の台札");
-        console.log(this.dropZoneCards[0].getRank);
-        console.log(this.dropZoneCards[1].getRank);
       }
     }
   }
@@ -419,7 +407,6 @@ export default class SpeedTableScene extends TableScene {
       // インターバルの後にカウントダウン開始とCPUプレイ再開
       this.time.delayedCall(2000, () => {
         this.setInitialTime = 2;
-        this.isCountDown = true;
         this.startCountDownEvent();
 
         // 既存の delayedCall があればクリアします
@@ -466,9 +453,6 @@ export default class SpeedTableScene extends TableScene {
   private createDropZones(): void {
     const PLAYER_ZONE_OFFSET = 80;
 
-    // Graphicsオブジェクトの作成
-    const graphics = this.add.graphics();
-
     this.dropZones = [];
     this.players.forEach((player) => {
       const dropZone = this.add.zone(0, 0, 140 * 1.5, 190 * 1.5).setRectangleDropZone(140, 190);
@@ -479,8 +463,6 @@ export default class SpeedTableScene extends TableScene {
       } else if (player.getPlayerType === "cpu") {
         Phaser.Display.Align.In.Center(dropZone, this.gameZone as GameObject, -PLAYER_ZONE_OFFSET);
       }
-
-      dropZone.setInteractive().on("pointerdown", () => console.log("Zone clicked!"));
       this.dropZones.push(dropZone);
     });
   }
