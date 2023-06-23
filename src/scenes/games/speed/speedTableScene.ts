@@ -23,6 +23,8 @@ export default class SpeedTableScene extends TableScene {
 
   private countDownEvent: TimeEvent | undefined;
 
+  private result: string | undefined; // win or lose or draw
+
   constructor() {
     super({});
 
@@ -72,11 +74,19 @@ export default class SpeedTableScene extends TableScene {
     });
   }
 
-  //   update(): void {
-  //     console.log("update!!");
-  //     console.log(this.dropZoneCards[0].getRank);
-  //     console.log(this.dropZoneCards[1].getRank);
-  //   }
+  update(): void {
+    this.checkResult();
+
+    if (this.gameState === "endGame") {
+      this.cpuPlayTimeEvent?.remove();
+      this.stallCheckTimeEvent?.remove();
+      this.countDownEvent?.remove();
+
+      // TODO ゲームの結果画面出力
+      console.log(this.result);
+      //this.displayResult();
+    }
+  }
 
   /**
    * カードの初期配置処理
@@ -154,7 +164,6 @@ export default class SpeedTableScene extends TableScene {
    */
   private startCountDownEvent(): void {
     this.createCountDownText();
-    this.changeCardDraggable(false);
 
     this.countDownEvent = this.time.addEvent({
       delay: 1000,
@@ -182,6 +191,7 @@ export default class SpeedTableScene extends TableScene {
           if (draggable) {
             card.makeDraggable();
           } else {
+            card.setPosition(card.x, card.y);
             card.disableInteractive();
           }
         });
@@ -302,7 +312,7 @@ export default class SpeedTableScene extends TableScene {
    * 手札に出せるカードがあるかチェック
    */
   private canPlayCard(player: SpeedPlayer): boolean {
-    const hand = player.getHand;
+    const hand = player.getHand as Card[];
     if (!hand) {
       return false;
     }
@@ -322,7 +332,7 @@ export default class SpeedTableScene extends TableScene {
   private getAvailableCardAndCoordinate(
     player: SpeedPlayer
   ): [Card | undefined, number | undefined, number | undefined] {
-    const hand = player.getHand;
+    const hand = player.getHand as Card[];
     if (hand) {
       for (let i = 0; i < hand.length; i += 1) {
         const currCard = hand[i];
@@ -387,7 +397,9 @@ export default class SpeedTableScene extends TableScene {
 
   private checkGameStallAndDrawCard(): void {
     if (!this.canPlayCard(this.players[0]) && !this.canPlayCard(this.players[1])) {
-      console.log("ゲームが停滞したのでdealLeadCardsを実行");
+      // カードのドラッグ不可
+      this.changeCardDraggable(false);
+
       // capプレイ停止
       this.cpuPlayTimeEvent?.remove();
 
@@ -400,7 +412,6 @@ export default class SpeedTableScene extends TableScene {
 
       // インターバルの後にカウントダウン開始とCPUプレイ再開
       this.time.delayedCall(2000, () => {
-        // カウントダウン開始
         this.setInitialTime = 2;
         this.startCountDownEvent();
 
@@ -414,6 +425,28 @@ export default class SpeedTableScene extends TableScene {
           });
         });
       });
+    }
+  }
+
+  /**
+   * 勝敗判定
+   */
+  private checkResult(): void {
+    const playerHandScore: number = this.players[0].calculateHandScore();
+    const cpuHandScore: number = this.players[1].calculateHandScore();
+
+    // ゲーム再開
+    if (playerHandScore > 0 && cpuHandScore > 0) return;
+
+    if (playerHandScore === 0 && cpuHandScore === 0) {
+      this.result = "draw";
+      this.gameState = "endGame";
+    } else if (playerHandScore === 0) {
+      this.result = "win";
+      this.gameState = "endGame";
+    } else {
+      this.result = "loss";
+      this.gameState = "endGame";
     }
   }
 
