@@ -27,6 +27,8 @@ export default class PokerTableScene extends TableScene {
     y: 150,
   };
 
+  private unvisibleList: Phaser.GameObjects.Text[] = [];
+
   constructor() {
     super();
     this.players = [new PokerPlayer("Player", "player", 0, 0), new PokerPlayer("Cpu", "cpu", 0, 0)];
@@ -170,6 +172,9 @@ export default class PokerTableScene extends TableScene {
           // phaser描画
           changeList.forEach((card) => card.destroy());
           this.dealHand();
+
+          change.visible = false;
+          this.unvisibleList.push(change);
         });
       },
       this
@@ -275,6 +280,11 @@ export default class PokerTableScene extends TableScene {
         this.makeDeck();
         this.dealCards();
         this.dealHand();
+
+        // 非表示リストを可視化
+        this.unvisibleList.forEach((ele) => {
+          ele.visible = true;
+        });
       },
       this
     );
