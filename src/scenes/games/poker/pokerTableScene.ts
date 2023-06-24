@@ -61,6 +61,9 @@ export default class PokerTableScene extends TableScene {
     return this.returnPot;
   }
 
+  /**
+   * 山札作成
+   */
   makeDeck() {
     this.deck = new Deck(this, 650, 450);
     this.deck.shuffle();
@@ -140,7 +143,7 @@ export default class PokerTableScene extends TableScene {
   }
 
   /**
-   * チェンジ
+   * プレイヤーアクション（チェンジ）を描画
    */
   changeCards(): void {
     const change = this.add
@@ -174,7 +177,7 @@ export default class PokerTableScene extends TableScene {
   }
 
   /**
-   * 手札を比較する
+   * 手札を比較するボタンを描画
    */
   compareCards(): void {
     const compare = this.add
@@ -211,6 +214,9 @@ export default class PokerTableScene extends TableScene {
     );
   }
 
+  /**
+   * リスタートボタンを描画
+   */
   init(): void {
     const init = this.add
       .text(600, 700, "Restart")

@@ -34,21 +34,37 @@ export default class PokerPlayer extends Player {
     return this.rankDict;
   }
 
+  /**
+   * プレイヤーアクション（ベット/コール/レイズ）: this.chipsからamountを引く
+   * @param amount : number
+   * @returns : number
+   */
   call(amount: number): number {
     const currentChips: number = this.getChips - amount;
     this.setChips = currentChips;
     return amount;
   }
 
+  /**
+   * プレイヤーアクション（フォールド）: this.handを空にする
+   */
   fold(): void {
     this.setHand = undefined;
   }
 
+  /**
+   * プレイヤーアクション（チェンジ）: this.handのdeleteCardsを削除し, addCardsを追加する。
+   * @param deleteCards: Card[]
+   * @param addCards: Card[]
+   */
   change(deleteCards: Card[], addCards: Card[]) {
     this.deleteCardsToHand(deleteCards);
     this.addCardToHand(addCards);
   }
 
+  /**
+   * 計算データ初期化
+   */
   init(): void {
     this.rankDict.clear();
     this.suitDict.clear();
