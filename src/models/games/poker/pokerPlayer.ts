@@ -14,6 +14,7 @@ export default class PokerPlayer extends Player {
   constructor(name: string, playerType: string, chips: number, bet: number) {
     super(name, playerType, chips, bet);
     this.handScore = {
+      name: "",
       role: 0,
       highCard: [],
     };
