@@ -14,12 +14,22 @@ export default class PokerTableScene extends TableScene {
 
   private returnPot: number;
 
+  private playerPositionX = 400;
+
+  private playerPositionY = 600;
+
+  private cpuPositionX = 400;
+
+  private cpuPositionY = 300;
+
+  private cardSize = {
+    x: 100,
+    y: 150,
+  };
+
   constructor() {
     super();
-    this.players = [
-      new PokerPlayer("TestPlayer", "player", 0, 0),
-      new PokerPlayer("TestCpu", "cpu", 0, 0),
-    ];
+    this.players = [new PokerPlayer("Player", "player", 0, 0), new PokerPlayer("Cpu", "cpu", 0, 0)];
     this.pot = [0];
     this.returnPot = 0;
   }
@@ -97,24 +107,14 @@ export default class PokerTableScene extends TableScene {
    * 手札配布
    */
   dealHand() {
-    const playerPositionX = 400;
-    const playerPositionY = 600;
-    const cpuPositionX = 400;
-    const cpuPositionY = 300;
-    const cardSize = {
-      x: 100,
-      y: 150,
-    };
-
     this.players.forEach((player) => {
-      console.log(player.getHand);
       player.getHand?.forEach((card, index) => {
         if (player.getPlayerType === "player") {
-          card.moveTo(playerPositionX + index * cardSize.x, playerPositionY, 500);
+          card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
           setTimeout(() => card.flipToFront(), 800);
           card.setInteractive();
         } else if (player.getPlayerType === "cpu") {
-          card.moveTo(cpuPositionX + index * cardSize.x, cpuPositionY, 500);
+          card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
         }
       });
     });
@@ -187,27 +187,54 @@ export default class PokerTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
-    const handScoreList: HandScore[] = [];
-    const scoreList: number[] = [];
-
     compare.on(
       "pointerdown",
       function compareCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        const handScoreList: HandScore[] = [];
+        const scoreList: Set<number> = new Set();
+        let winner = "";
         this.players.forEach((player) => {
           // ハンドを表へ
           player.getHand?.forEach((card) => {
             card.flipToFront();
           });
           const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
-          console.log(handScore.role);
+          console.log(`${player.getName} role: ${handScore.role}`);
           handScoreList.push(handScore);
-          scoreList.push(handScore.role);
+          scoreList.add(handScore.role);
+
+          // 役を表示
+          if (player.getPlayerType === "player")
+            this.add
+              .text(this.playerPositionX, this.playerPositionY - 80, `${handScore.name}`, {
+                fontFamily: "Arial Black",
+                fontSize: 12,
+              })
+              .setName("roleName");
+          else if (player.getPlayerType === "cpu")
+            this.add
+              .text(this.cpuPositionX, this.cpuPositionY - 80, `${handScore.name}`, {
+                fontFamily: "Arial Black",
+                fontSize: 12,
+              })
+              .setName("roleName");
         });
 
-        const max = Math.max(...scoreList);
-        const winner = this.players[handScoreList.findIndex((score) => score.role === max)];
+        // 同等の役の場合、カードの強い順番
+        if (scoreList.size === 1) {
+          for (let i = 0; i < handScoreList[0].highCard.length; i += 1) {
+            if (handScoreList[0].highCard[i][0] > handScoreList[1].highCard[i][0])
+              winner = this.players[0].getName;
+            else if (handScoreList[0].highCard[i][0] < handScoreList[1].highCard[i][0])
+              winner = this.players[1].getName;
+          }
+          if (winner === "") winner = "Draw";
+        } else {
+          const max = Math.max(...scoreList);
+          winner = this.players[handScoreList.findIndex((score) => score.role === max)].getName;
+        }
         this.add
-          .text(400, 400, `${winner.getName}`, { fontFamily: "Arial Black", fontSize: 80 })
+          .text(400, 400, `${winner}`, { fontFamily: "Arial Black", fontSize: 80 })
           .setName("winner");
       },
       this
@@ -231,7 +258,9 @@ export default class PokerTableScene extends TableScene {
         // カードオブジェクト削除
         const destroyList = this.children.list.filter(
           (child) =>
-            (child as Card) instanceof Card || (child as Phaser.GameObjects.Text).name === "winner"
+            (child as Card) instanceof Card ||
+            (child as Phaser.GameObjects.Text).name === "winner" ||
+            (child as Phaser.GameObjects.Text).name === "roleName"
         );
         destroyList.forEach((element) => {
           element.destroy();

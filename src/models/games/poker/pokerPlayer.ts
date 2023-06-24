@@ -15,7 +15,7 @@ export default class PokerPlayer extends Player {
     super(name, playerType, chips, bet);
     this.handScore = {
       role: 0,
-      highCard: 0,
+      highCard: [],
     };
     this.suitDict = new Map();
     this.rankDict = new Map();
@@ -69,7 +69,7 @@ export default class PokerPlayer extends Player {
     this.rankDict.clear();
     this.suitDict.clear();
     this.handScore.role = 0;
-    this.handScore.highCard = 0;
+    this.handScore.highCard = [];
     this.handList = undefined;
   }
 
@@ -91,8 +91,20 @@ export default class PokerPlayer extends Player {
     });
   }
 
+  /**
+   * pair > rankの優先順位でソート
+   * @returns number[][] ([[rank, pair],,,])
+   */
   private handSort(): number[][] {
-    const sortDict = [...this.rankDict].sort((a, b) => a[0] - b[0]);
+    const sortDict = [...this.rankDict].sort((a, b) => {
+      if (a[1] < b[1]) return -1;
+      if (a[1] > b[1]) return 1;
+      if (a[1] === b[1]) {
+        if (a[0] < b[0]) return -1;
+        if (a[0] > b[0]) return 1;
+      }
+      return 0;
+    });
     return sortDict;
   }
 
@@ -140,33 +152,46 @@ export default class PokerPlayer extends Player {
       this.rankDict.has(14) &&
       this.hasChainRank()
     ) {
+      this.handScore.name = "ロイヤルストレートフラッシュ";
       this.handScore.role = 9;
     } // ストレートフラッシュ
     else if (this.suitDict.size === 1 && this.rankDict.size === 5 && this.hasChainRank()) {
+      this.handScore.name = "ストレートフラッシュ";
       this.handScore.role = 8;
     } // フォーカード
     else if (this.rankDict.size === 2 && this.hasPair(4)) {
+      this.handScore.name = "フォーカード";
       this.handScore.role = 7;
     } // フルハウス
     else if (this.rankDict.size === 2 && this.hasPair(2) && this.hasPair(3)) {
+      this.handScore.name = "フルハウス";
       this.handScore.role = 6;
     } // フラッシュ
     else if (this.suitDict.size === 1) {
+      this.handScore.name = "フラッシュ";
       this.handScore.role = 5;
     } // ストレート
-    else if (this.hasChainRank()) {
+    else if (this.rankDict.size === 5 && this.hasChainRank()) {
+      this.handScore.name = "ストレート";
       this.handScore.role = 4;
     } // スリーカード
     else if (this.hasPair(3)) {
+      this.handScore.name = "スリーカード";
       this.handScore.role = 3;
     } // ツーペア
     else if (this.hasPair(2, "twoPair")) {
+      this.handScore.name = "ツーペア";
       this.handScore.role = 2;
     } // ワンペア
     else if (this.hasPair(2)) {
+      this.handScore.name = "ワンペア";
       this.handScore.role = 1;
     } // ハイカード
-    else this.handScore.role = 0;
+    else {
+      this.handScore.name = "ハイカード";
+      this.handScore.role = 0;
+    }
+    this.handScore.highCard = this.handList;
 
     return this.handScore;
   }
