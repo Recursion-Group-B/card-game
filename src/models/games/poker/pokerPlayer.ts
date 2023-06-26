@@ -14,8 +14,9 @@ export default class PokerPlayer extends Player {
   constructor(name: string, playerType: string, chips: number, bet: number) {
     super(name, playerType, chips, bet);
     this.handScore = {
+      name: "",
       role: 0,
-      highCard: 0,
+      highCard: [],
     };
     this.suitDict = new Map();
     this.rankDict = new Map();
@@ -26,25 +27,57 @@ export default class PokerPlayer extends Player {
     return this.suitDict;
   }
 
+  get getHandList() {
+    return this.handList;
+  }
+
   get getRankDict() {
     return this.rankDict;
   }
 
+  /**
+   * プレイヤーアクション（ベット/コール/レイズ）: this.chipsからamountを引く
+   * @param amount : number
+   * @returns : number
+   */
   call(amount: number): number {
     const currentChips: number = this.getChips - amount;
     this.setChips = currentChips;
     return amount;
   }
 
+  /**
+   * プレイヤーアクション（フォールド）: this.handを空にする
+   */
   fold(): void {
     this.setHand = undefined;
   }
 
   /**
+   * プレイヤーアクション（チェンジ）: this.handのdeleteCardsを削除し, addCardsを追加する。
+   * @param deleteCards: Card[]
+   * @param addCards: Card[]
+   */
+  change(deleteCards: Card[], addCards: Card[]) {
+    this.deleteCardsToHand(deleteCards);
+    this.addCardToHand(addCards);
+  }
+
+  /**
+   * 計算データ初期化
+   */
+  init(): void {
+    this.rankDict.clear();
+    this.suitDict.clear();
+    this.handScore.role = 0;
+    this.handScore.highCard = [];
+    this.handList = undefined;
+  }
+
+  /**
    * 判定のため、Mapオブジェクト作成
-   * Map<key, 枚数>
    *  */
-  makeDict(): void {
+  private makeDict(): void {
     (this.getHand as Card[]).forEach((card) => {
       // suit
       if (this.suitDict.has(card.getSuit)) {
@@ -59,17 +92,28 @@ export default class PokerPlayer extends Player {
     });
   }
 
-  handSort(): number[][] {
-    const sortDict = [...this.rankDict].sort((a, b) => a[0] - b[0]);
+  /**
+   * pair > rankの優先順位でソート
+   * @returns number[][] ([[rank, pair],,,])
+   */
+  private handSort(): number[][] {
+    const sortDict = [...this.rankDict].sort((a, b) => {
+      if (a[1] < b[1]) return -1;
+      if (a[1] > b[1]) return 1;
+      if (a[1] === b[1]) {
+        if (a[0] < b[0]) return -1;
+        if (a[0] > b[0]) return 1;
+      }
+      return 0;
+    });
     return sortDict;
   }
 
-  get getHandList() {
-    return this.handList;
-  }
-
-  // 連続判定
-  hasChainRank(): boolean {
+  /**
+   * 連続判定
+   * @returns: boolean
+   */
+  private hasChainRank(): boolean {
     const rankList = Array.from(this.handList as number[][], (ele) => ele[0]);
     const compareList = Array(5)
       .fill(Math.min(...rankList))
@@ -77,8 +121,13 @@ export default class PokerPlayer extends Player {
     return rankList.every((ele) => compareList.includes(ele));
   }
 
-  // ペア判定
-  hasPair(pairNum: number, type?: string): boolean {
+  /**
+   * ペア判定
+   * @param pairNum: ペアとなるランク
+   * @param type: 役の文字列型
+   * @returns boolean
+   */
+  private hasPair(pairNum: number, type?: string): boolean {
     if (type === "twoPair") {
       const pair = (this.handList as number[][]).filter((ele) => ele[1] === pairNum);
       return pair.length === 2;
@@ -88,6 +137,10 @@ export default class PokerPlayer extends Player {
     return (this.handList as number[][]).some((ele) => ele[1] === pairNum);
   }
 
+  /**
+   * 自分のハンドのスコアを取得する
+   * @returns: HandScore
+   */
   calculateHandScore(): HandScore {
     this.makeDict();
     this.handList = this.handSort();
@@ -100,33 +153,46 @@ export default class PokerPlayer extends Player {
       this.rankDict.has(14) &&
       this.hasChainRank()
     ) {
+      this.handScore.name = "ロイヤルストレートフラッシュ";
       this.handScore.role = 9;
     } // ストレートフラッシュ
     else if (this.suitDict.size === 1 && this.rankDict.size === 5 && this.hasChainRank()) {
+      this.handScore.name = "ストレートフラッシュ";
       this.handScore.role = 8;
     } // フォーカード
     else if (this.rankDict.size === 2 && this.hasPair(4)) {
+      this.handScore.name = "フォーカード";
       this.handScore.role = 7;
     } // フルハウス
     else if (this.rankDict.size === 2 && this.hasPair(2) && this.hasPair(3)) {
+      this.handScore.name = "フルハウス";
       this.handScore.role = 6;
     } // フラッシュ
     else if (this.suitDict.size === 1) {
+      this.handScore.name = "フラッシュ";
       this.handScore.role = 5;
     } // ストレート
-    else if (this.hasChainRank()) {
+    else if (this.rankDict.size === 5 && this.hasChainRank()) {
+      this.handScore.name = "ストレート";
       this.handScore.role = 4;
     } // スリーカード
     else if (this.hasPair(3)) {
+      this.handScore.name = "スリーカード";
       this.handScore.role = 3;
     } // ツーペア
     else if (this.hasPair(2, "twoPair")) {
+      this.handScore.name = "ツーペア";
       this.handScore.role = 2;
     } // ワンペア
     else if (this.hasPair(2)) {
+      this.handScore.name = "ワンペア";
       this.handScore.role = 1;
     } // ハイカード
-    else this.handScore.role = 0;
+    else {
+      this.handScore.name = "ハイカード";
+      this.handScore.role = 0;
+    }
+    this.handScore.highCard = this.handList;
 
     return this.handScore;
   }

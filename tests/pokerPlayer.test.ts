@@ -3,13 +3,13 @@ import Card from "../src/models/common/card";
 
 describe("pokerPlayer", () => {
   const deck = [
-    new Card("10", "club"),
-    new Card("J", "club"),
-    new Card("Q", "club"),
-    new Card("K", "club"),
-    new Card("A", "club"),
+    new Card("10", "clubs"),
+    new Card("Jack", "clubs"),
+    new Card("Queen", "clubs"),
+    new Card("King", "clubs"),
+    new Card("Ace", "clubs"),
   ];
-  const player = new PokerPlayer("motsu", "player", 1000, 10, deck);
+  const player = new PokerPlayer("motsu", "player", 1000, 10);
 
   test("should construct correctly", () => {
     expect(player).toBeInstanceOf(PokerPlayer);
