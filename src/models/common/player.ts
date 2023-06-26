@@ -51,8 +51,24 @@ export default abstract class Player {
     this.bet = bet;
   }
 
-  addCardToHand(card: Card) {
-    (this.hand as Card[]).push(card);
+  /**
+   * this.handにcardを追加
+   * @param card: Card
+   * @param cards: Card[]
+   */
+  addCardToHand(card: Card): void;
+  addCardToHand(cards: Card[]): void;
+  addCardToHand(card: Card | Card[]): void {
+    if (card instanceof Card) (this.hand as Card[]).push(card);
+    else (this.hand as Card[]).push(...card);
+  }
+
+  /**
+   * this.handからcardsを削除
+   * @param cards: Card[]
+   */
+  deleteCardsToHand(cards: Card[]): void {
+    this.hand = this.hand?.filter((card) => !cards.includes(card));
   }
 
   abstract calculateHandScore(): number | HandScore;
