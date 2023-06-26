@@ -67,7 +67,7 @@ export default abstract class Player {
    * this.handからcardsを削除
    * @param cards: Card[]
    */
-  deleteCardsToHand(cards: Card[]) {
+  deleteCardsToHand(cards: Card[]): void {
     this.hand = this.hand?.filter((card) => !cards.includes(card));
   }
 
