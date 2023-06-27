@@ -82,5 +82,5 @@ export default abstract class Player {
     }
   }
 
-  abstract calculateHandScore(): number;
+  abstract calculateHandScore(): number | HandScore;
 }

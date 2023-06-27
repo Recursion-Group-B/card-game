@@ -198,6 +198,11 @@ export default class PokerTableScene extends TableScene {
         const handScoreList: HandScore[] = [];
         const scoreList: Set<number> = new Set();
         let winner = "";
+
+        // compare非表示
+        compare.visible = false;
+        this.unvisibleList.push(compare);
+
         this.players.forEach((player) => {
           // ハンドを表へ
           player.getHand?.forEach((card) => {
@@ -238,6 +243,8 @@ export default class PokerTableScene extends TableScene {
           const max = Math.max(...scoreList);
           winner = this.players[handScoreList.findIndex((score) => score.role === max)].getName;
         }
+
+        // 勝者
         this.add
           .text(400, 400, `${winner}`, { fontFamily: "Arial Black", fontSize: 80 })
           .setName("winner");
