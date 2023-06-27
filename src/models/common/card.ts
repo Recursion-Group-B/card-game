@@ -49,6 +49,10 @@ export default class Card extends Phaser.GameObjects.Image {
     return this.textureKey;
   }
 
+  set setIsBackSide(isBackSideVisible: boolean) {
+    this.isBackSide = isBackSideVisible;
+  }
+
   /**
    * 指定の位置まで移動するアニメーション
    */
@@ -98,9 +102,9 @@ export default class Card extends Phaser.GameObjects.Image {
 
     // ドラッグ開始時のイベント
     this.on("dragstart", () => {
-      this.setDepth(Number.MAX_SAFE_INTEGER);
       startX = this.x;
       startY = this.y;
+      this.scene.children.bringToTop(this);
     });
 
     // ドラッグ中のイベント
@@ -159,7 +163,7 @@ export default class Card extends Phaser.GameObjects.Image {
           King: 10,
         };
         break;
-      case "war":
+      case "poker":
         rankToNum = {
           Ace: 14,
           "2": 2,
@@ -178,7 +182,7 @@ export default class Card extends Phaser.GameObjects.Image {
         break;
       default:
         rankToNum = {
-          Ace: 14,
+          Ace: 1,
           "2": 2,
           "3": 3,
           "4": 4,

@@ -4,16 +4,25 @@ import Card from "../../../models/common/card";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
+import TimeEvent = Phaser.Time.TimerEvent;
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
-// const SUITS = ["heart", "diamond", "club", "spade"];
-// const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
 export default class SpeedTableScene extends TableScene {
   private playerDecks: Array<Deck> = [];
 
   private dropZones: Array<Zone> = [];
+
+  private dropZoneCards: Array<Card> = []; // [右側の台札Card, 左側の台札Card]
+
+  private cpuPlayTimeEvent: TimeEvent | undefined;
+
+  private stallCheckTimeEvent: TimeEvent | undefined;
+
+  private countDownEvent: TimeEvent | undefined;
+
+  private result: string | undefined; // WIN or LOSE or DRAW
 
   constructor() {
     super({});
@@ -27,33 +36,60 @@ export default class SpeedTableScene extends TableScene {
   preload(): void {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
-
-    // this.load.image("cardBack", "/public/assets/images/card_back_red.png");
-
-    // トランプ読み込み
-    // SUITS.forEach((suit) => {
-    //   RANKS.forEach((rank) => {
-    //     this.load.image(`${suit}${rank}`, `/public/assets/images/${suit}${rank}.png`);
-    //   });
-    // });
   }
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-
-    // Zoneをクリックできるように設定
     this.createGameZone();
     this.createDropZones();
-
     this.createCardDropEvent();
-
     this.createPlayerDecks();
     this.dealCards();
+
+    // ゲームのカウントダウン
+    this.time.delayedCall(3000, () => {
+      this.startCountDownEvent();
+    });
+
+    // CPUのゲームループ
+    // TODD 難易度によってdelayの感覚を短くする
+    this.time.delayedCall(7000, () => {
+      this.cpuPlayTimeEvent = this.time.addEvent({
+        delay: 4000,
+        callback: this.playCpu,
+        callbackScope: this,
+        loop: true,
+      });
+    });
+
+    // ゲーム停滞時のカード配布
+    this.time.delayedCall(7000, () => {
+      this.stallCheckTimeEvent = this.time.addEvent({
+        delay: 5000,
+        callback: this.checkGameStallAndDrawCard,
+        callbackScope: this,
+        loop: true,
+      });
+    });
   }
 
-  // update(): void {
-  //   console.log("update!!");
-  // }
+  update(): void {
+    this.checkResult();
+
+    if (this.gameState === "endGame") {
+      this.cpuPlayTimeEvent?.remove();
+      this.stallCheckTimeEvent?.remove();
+      this.countDownEvent?.remove();
+
+      // ゲームresult画面
+      if (this.result) {
+        this.displayResult(this.result, 0);
+
+        // TODO result画面のBGM設定
+        // TODO chipやスコアの更新
+      }
+    }
+  }
 
   /**
    * カードの初期配置処理
@@ -81,6 +117,9 @@ export default class SpeedTableScene extends TableScene {
     if (card) {
       const animationDuration = 600;
       card.moveTo(dropZone.x, dropZone.y, animationDuration);
+      this.children.bringToTop(card);
+
+      this.dropZoneCards[playerIndex] = card;
 
       // カードを裏返す
       this.time.delayedCall(1500, () => {
@@ -112,9 +151,6 @@ export default class SpeedTableScene extends TableScene {
       const card = this.playerDecks[playerIndex].draw();
 
       if (card) {
-        if (player.getPlayerType === "player") {
-          card.makeDraggable();
-        }
         player.addCardToHand(card);
         card.moveTo(startPosX + i * cardInterval * direction, startPosY, i * animationDelay);
 
@@ -124,6 +160,46 @@ export default class SpeedTableScene extends TableScene {
         });
       }
     }
+  }
+
+  /**
+   * カウントダウンイベントを開始
+   */
+  private startCountDownEvent(): void {
+    this.createCountDownText();
+
+    this.countDownEvent = this.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        this.countDownCallback(() => {
+          if (this.countDownEvent) {
+            this.countDownEvent.remove();
+            this.changeCardDraggable(true);
+          }
+        });
+      },
+      callbackScope: this,
+      loop: true,
+    });
+  }
+
+  /**
+   * カードのドラッグを有効/無効にするメソッド。
+   * プレイヤー以外には適用しない
+   */
+  private changeCardDraggable(draggable: boolean): void {
+    this.players.forEach((player) => {
+      if (player.getPlayerType === "player") {
+        player.getHand?.forEach((card) => {
+          if (draggable) {
+            card.makeDraggable();
+          } else {
+            card.setPosition(card.x, card.y);
+            card.disableInteractive();
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -144,15 +220,20 @@ export default class SpeedTableScene extends TableScene {
    * カードのドロップイベント作成
    */
   private createCardDropEvent(): void {
-    let cardDepth = 0;
-
     this.input.on("drop", (pointer: Phaser.Input.Pointer, card: Card, dropZone: Zone) => {
-      // カードがドロップゾーン上にあるか確認
-      if (Phaser.Geom.Rectangle.Overlaps(dropZone.getBounds(), card.getBounds())) {
+      if (this.canDropCard(card, dropZone)) {
         card.setPosition(dropZone.x, dropZone.y);
         card.disableInteractive();
 
-        card.setDepth((cardDepth += 1)); // カードを最前面に配置し、次のカードがさらに前面に来るようにdepth値を増やす
+        this.players[0].removeCardFromHand(card);
+        this.replaceDroppedCard(card, 0);
+
+        this.children.bringToTop(card);
+
+        const dropZoneIndex = this.dropZones.indexOf(dropZone);
+        if (dropZoneIndex !== -1) {
+          this.dropZoneCards[dropZoneIndex] = card;
+        }
       } else {
         card.returnToOrigin();
       }
@@ -160,13 +241,217 @@ export default class SpeedTableScene extends TableScene {
   }
 
   /**
+   * カードが配置可能か判定
+   */
+  private canDropCard(card: Card, dropZone: Zone): boolean {
+    let canDropCardFlag = false;
+
+    this.dropZones.forEach((cardDropZone: Zone, index: number) => {
+      if (dropZone === cardDropZone) {
+        const isConsecutiveRank = SpeedTableScene.isConsecutiveCard(
+          Number(this.dropZoneCards[index].getRankNumber("speed")),
+          card.getRankNumber("speed")
+        );
+
+        if (isConsecutiveRank) {
+          canDropCardFlag = true;
+        }
+      }
+    });
+
+    return canDropCardFlag;
+  }
+
+  /**
+   * ドロップしたカードの元いた位置に新しいカードを配置
+   */
+  replaceDroppedCard(droppedCard: Card, playerIndex: number): void {
+    if (this.playerDecks[playerIndex].getDeckSize() > 0) {
+      const newCard = this.playerDecks[playerIndex].draw();
+      if (newCard) {
+        // カード設定
+        newCard.makeDraggable();
+        newCard.setIsBackSide = false;
+        newCard.setTexture("cards", newCard.getTextureKey);
+
+        this.players[playerIndex].addCardToHand(newCard);
+
+        // 移動先の座標を取得
+        const toX = droppedCard.input?.dragStartX;
+        const toY = droppedCard.input?.dragStartY;
+        if (toX && toY) newCard?.moveTo(toX, toY, 300);
+      }
+    }
+  }
+
+  /**
+   * ドロップしたカードが連続したランクか判定
+   */
+  private static isConsecutiveCard(rank1: number, rank2: number): boolean {
+    const diff = Math.abs(rank1 - rank2);
+    return diff === 1 || diff === 12;
+  }
+
+  /**
+   * CPUのゲーム進行
+   */
+  private playCpu(): void {
+    if (this.canPlayCard(this.players[1])) {
+      const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(this.players[1]);
+
+      // カードを出す
+      if (dropCard && toX && toY) {
+        this.moveCardHandToLead(dropCard, toX, toY);
+      }
+    }
+  }
+
+  /**
+   * 手札に出せるカードがあるかチェック
+   */
+  private canPlayCard(player: SpeedPlayer): boolean {
+    const hand = player.getHand as Card[];
+    if (!hand) {
+      return false;
+    }
+    return hand.some((card) =>
+      this.dropZoneCards.some((dropCard) =>
+        SpeedTableScene.isConsecutiveCard(
+          card.getRankNumber("speed"),
+          dropCard.getRankNumber("speed")
+        )
+      )
+    );
+  }
+
+  /**
+   * 配置するカードと配置する座標の取得
+   */
+  private getAvailableCardAndCoordinate(
+    player: SpeedPlayer
+  ): [Card | undefined, number | undefined, number | undefined] {
+    const hand = player.getHand as Card[];
+    if (hand) {
+      for (let i = 0; i < hand.length; i += 1) {
+        const currCard = hand[i];
+        for (let dropZoneIndex = 0; dropZoneIndex < this.dropZoneCards.length; dropZoneIndex += 1) {
+          if (
+            SpeedTableScene.isConsecutiveCard(
+              currCard.getRankNumber("speed"),
+              this.dropZoneCards[dropZoneIndex].getRankNumber("speed")
+            )
+          ) {
+            player.removeCardFromHand(currCard);
+            return [currCard, this.dropZones[dropZoneIndex].x, this.dropZones[dropZoneIndex].y];
+          }
+        }
+      }
+    }
+
+    return [undefined, undefined, undefined];
+  }
+
+  /**
+   * 手札から台札にカードを移動する
+   * ※基本CPUしか使わない
+   */
+  private moveCardHandToLead(card: Card, toX: number, toY: number): void {
+    const playerDeck = this.playerDecks[1];
+    const player = this.players[1];
+
+    const beforeMoveX = card.x;
+    const beforeMoveY = card.y;
+
+    card.moveTo(toX, toY, 300);
+    this.children.bringToTop(card);
+
+    // toX座標とtoY座標に基づいてドロップゾーンを決定する
+    const targetDropZone = this.dropZones.find(
+      (dropZone) => dropZone.x === toX && dropZone.y === toY
+    );
+    if (targetDropZone) {
+      const dropZoneIndex = this.dropZones.indexOf(targetDropZone);
+      if (dropZoneIndex !== -1) {
+        this.dropZoneCards[dropZoneIndex] = card;
+      }
+    }
+
+    // カードを手札に補充する
+    if (playerDeck.getDeckSize() > 0) {
+      const newCard = playerDeck.draw();
+      if (newCard) {
+        player.addCardToHand(newCard);
+        newCard.setIsBackSide = false;
+        newCard.setTexture("cards", newCard.getTextureKey);
+
+        newCard.moveTo(beforeMoveX, beforeMoveY, 300);
+      }
+    }
+  }
+
+  private checkGameStallAndDrawCard(): void {
+    if (!this.canPlayCard(this.players[0]) && !this.canPlayCard(this.players[1])) {
+      // カードのドラッグ不可
+      this.changeCardDraggable(false);
+
+      // capプレイ停止
+      this.cpuPlayTimeEvent?.remove();
+
+      // 台札にカードをセット
+      let dropZonesIndex = 0;
+      this.players.forEach((player, index) => {
+        this.dealLeadCards(player, index, this.dropZones[dropZonesIndex]);
+        dropZonesIndex += 1;
+      });
+
+      // インターバルの後にカウントダウン開始とCPUプレイ再開
+      this.time.delayedCall(2000, () => {
+        this.setInitialTime = 2;
+        this.startCountDownEvent();
+
+        // 既存の delayedCall があればクリアします
+        this.cpuPlayTimeEvent?.remove();
+
+        // cpuプレイ再開
+        this.time.delayedCall(3000, () => {
+          this.cpuPlayTimeEvent = this.time.addEvent({
+            delay: 4000,
+            callback: this.playCpu,
+            callbackScope: this,
+            loop: true,
+          });
+        });
+      });
+    }
+  }
+
+  /**
+   * 勝敗判定
+   */
+  private checkResult(): void {
+    const playerHandScore: number = this.players[0].calculateHandScore();
+    const cpuHandScore: number = this.players[1].calculateHandScore();
+
+    // ゲーム再開
+    if (playerHandScore > 0 && cpuHandScore > 0) return;
+
+    if (playerHandScore === 0 && cpuHandScore === 0) {
+      this.result = "draw";
+      this.gameState = "endGame";
+    } else if (playerHandScore === 0) {
+      this.result = "win";
+      this.gameState = "endGame";
+    } else {
+      this.result = "lose";
+      this.gameState = "endGame";
+    }
+  }
+
+  /**
    * カードの配置可能場所を作成
    */
   private createDropZones(): void {
     const PLAYER_ZONE_OFFSET = 80;
-
-    // Graphicsオブジェクトの作成
-    const graphics = this.add.graphics();
 
     this.dropZones = [];
     this.players.forEach((player) => {
@@ -178,11 +463,6 @@ export default class SpeedTableScene extends TableScene {
       } else if (player.getPlayerType === "cpu") {
         Phaser.Display.Align.In.Center(dropZone, this.gameZone as GameObject, -PLAYER_ZONE_OFFSET);
       }
-
-      // 座標を取得
-      // const { x, y, width, height } = dropZone;
-
-      dropZone.setInteractive().on("pointerdown", () => console.log("Zone clicked!"));
       this.dropZones.push(dropZone);
     });
   }

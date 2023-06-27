@@ -71,5 +71,16 @@ export default abstract class Player {
     this.hand = this.hand?.filter((card) => !cards.includes(card));
   }
 
-  abstract calculateHandScore(): number | HandScore;
+  removeCardFromHand(card: Card): void {
+    if (this.hand) {
+      const index = this.hand.findIndex((handCard) => handCard === card);
+      if (index !== -1) {
+        this.hand?.splice(index, 1);
+      } else {
+        throw new Error("Card not found in hand.");
+      }
+    }
+  }
+
+  abstract calculateHandScore(): number;
 }
