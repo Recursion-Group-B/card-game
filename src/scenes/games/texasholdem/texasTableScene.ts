@@ -2,7 +2,7 @@ import "../../../style.scss";
 import Phaser from "phaser";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
-import PokerPlayer from "../../../models/games/poker/pokerPlayer";
+import TexasPlayer from "../../../models/games/texasholdem/texasPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
 
@@ -22,24 +22,31 @@ export default class TexasTableScene extends TableScene {
 
   private cpuPositionY = 300;
 
-  private dealer: PokerPlayer;
+  private dealerPositionX = 500;
+
+  private dealerPositionY = 450;
+
+  private dealer: TexasPlayer;
 
   private cardSize = {
     x: 100,
     y: 150,
   };
 
+  private checkCount: number;
+
   private unvisibleList: Phaser.GameObjects.Text[] = [];
 
   constructor() {
     super();
-    this.players = [new PokerPlayer("Player", "player", 0, 0), new PokerPlayer("Cpu", "cpu", 0, 0)];
-    this.dealer = new PokerPlayer("Dealer", "dealer", 0, 0);
+    this.players = [new TexasPlayer("Player", "player", 0, 0), new TexasPlayer("Cpu", "cpu", 0, 0)];
+    this.dealer = new TexasPlayer("Dealer", "dealer", 0, 0);
     this.pot = [0];
     this.returnPot = 0;
+    this.checkCount = 0;
   }
 
-  addCPU(player: PokerPlayer): void {
+  addCPU(player: TexasPlayer): void {
     this.players.push(player);
   }
   // deleteCpu():void{}
@@ -81,7 +88,7 @@ export default class TexasTableScene extends TableScene {
    * 山札作成
    */
   makeDeck() {
-    this.deck = new Deck(this, 650, 450);
+    this.deck = new Deck(this, 400, 450);
     this.deck.shuffle();
   }
 
@@ -104,7 +111,7 @@ export default class TexasTableScene extends TableScene {
     this.dealHand();
 
     this.clickToUp();
-    this.changeCards();
+    this.checkAction();
     this.compareCards();
     this.init();
   }
@@ -113,15 +120,22 @@ export default class TexasTableScene extends TableScene {
    * 手札配布
    */
   dealHand() {
+    // プレイヤー手札配布
     this.players.forEach((player) => {
       player.getHand?.forEach((card, index) => {
         if (player.getPlayerType === "player") {
           card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
-          setTimeout(() => card.flipToFront(), 800);
+          setTimeout(() => card.flipToFront(), 500);
           card.setInteractive();
         } else if (player.getPlayerType === "cpu") {
           card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
         }
+      });
+
+      // ディーラー手札配布
+      this.dealer.getHand?.forEach((card, index) => {
+        card.moveTo(this.dealerPositionX + index * this.cardSize.x, this.dealerPositionY, 500);
+        setTimeout(() => card.flipToFront(), 500);
       });
     });
   }
@@ -149,37 +163,30 @@ export default class TexasTableScene extends TableScene {
   }
 
   /**
-   * プレイヤーアクション（チェンジ）を描画
+   * checkを描画
    */
-  changeCards(): void {
-    const change = this.add
-      .text(400, 700, "Change")
+  checkAction(): void {
+    const check = this.add
+      .text(400, 700, "Check")
       .setFontSize(20)
       .setFontFamily("Arial")
       .setOrigin(0.5)
       .setInteractive();
 
-    change.on(
+    check.on(
       "pointerdown",
-      function changeCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          // data
-          const changeList = (player.getHand as Card[]).filter(
-            (child) => (child as Card).getClickStatus === true
-          ) as Card[];
-          if (changeList.length)
-            (player as PokerPlayer).change(
-              changeList,
-              (this.deck as Deck).draw(changeList.length) as Card[]
-            );
+      function checkCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
+        // ディーラーカード配布
+        this.dealer.addCardToHand(this.deck?.draw() as Card);
+        this.dealHand();
 
-          // phaser描画
-          changeList.forEach((card) => card.destroy());
-          this.dealHand();
-
-          change.visible = false;
-          this.unvisibleList.push(change);
-        });
+        // カウント数で非表示
+        this.checkCount += 1;
+        if (this.checkCount === 2) {
+          // compare非表示
+          check.visible = false;
+          this.unvisibleList.push(check);
+        }
       },
       this
     );
@@ -198,7 +205,8 @@ export default class TexasTableScene extends TableScene {
 
     compare.on(
       "pointerdown",
-      function compareCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+      function compareCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
+        if ((this.dealer.getHand as Card[]).length < 5) return;
         const handScoreList: HandScore[] = [];
         const scoreList: Set<number> = new Set();
         let winner = "";
@@ -207,7 +215,10 @@ export default class TexasTableScene extends TableScene {
           player.getHand?.forEach((card) => {
             card.flipToFront();
           });
-          const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
+
+          // ディーラーハンドを取り込んで、スコアを計算
+          player.addCardToHand(this.dealer.getHand as Card[]);
+          const handScore: HandScore = (player as TexasPlayer).calculateHandScore();
           console.log(`${player.getName} role: ${handScore.role}`);
           handScoreList.push(handScore);
           scoreList.add(handScore.role);
@@ -243,7 +254,11 @@ export default class TexasTableScene extends TableScene {
           winner = this.players[handScoreList.findIndex((score) => score.role === max)].getName;
         }
         this.add
-          .text(400, 400, `${winner}`, { fontFamily: "Arial Black", fontSize: 80 })
+          .text(350, 135, `winner: ${winner}`, {
+            fontFamily: "Arial Black",
+            fontSize: 80,
+            color: "dark",
+          })
           .setName("winner");
       },
       this
@@ -263,7 +278,7 @@ export default class TexasTableScene extends TableScene {
 
     init.on(
       "pointerdown",
-      function initGame(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+      function initGame(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
         // カードオブジェクト削除
         const destroyList = this.children.list.filter(
           (child) =>
@@ -277,7 +292,7 @@ export default class TexasTableScene extends TableScene {
 
         // プレイヤーのデータを初期化
         this.players.forEach((player) => {
-          (player as PokerPlayer).init();
+          (player as TexasPlayer).init();
         });
 
         // 新しくデッキを組む
@@ -289,6 +304,9 @@ export default class TexasTableScene extends TableScene {
         this.unvisibleList.forEach((ele) => {
           ele.visible = true;
         });
+
+        // checkCount初期化
+        this.checkCount = 0;
       },
       this
     );
@@ -300,7 +318,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: D_WIDTH,
   height: D_HEIGHT,
   antialias: false,
-  scene: PokerTableScene,
+  scene: TexasTableScene,
   mode: Phaser.Scale.FIT,
   parent: "game-content",
   autoCenter: Phaser.Scale.CENTER_BOTH,
