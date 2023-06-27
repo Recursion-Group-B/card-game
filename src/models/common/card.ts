@@ -12,6 +12,8 @@ export default class Card extends Phaser.GameObjects.Image {
 
   private isBackSide: boolean;
 
+  private clickStatus: boolean;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -28,6 +30,7 @@ export default class Card extends Phaser.GameObjects.Image {
     this.isBackSide = isBackSide;
     scene.add.existing(this);
     this.setScale(CARD_SCALE_BACK);
+    this.clickStatus = false;
   }
 
   get getSuit() {
@@ -121,6 +124,20 @@ export default class Card extends Phaser.GameObjects.Image {
    */
   returnToOrigin(): void {
     this.setPosition(this.input?.dragStartX, this.input?.dragStartY);
+  }
+
+  /**
+   * clickStatus変更
+   */
+  toggleClickStatus(): void {
+    this.clickStatus = !this.clickStatus;
+  }
+
+  /**
+   * clickStatus取得
+   */
+  get getClickStatus(): boolean {
+    return this.clickStatus;
   }
 
   /**

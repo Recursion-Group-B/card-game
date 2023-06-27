@@ -13,6 +13,7 @@ export type SuitDict = Map<string, number>;
 export type RankDict = Map<number, number>;
 
 export type HandScore = {
+  name: string;
   role: number;
-  highCard: number;
+  highCard: number[][];
 };
