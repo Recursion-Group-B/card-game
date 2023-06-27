@@ -4,6 +4,7 @@ import Player from "../../models/common/player";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
+import Chip from "../../models/common/chip";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -17,13 +18,15 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected deck: Deck | undefined;
 
-  protected bets: number | undefined;
+  protected bet = 0;
 
   protected turnCounter = 0;
 
   protected countDownText: Text | undefined;
 
   protected initialTime = 2;
+
+  protected chipButtons: Array<Chip> = [];
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -144,5 +147,42 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected createGameZone(): void {
     this.gameZone = this.add.zone(D_WIDTH / 2, D_HEIGHT / 2, D_WIDTH, D_HEIGHT);
+  }
+
+  /**
+   * チップオブジェクトの作成
+   */
+  protected createChips(): void {
+    const chipHeight = Number(920 / 2);
+
+    const chipsMap = {
+      chipWhite: 10,
+      chipBlue: 50,
+      chipYellow: 100,
+      chipOrange: 500,
+      chipRed: 1000,
+    };
+
+    const numChips = Object.keys(chipsMap).length;
+    const chipWidth = 60; // If your chip's width is different, adjust this value.
+    const totalWidth = numChips * chipWidth;
+    const space = (this.scale.width - totalWidth) / (numChips + 1);
+    const startPosX = space;
+
+    let currentPosX = startPosX;
+    Object.entries(chipsMap).forEach(([textureKey, value]) => {
+      const chip = new Chip(this, currentPosX, chipHeight, textureKey, value);
+      this.chipButtons.push(chip);
+      currentPosX += chipWidth + space;
+    });
+
+    const playerIndex = 0;
+    const player = this.players[playerIndex];
+    this.chipButtons.forEach((chip) => {
+      chip.setClickHandler(() => {
+        this.bet += chip.getValue;
+        console.log(this.bet);
+      });
+    });
   }
 }
