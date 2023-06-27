@@ -10,8 +10,21 @@ const D_HEIGHT = 920;
 
 
 export default class BlackJackTableScene extends TableScene {
-  private playerDecks: Array<Deck> = [];
-  private dropZones: Array<Zone> = [];
+  // private playerDecks: Array<Deck> = [];
+  // private dropZones: Array<Zone> = [];
+  // private pot: number[];
+  // private returnPot: number;
+  private playerPositionX = 600;
+  private playerPositionY = 600;
+  private cpuPositionX = 600;
+  private cpuPositionY = 300;
+  private cardSize = {
+    x: 85,
+    y: 150,
+  };
+
+  // private unvisibleList: Phaser.GameObjects.Text[] = [];
+
 
   constructor() {
     super({});
@@ -30,26 +43,53 @@ export default class BlackJackTableScene extends TableScene {
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
 
-    // 配置する
-    this.createGameZone(); // これはなぜ必要？
+    this.makeDeck();
+    this.dealCards();
+    this.dealHand();
+  }
+
+  /**
+  * 山札作成
+  */
+  makeDeck() {
+    this.deck = new Deck(this, 1050, 450);
+    this.deck.shuffle();
+  }
+
+  /**
+   * 複数人へ配布
+   */
+  dealCards(): void {
+    this.players.forEach((player) => {
+      /* eslint-disable no-param-reassign */
+      player.setHand = (this.deck as Deck).draw(2) as Card[];
+    });
+  }
+
+  /**
+   * 手札配布
+   */
+  dealHand() {
+    this.players.forEach((player) => {
+      player.getHand?.forEach((card, index) => {
+        if (player.getPlayerType === "player") {
+          card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
+          setTimeout(() => card.flipToFront(), 800);
+          card.setInteractive();
+        } else if (player.getPlayerType === "cpu") {
+          // ブラックジャックはCPUの一枚目を表面にする
+          if (index === 0) {
+            card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
+            setTimeout(() => card.flipToFront(), 800);
+            card.setInteractive();
+          } else {
+            card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
+          }
+        }
+      });
+    });
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -77,5 +117,5 @@ const config: Phaser.Types.Core.GameConfig = {
       default: "arcade",
     },
   };
-  
+
   const phaser = new Phaser.Game(config);
