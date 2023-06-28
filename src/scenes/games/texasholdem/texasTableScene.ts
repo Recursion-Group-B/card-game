@@ -69,8 +69,12 @@ export default class TexasTableScene extends TableScene {
     this.dealCards();
     this.dealHand();
 
+    // アニメーション
     this.clickToUp();
+
+    // アクション
     this.checkAction();
+    this.foldAction();
   }
 
   /**
@@ -196,6 +200,39 @@ export default class TexasTableScene extends TableScene {
       this
     );
   }
+
+  // TODO fold追加
+  private foldAction(): void {
+    const fold = this.add
+      .text(500, 700, "Fold")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    fold.on(
+      "pointerdown",
+      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
+        // カードを手放す
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player") {
+            (player.getHand as Card[]).forEach((card) => {
+              card.destroy();
+            });
+            (player as TexasPlayer).fold();
+          }
+        });
+
+        // リスタートする
+        this.initGame();
+      },
+      this
+    );
+  }
+
+  // TODO bet追加
+  // TODO call追加
+  // TODO raise追加
 
   /**
    * 手札を比較し、リザルトを表示
