@@ -126,7 +126,7 @@ export default abstract class TableScene extends Phaser.Scene {
     };
 
     // テキストオブジェクトを作成
-    const resultText = this.add.text(0, 0, resultMessage, resultStyle);
+    const resultText = this.add.text(0, 0, resultMessage, resultStyle).setName("result");
 
     Phaser.Display.Align.In.Center(
       resultText,

@@ -39,6 +39,10 @@ export default abstract class Player {
     return this.hand;
   }
 
+  get getHandSize() {
+    return this.hand?.length;
+  }
+
   get getBet() {
     return this.bet;
   }

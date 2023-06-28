@@ -35,6 +35,14 @@ export default class TexasPlayer extends Player {
     return this.rankDict;
   }
 
+  set setHandScore(handScore: HandScore) {
+    this.handScore = handScore;
+  }
+
+  get getHandScore(): HandScore {
+    return this.handScore;
+  }
+
   /**
    * プレイヤーアクション（ベット/コール/レイズ）: this.chipsからamountを引く
    * @param amount : number
