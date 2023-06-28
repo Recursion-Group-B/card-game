@@ -43,7 +43,10 @@ export default class TexasTableScene extends TableScene {
 
   constructor() {
     super();
-    this.players = [new TexasPlayer("Player", "player", 0, 0), new TexasPlayer("Cpu", "cpu", 0, 0)];
+    this.players = [
+      new TexasPlayer("Player", "player", 1000, 0),
+      new TexasPlayer("Cpu", "cpu", 1000, 0),
+    ];
     this.dealer = new TexasPlayer("Dealer", "dealer", 0, 0);
     this.pot = [0];
     this.returnPot = 0;
@@ -63,11 +66,9 @@ export default class TexasTableScene extends TableScene {
    * phaser3 描画
    */
   create() {
+    // init
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-
-    this.deckReset(400, 450);
-    this.dealCards();
-    this.dealHand();
+    this.initGame();
 
     // アニメーション
     this.clickToUp();
@@ -75,6 +76,7 @@ export default class TexasTableScene extends TableScene {
     // アクション
     this.checkAction();
     this.foldAction();
+    this.betAction();
   }
 
   /**
@@ -107,8 +109,8 @@ export default class TexasTableScene extends TableScene {
     this.pot.push(amount);
   }
 
-  get getPot(): number[] {
-    return this.pot;
+  get getPot(): number {
+    return this.pot.reduce((pre, next) => pre + next, 0);
   }
 
   get getTotalPot(): number {
@@ -201,7 +203,10 @@ export default class TexasTableScene extends TableScene {
     );
   }
 
-  // TODO fold追加
+  // TODO 現状リスタートになっている。要改善
+  /**
+   * foldを描画
+   */
   private foldAction(): void {
     const fold = this.add
       .text(500, 700, "Fold")
@@ -231,6 +236,46 @@ export default class TexasTableScene extends TableScene {
   }
 
   // TODO bet追加
+  private betAction(): void {
+    const bet = this.add
+      .text(600, 700, "Bet")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    bet.on(
+      "pointerdown",
+      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
+        // 100betする
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player" && player.getChips >= 100) {
+            this.setPot = (player as TexasPlayer).call(100);
+          }
+        });
+
+        // potsを更新する
+        this.drawPots();
+      },
+      this
+    );
+  }
+
+  // TODO pot表示
+  private drawPots(): void {
+    // 以前のpotsを削除
+    this.children.list.forEach((element) => {
+      if (element.name === "pots") element.destroy();
+    });
+
+    this.add
+      .text(500, 185, `pots: ${this.getPot}`)
+      .setFontSize(50)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setName("pots");
+  }
+
   // TODO call追加
   // TODO raise追加
 
@@ -336,12 +381,18 @@ export default class TexasTableScene extends TableScene {
    * リスタート
    */
   private initGame(): void {
-    // カードオブジェクト削除
+    // クラス変数初期化
+    this.checkCount = 0;
+    this.result = undefined;
+    this.pot = [];
+
+    // オブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
-        (child as Card) instanceof Card ||
-        (child as Phaser.GameObjects.Text).name === "result" ||
-        (child as Phaser.GameObjects.Text).name === "roleName"
+        child instanceof Card ||
+        child.name === "result" ||
+        child.name === "pots" ||
+        child.name === "roleName"
     );
     destroyList.forEach((element) => {
       element.destroy();
@@ -356,15 +407,12 @@ export default class TexasTableScene extends TableScene {
     this.deckReset(400, 450);
     this.dealCards();
     this.dealHand();
+    this.drawPots();
 
     // 非表示リストを可視化
     this.unvisibleList.forEach((ele) => {
       ele.visible = true;
     });
-
-    // クラス変数初期化
-    this.checkCount = 0;
-    this.result = undefined;
   }
 }
 
