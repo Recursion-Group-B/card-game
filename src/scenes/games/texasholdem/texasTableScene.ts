@@ -77,6 +77,7 @@ export default class TexasTableScene extends TableScene {
     this.checkAction();
     this.foldAction();
     this.betAction();
+    this.callAction();
   }
 
   /**
@@ -111,6 +112,10 @@ export default class TexasTableScene extends TableScene {
 
   get getPot(): number {
     return this.pot.reduce((pre, next) => pre + next, 0);
+  }
+
+  get getPreBet(): number {
+    return this.pot[this.pot.length - 1];
   }
 
   get getTotalPot(): number {
@@ -277,6 +282,30 @@ export default class TexasTableScene extends TableScene {
   }
 
   // TODO call追加
+  private callAction(): void {
+    const call = this.add
+      .text(700, 700, "call")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    call.on(
+      "pointerdown",
+      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
+        // 前のbetSizeでbetする
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player" && player.getChips >= 100) {
+            this.setPot = (player as TexasPlayer).call(this.getPreBet);
+          }
+        });
+
+        // potsを更新する
+        this.drawPots();
+      },
+      this
+    );
+  }
   // TODO raise追加
 
   /**
