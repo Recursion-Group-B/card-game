@@ -14,13 +14,18 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   private text: Text;
 
+  private originScale: number;
+
   constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string, value: number) {
     super(scene, x, y, textureKey);
     this.value = value;
     this.textStr = String(value);
+    this.originScale = 0.9;
+
     scene.add.existing(this);
+
     this.setInteractive();
-    this.setScale(0.8);
+    this.setScale(this.originScale);
     this.setPushAnimation();
 
     this.text = this.scene.add.text(0, 0, this.textStr, textStyle);
@@ -35,14 +40,14 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.on(
       "pointerdown",
       () => {
-        this.scene.tweens.add({
-          targets: this,
-          scaleX: 0.7,
-          scaleY: 0.7,
-          duration: 100,
-          yoyo: true,
-          ease: "Power1",
-        });
+        this.setScale(this.originScale - 0.1);
+      },
+      this
+    );
+    this.on(
+      "pointerup",
+      () => {
+        this.setScale(this.originScale);
       },
       this
     );
