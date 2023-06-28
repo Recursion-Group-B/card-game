@@ -78,6 +78,7 @@ export default class TexasTableScene extends TableScene {
     this.foldAction();
     this.betAction();
     this.callAction();
+    this.raiseAction();
   }
 
   /**
@@ -284,7 +285,7 @@ export default class TexasTableScene extends TableScene {
   // TODO call追加
   private callAction(): void {
     const call = this.add
-      .text(700, 700, "call")
+      .text(700, 700, "Call")
       .setFontSize(20)
       .setFontFamily("Arial")
       .setOrigin(0.5)
@@ -295,7 +296,7 @@ export default class TexasTableScene extends TableScene {
       function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
         // 前のbetSizeでbetする
         this.players.forEach((player) => {
-          if (player.getPlayerType === "player" && player.getChips >= 100) {
+          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
             this.setPot = (player as TexasPlayer).call(this.getPreBet);
           }
         });
@@ -306,7 +307,32 @@ export default class TexasTableScene extends TableScene {
       this
     );
   }
+
   // TODO raise追加
+  private raiseAction(): void {
+    const raise = this.add
+      .text(800, 700, "Raise")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    raise.on(
+      "pointerdown",
+      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
+        // 前のbetSizeでbetする
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
+            this.setPot = (player as TexasPlayer).call(this.getPreBet * 2);
+          }
+        });
+
+        // potsを更新する
+        this.drawPots();
+      },
+      this
+    );
+  }
 
   /**
    * 手札を比較し、リザルトを表示
