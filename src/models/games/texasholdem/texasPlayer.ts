@@ -165,6 +165,10 @@ export default class TexasPlayer extends Player {
     return (this.handList as number[][]).some((ele) => ele[1] === pairNum);
   }
 
+  /**
+   * フラッシュ判定
+   * @returns boolean
+   */
   private hasFlash(): boolean {
     let response = false;
     this.suitDict.forEach((amount) => {

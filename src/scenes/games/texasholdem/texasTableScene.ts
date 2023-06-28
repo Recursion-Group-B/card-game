@@ -190,27 +190,35 @@ export default class TexasTableScene extends TableScene {
           this.unvisibleList.push(check);
         }
 
-        // 場札が5枚の場合、手札を比較
-        if (this.dealer.getHandSize === 5) {
-          this.checkResult();
-
-          if (this.gameState === "endGame") {
-            setTimeout(() => {
-              this.displayResult(this.result as string, 0);
-              this.resultView();
-            }, 1000);
-
-            // リスタート
-            setTimeout(() => {
-              this.initGame();
-            }, 5000);
-          }
-        }
+        // 場札が5枚の場合、手札を比較しリザルトを表示
+        if (this.dealer.getHandSize === 5) this.compareHands();
       },
       this
     );
   }
 
+  /**
+   * 手札を比較し、リザルトを表示
+   */
+  private compareHands(): void {
+    this.checkResult();
+
+    if (this.gameState === "endGame") {
+      setTimeout(() => {
+        this.displayResult(this.result as string, 0);
+        this.resultView();
+      }, 1000);
+
+      // リスタート
+      setTimeout(() => {
+        this.initGame();
+      }, 5000);
+    }
+  }
+
+  /**
+   * リザルトを取得
+   */
   private checkResult(): void {
     // 場札が5枚でない場合、プレイ続行
     if (this.dealer.getHandSize !== 5) return;
@@ -224,16 +232,16 @@ export default class TexasTableScene extends TableScene {
       (player as TexasPlayer).setHandScore = handScore;
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
+      console.log((player as TexasPlayer).getHandScore.highCard);
     });
 
     // 同等の役の場合、カードの強い順番
     if (scoreList.size === 1) {
       for (let i = 0; i < this.handScoreList[0].highCard.length; i += 1) {
-        if (
-          this.handScoreList[0].highCard[i][0] > this.handScoreList[1].highCard[i][0] ||
-          this.handScoreList[0].highCard[i][0] < this.handScoreList[1].highCard[i][0]
-        )
+        if (this.handScoreList[0].highCard[i][0] > this.handScoreList[1].highCard[i][0])
           this.result = this.players[0].getPlayerType === "player" ? "win" : "lose";
+        else if (this.handScoreList[0].highCard[i][0] < this.handScoreList[1].highCard[i][0])
+          this.result = this.players[1].getPlayerType === "player" ? "win" : "lose";
       }
       if (this.result === "") this.result = "draw";
     } // 役で勝敗決定
@@ -250,80 +258,9 @@ export default class TexasTableScene extends TableScene {
   }
 
   /**
-   * 手札を比較するボタンを描画
+   * リザルトを描画
    */
-  // compareCards(): void {
-  //   const compare = this.add
-  //     .text(500, 700, "Compare")
-  //     .setFontSize(20)
-  //     .setFontFamily("Arial")
-  //     .setOrigin(0.5)
-  //     .setInteractive();
-
-  //   compare.on(
-  //     "pointerdown",
-  //     function compareCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-  //       if ((this.dealer.getHand as Card[]).length < 5) return;
-  //       const handScoreList: HandScore[] = [];
-  //       const scoreList: Set<number> = new Set();
-  //       let winner = "";
-  //       this.players.forEach((player) => {
-  //         // ハンドを表へ
-  //         player.getHand?.forEach((card) => {
-  //           card.flipToFront();
-  //         });
-
-  //         // ディーラーハンドを取り込んで、スコアを計算
-  //         player.addCardToHand(this.dealer.getHand as Card[]);
-  //         const handScore: HandScore = (player as TexasPlayer).calculateHandScore();
-  //         console.log(`${player.getName} role: ${handScore.role}`);
-  //         handScoreList.push(handScore);
-  //         scoreList.add(handScore.role);
-
-  //         // 役を表示
-  //         if (player.getPlayerType === "player")
-  //           this.add
-  //             .text(this.playerPositionX, this.playerPositionY - 80, `${handScore.name}`, {
-  //               fontFamily: "Arial Black",
-  //               fontSize: 12,
-  //             })
-  //             .setName("roleName");
-  //         else if (player.getPlayerType === "cpu")
-  //           this.add
-  //             .text(this.cpuPositionX, this.cpuPositionY - 80, `${handScore.name}`, {
-  //               fontFamily: "Arial Black",
-  //               fontSize: 12,
-  //             })
-  //             .setName("roleName");
-  //       });
-
-  //       // 同等の役の場合、カードの強い順番
-  //       if (scoreList.size === 1) {
-  //         for (let i = 0; i < handScoreList[0].highCard.length; i += 1) {
-  //           if (handScoreList[0].highCard[i][0] > handScoreList[1].highCard[i][0])
-  //             winner = this.players[0].getName;
-  //           else if (handScoreList[0].highCard[i][0] < handScoreList[1].highCard[i][0])
-  //             winner = this.players[1].getName;
-  //         }
-  //         if (winner === "") winner = "Draw";
-  //       } else {
-  //         const max = Math.max(...scoreList);
-  //         winner = this.players[handScoreList.findIndex((score) => score.role === max)].getName;
-  //       }
-  //       this.add
-  //         .text(350, 135, `winner: ${winner}`, {
-  //           fontFamily: "Arial Black",
-  //           fontSize: 80,
-  //           color: "dark",
-  //         })
-  //         .setName("winner");
-  //     },
-  //     this
-  //   );
-  // }
-
   private resultView(): void {
-    console.log(this);
     this.players.forEach((player) => {
       // ハンドを表へ
       player.getHand?.forEach((card) => {
@@ -359,9 +296,9 @@ export default class TexasTableScene extends TableScene {
   }
 
   /**
-   * リスタートボタンを描画
+   * リスタート
    */
-  private initGame() {
+  private initGame(): void {
     // カードオブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
