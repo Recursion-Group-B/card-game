@@ -3,24 +3,21 @@ import Text = Phaser.GameObjects.Text;
 
 const textStyle = {
   font: "30px Arial",
-  color: "#000000",
+  color: "#FFFFFF",
   strokeThickness: 2,
 };
 
 export default class Chip extends Phaser.GameObjects.Image {
-  private value: number;
-
   private textStr: string | undefined;
 
   private text: Text;
 
   private originScale: number;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string, value: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string, text: string) {
     super(scene, x, y, textureKey);
-    this.value = value;
-    this.textStr = String(value);
-    this.originScale = 0.9;
+    this.originScale = 0.35;
+    this.textStr = text;
 
     scene.add.existing(this);
 
@@ -32,15 +29,11 @@ export default class Chip extends Phaser.GameObjects.Image {
     Phaser.Display.Align.In.Center(this.text, this);
   }
 
-  get getValue(): number {
-    return this.value;
-  }
-
   private setPushAnimation(): void {
     this.on(
       "pointerdown",
       () => {
-        this.setScale(this.originScale - 0.1);
+        this.setScale(this.originScale - 0.02);
       },
       this
     );

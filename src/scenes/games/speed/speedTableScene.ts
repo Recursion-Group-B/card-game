@@ -24,6 +24,8 @@ export default class SpeedTableScene extends TableScene {
 
   private result: string | undefined; // WIN or LOSE or DRAW
 
+  private gameStarted = false;
+
   constructor() {
     super({});
 
@@ -36,10 +38,49 @@ export default class SpeedTableScene extends TableScene {
   preload(): void {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/public/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
   }
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.gameState = "betting";
+
+    // betテーブル表示
+    this.createChips();
+    this.createDealButton();
+    //this.createCreditField();
+  }
+
+  update(): void {
+    if (this.gameState === "playing" && !this.gameStarted) {
+      this.disableBetItem();
+      this.startGame();
+      this.gameStarted = true;
+    }
+
+    this.checkResult();
+
+    if (this.gameState === "endGame") {
+      this.cpuPlayTimeEvent?.remove();
+      this.stallCheckTimeEvent?.remove();
+      this.countDownEvent?.remove();
+
+      // ゲームresult画面
+      if (this.result) {
+        this.displayResult(this.result, 0);
+
+        // TODO result画面のBGM設定
+        // TODO chipやスコアの更新
+      }
+    }
+  }
+
+  private startGame(): void {
     this.createGameZone();
     this.createDropZones();
     this.createCardDropEvent();
@@ -71,24 +112,6 @@ export default class SpeedTableScene extends TableScene {
         loop: true,
       });
     });
-  }
-
-  update(): void {
-    this.checkResult();
-
-    if (this.gameState === "endGame") {
-      this.cpuPlayTimeEvent?.remove();
-      this.stallCheckTimeEvent?.remove();
-      this.countDownEvent?.remove();
-
-      // ゲームresult画面
-      if (this.result) {
-        this.displayResult(this.result, 0);
-
-        // TODO result画面のBGM設定
-        // TODO chipやスコアの更新
-      }
-    }
   }
 
   /**
@@ -429,6 +452,8 @@ export default class SpeedTableScene extends TableScene {
    * 勝敗判定
    */
   private checkResult(): void {
+    if (this.gameState !== "playing") return;
+
     const playerHandScore: number = this.players[0].calculateHandScore();
     const cpuHandScore: number = this.players[1].calculateHandScore();
 

@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 import Deck from "../../models/common/deck";
 import Player from "../../models/common/player";
+import Chip from "../../models/common/chip";
+import Button from "../../models/common/button";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
-import Chip from "../../models/common/chip";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -27,6 +28,8 @@ export default abstract class TableScene extends Phaser.Scene {
   protected initialTime = 2;
 
   protected chipButtons: Array<Chip> = [];
+
+  protected dealButton: Button;
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -164,11 +167,12 @@ export default abstract class TableScene extends Phaser.Scene {
     };
 
     const numChips = Object.keys(chipsMap).length;
-    const chipWidth = 60; // If your chip's width is different, adjust this value.
+    const chipWidth = 60;
     const totalWidth = numChips * chipWidth;
     const space = (this.scale.width - totalWidth) / (numChips + 1);
     const startPosX = space;
 
+    // チップの生成
     let currentPosX = startPosX;
     Object.entries(chipsMap).forEach(([textureKey, value]) => {
       const chip = new Chip(this, currentPosX, chipHeight, textureKey, value);
@@ -176,6 +180,7 @@ export default abstract class TableScene extends Phaser.Scene {
       currentPosX += chipWidth + space;
     });
 
+    // ハンドラー設定
     const playerIndex = 0;
     const player = this.players[playerIndex];
     this.chipButtons.forEach((chip) => {
@@ -183,6 +188,39 @@ export default abstract class TableScene extends Phaser.Scene {
         this.bet += chip.getValue;
         console.log(this.bet);
       });
+    });
+  }
+
+  /**
+   * Dealボタン作成
+   */
+  protected createDealButton() {
+    this.dealButton = new Button(
+      this,
+      this.scale.width / 2,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "DEAL"
+    );
+    this.dealButton.setClickHandler(() => {
+      console.log("ゲームを開始します");
+      this.gameState = "playing";
+      this.dealButton.disable();
+    });
+  }
+
+  /**
+   * 所持金やbet額などの表示
+   */
+  protected createCreditField() {
+    // 現在の所持金を表示
+    // 現在のbet額を表示
+  }
+
+  protected disableBetItem(): void {
+    this.chipButtons.forEach((chip) => {
+      console.log(chip);
+      chip.disable();
     });
   }
 }
