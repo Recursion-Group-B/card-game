@@ -33,13 +33,13 @@ export default class TexasTableScene extends TableScene {
     y: 150,
   };
 
-  private checkCount: number;
-
-  private unvisibleList: Phaser.GameObjects.Text[] = [];
-
   private result: string | undefined;
 
   private handScoreList: HandScore[] = [];
+
+  private actionContainer: Phaser.GameObjects.Container | undefined;
+
+  private cycleState: string | undefined;
 
   constructor() {
     super();
@@ -50,8 +50,7 @@ export default class TexasTableScene extends TableScene {
     this.dealer = new TexasPlayer("Dealer", "dealer", 0, 0);
     this.pot = [0];
     this.returnPot = 0;
-    this.result = undefined;
-    this.checkCount = 0;
+    this.gameState = "firstCycle";
   }
 
   /**
@@ -70,22 +69,99 @@ export default class TexasTableScene extends TableScene {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.initGame();
 
-    // アニメーション
-    this.clickToUp();
-
-    // アクション
-    this.checkAction();
-    this.foldAction();
-    this.betAction();
-    this.callAction();
-    this.raiseAction();
+    this.time.addEvent({
+      delay: 5000,
+      callback: this.cycleEvent,
+      callbackScope: this,
+      loop: true,
+    });
   }
 
   /**
    * phaser3 フレーム処理
    */
-  // update(): void {
-  // }
+  update(): void {
+    console.log(this.cycleState);
+    // gameState管理
+    this.cycleControl();
+
+    // pots更新
+    this.drawPots();
+  }
+
+  private cycleControl(): void {
+    // 全員がアクションした
+    if (this.players.every((player) => (player as TexasPlayer).getState() === "Done")) {
+      this.cycleState = "allDone";
+    }
+
+    // 一巡目のアクション終了
+    if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
+      // 各stateセット
+      this.players.forEach((player) => {
+        (player as TexasPlayer).setState("notAction");
+      });
+      this.cycleState = "notAllDone";
+      this.gameState = "secondCycle";
+
+      // 場札配布
+      this.dealHand(this.dealer);
+    }
+
+    // 二巡目のアクション終了
+    if (this.gameState === "secondCycle" && this.cycleState === "allDone") {
+      // 各stateセット
+      this.players.forEach((player) => {
+        (player as TexasPlayer).setState("notAction");
+      });
+      this.cycleState = "notAllDone";
+      this.gameState = "thirdCycle";
+
+      // 場札配布
+      this.dealer.addCardToHand(this.deck?.draw() as Card);
+      this.dealHand(this.dealer);
+    }
+
+    // 三巡目のアクション終了
+    if (this.gameState === "thirdCycle" && this.cycleState === "allDone") {
+      // 各stateセット
+      this.players.forEach((player) => {
+        (player as TexasPlayer).setState("notAction");
+      });
+      this.cycleState = "notAllDone";
+      this.gameState = "compare";
+
+      // 場札配布
+      this.dealer.addCardToHand(this.deck?.draw() as Card);
+      this.dealHand(this.dealer);
+    }
+
+    // 手札を比較し、ゲーム終了
+    if (this.gameState === "compare") {
+      this.gameState = "endGame";
+      this.compareHands();
+    }
+  }
+
+  private cycleEvent(): void {
+    console.log(this.getTotalPot);
+
+    for (let i = 0; i < this.players.length; i += 1) {
+      // playerがアクションしていない場合、何もしない
+      if (
+        this.players[i].getPlayerType === "player" &&
+        (this.players[i] as TexasPlayer).getState() === "notAction"
+      )
+        return;
+
+      // cpu
+      if (this.players[i].getPlayerType === "cpu" && (this.players[i] as TexasPlayer).getIsDealer) {
+        this.cpuAction(this.players[i] as TexasPlayer, "dealer");
+      } else if (this.players[i].getPlayerType === "cpu") {
+        this.cpuAction(this.players[i] as TexasPlayer);
+      }
+    }
+  }
 
   addCPU(player: TexasPlayer): void {
     this.players.push(player);
@@ -132,24 +208,21 @@ export default class TexasTableScene extends TableScene {
   /**
    * 手札配布
    */
-  dealHand() {
-    // プレイヤー手札配布
-    this.players.forEach((player) => {
-      player.getHand?.forEach((card, index) => {
-        if (player.getPlayerType === "player") {
-          card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
-          setTimeout(() => card.flipToFront(), 500);
-          card.setInteractive();
-        } else if (player.getPlayerType === "cpu") {
-          card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
-        }
-      });
-
-      // ディーラー手札配布
-      this.dealer.getHand?.forEach((card, index) => {
+  dealHand(player: TexasPlayer): void {
+    player.getHand?.forEach((card, index) => {
+      // player
+      if (player.getPlayerType === "player") {
+        card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
+        setTimeout(() => card.flipToFront(), 500);
+        card.setInteractive();
+      } // cpu
+      else if (player.getPlayerType === "cpu") {
+        card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
+      } // dealer
+      else if (player.getPlayerType === "dealer") {
         card.moveTo(this.dealerPositionX + index * this.cardSize.x, this.dealerPositionY, 500);
         setTimeout(() => card.flipToFront(), 500);
-      });
+      }
     });
   }
 
@@ -175,6 +248,13 @@ export default class TexasTableScene extends TableScene {
     });
   }
 
+  private cpuAction(player: TexasPlayer, dealer?: string): void {
+    console.log("action!!!");
+    this.setPot = player.call(100);
+    this.drawPots();
+    player.setState("Done");
+  }
+
   /**
    * checkを描画
    */
@@ -186,24 +266,17 @@ export default class TexasTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
+    (this.actionContainer as Phaser.GameObjects.Container).add(check);
+
     check.on(
       "pointerdown",
       function checkCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        // ディーラーカード配布
-        this.dealer.addCardToHand(this.deck?.draw() as Card);
-        this.dealHand();
-        console.log(this.dealer.getHandSize);
-
-        // カウント数で非表示
-        this.checkCount += 1;
-        if (this.checkCount === 2) {
-          // compare非表示
-          check.visible = false;
-          this.unvisibleList.push(check);
-        }
-
-        // 場札が5枚の場合、手札を比較しリザルトを表示
-        if (this.dealer.getHandSize === 5) this.compareHands();
+        // playerのstate変更
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player") {
+            (player as TexasPlayer).setState("Done");
+          }
+        });
       },
       this
     );
@@ -221,6 +294,8 @@ export default class TexasTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
+    (this.actionContainer as Phaser.GameObjects.Container).add(fold);
+
     fold.on(
       "pointerdown",
       function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
@@ -230,7 +305,11 @@ export default class TexasTableScene extends TableScene {
             (player.getHand as Card[]).forEach((card) => {
               card.destroy();
             });
+
             (player as TexasPlayer).fold();
+
+            // playerのstate変更
+            (player as TexasPlayer).setState("Done");
           }
         });
 
@@ -241,7 +320,10 @@ export default class TexasTableScene extends TableScene {
     );
   }
 
-  // TODO bet追加
+  // TODO betを押すと、chipSize選択できるようにする。
+  /**
+   * betアクション
+   */
   private betAction(): void {
     const bet = this.add
       .text(600, 700, "Bet")
@@ -250,24 +332,27 @@ export default class TexasTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
+    (this.actionContainer as Phaser.GameObjects.Container).add(bet);
+
     bet.on(
       "pointerdown",
-      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        // 100betする
+      function betToPot(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
+          // 100betする
           if (player.getPlayerType === "player" && player.getChips >= 100) {
             this.setPot = (player as TexasPlayer).call(100);
+            // playerのstate変更
+            (player as TexasPlayer).setState("Done");
           }
         });
-
-        // potsを更新する
-        this.drawPots();
       },
       this
     );
   }
 
-  // TODO pot表示
+  /**
+   * ポットの表示
+   */
   private drawPots(): void {
     // 以前のpotsを削除
     this.children.list.forEach((element) => {
@@ -282,7 +367,10 @@ export default class TexasTableScene extends TableScene {
       .setName("pots");
   }
 
-  // TODO call追加
+  // TODO callアクションをすると、chipSize選択できるようにする。
+  /**
+   * callアクション
+   */
   private callAction(): void {
     const call = this.add
       .text(700, 700, "Call")
@@ -291,24 +379,28 @@ export default class TexasTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
+    (this.actionContainer as Phaser.GameObjects.Container).add(call);
+
     call.on(
       "pointerdown",
       function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        // 前のbetSizeでbetする
         this.players.forEach((player) => {
+          // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
             this.setPot = (player as TexasPlayer).call(this.getPreBet);
+            // playerのstate変更
+            (player as TexasPlayer).setState("Done");
           }
         });
-
-        // potsを更新する
-        this.drawPots();
       },
       this
     );
   }
 
-  // TODO raise追加
+  // TODO raiseアクションをすると、chips選択できるようにする。
+  /**
+   * raiseアクション
+   */
   private raiseAction(): void {
     const raise = this.add
       .text(800, 700, "Raise")
@@ -317,18 +409,19 @@ export default class TexasTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
+    (this.actionContainer as Phaser.GameObjects.Container).add(raise);
+
     raise.on(
       "pointerdown",
       function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        // 前のbetSizeでbetする
         this.players.forEach((player) => {
+          // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
             this.setPot = (player as TexasPlayer).call(this.getPreBet * 2);
+            // playerのstate変更
+            (player as TexasPlayer).setState("Done");
           }
         });
-
-        // potsを更新する
-        this.drawPots();
       },
       this
     );
@@ -436,38 +529,49 @@ export default class TexasTableScene extends TableScene {
    * リスタート
    */
   private initGame(): void {
-    // クラス変数初期化
-    this.checkCount = 0;
-    this.result = undefined;
-    this.pot = [];
-
     // オブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
         child instanceof Card ||
         child.name === "result" ||
         child.name === "pots" ||
-        child.name === "roleName"
+        child.name === "roleName" ||
+        child.name === "actionContainer"
     );
     destroyList.forEach((element) => {
       element.destroy();
     });
+
+    // クラス変数初期化
+    this.result = undefined;
+    this.pot = [];
+    this.actionContainer = this.add.container(0, 0).setName("actionContainer");
+    this.gameState = "firstCycle";
 
     // プレイヤーのデータを初期化
     this.players.forEach((player) => {
       (player as TexasPlayer).init();
     });
 
-    // 新しくデッキを組む
+    // オブジェクトの表示
     this.deckReset(400, 450);
     this.dealCards();
-    this.dealHand();
-    this.drawPots();
-
-    // 非表示リストを可視化
-    this.unvisibleList.forEach((ele) => {
-      ele.visible = true;
+    this.players.forEach((player) => {
+      this.dealHand(player as TexasPlayer);
     });
+    this.drawPots();
+    this.drawAction();
+  }
+
+  /**
+   * アクション表示
+   */
+  private drawAction(): void {
+    this.foldAction();
+    this.checkAction();
+    this.betAction();
+    this.callAction();
+    this.raiseAction();
   }
 }
 
