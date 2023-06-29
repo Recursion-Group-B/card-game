@@ -71,7 +71,7 @@ export default class TexasTableScene extends TableScene {
 
     this.players.forEach((player, index) => {
       this.time.addEvent({
-        delay: 5000,
+        delay: 3000,
         callback: this.cycleEvent,
         callbackScope: this,
         args: [player, index],
@@ -94,6 +94,7 @@ export default class TexasTableScene extends TableScene {
     this.drawChips();
   }
 
+  // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
     // 全員がアクションした
     if (this.players.every((player) => (player as TexasPlayer).getState === "Done")) {
@@ -111,7 +112,9 @@ export default class TexasTableScene extends TableScene {
       this.gameState = "secondCycle";
 
       // 場札配布
-      this.dealHand(this.dealer);
+      this.time.delayedCall(500, () => {
+        this.dealHand(this.dealer);
+      });
     }
 
     // 二巡目のアクション終了
@@ -125,8 +128,10 @@ export default class TexasTableScene extends TableScene {
       this.gameState = "thirdCycle";
 
       // 場札配布
-      this.dealer.addCardToHand(this.deck?.draw() as Card);
-      this.dealHand(this.dealer);
+      this.time.delayedCall(500, () => {
+        this.dealer.addCardToHand(this.deck?.draw() as Card);
+        this.dealHand(this.dealer);
+      });
     }
 
     // 三巡目のアクション終了
@@ -154,7 +159,7 @@ export default class TexasTableScene extends TableScene {
     if (this.gameState === "endGame") {
       this.gameState = "firstCycle";
 
-      this.time.delayedCall(1000, () => {
+      this.time.delayedCall(2000, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
       });
@@ -231,14 +236,17 @@ export default class TexasTableScene extends TableScene {
     player.getHand?.forEach((card, index) => {
       // player
       if (player.getPlayerType === "player") {
+        this.children.bringToTop(card);
         card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
         setTimeout(() => card.flipToFront(), 500);
         card.setInteractive();
       } // cpu
       else if (player.getPlayerType === "cpu") {
+        this.children.bringToTop(card);
         card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
       } // dealer
       else if (player.getPlayerType === "dealer") {
+        this.children.bringToTop(card);
         card.moveTo(this.dealerPositionX + index * this.cardSize.x, this.dealerPositionY, 500);
         setTimeout(() => card.flipToFront(), 500);
       }
@@ -267,6 +275,7 @@ export default class TexasTableScene extends TableScene {
     });
   }
 
+  // TODO call/bet/checkくらいはできるようにする。
   private cpuAction(player: TexasPlayer, dealer?: string): void {
     console.log("action!!!");
     this.setPot = player.call(100);
@@ -562,6 +571,7 @@ export default class TexasTableScene extends TableScene {
     });
   }
 
+  // TODO dealerを順繰り回すようにする
   /**
    * リスタート
    */
@@ -600,6 +610,7 @@ export default class TexasTableScene extends TableScene {
     this.drawAction();
   }
 
+  // TODO アクション出来るもののみ表示させる
   /**
    * アクション表示
    */
