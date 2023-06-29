@@ -57,11 +57,11 @@ export default class TexasPlayer extends Player {
     return this.handScore;
   }
 
-  setState(state: string): void {
+  set setState(state: string) {
     this.state = state;
   }
 
-  getState(): string {
+  get getState(): string {
     return this.state;
   }
 

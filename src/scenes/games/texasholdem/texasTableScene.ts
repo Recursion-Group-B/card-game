@@ -91,7 +91,7 @@ export default class TexasTableScene extends TableScene {
 
   private cycleControl(): void {
     // 全員がアクションした
-    if (this.players.every((player) => (player as TexasPlayer).getState() === "Done")) {
+    if (this.players.every((player) => (player as TexasPlayer).getState === "Done")) {
       this.cycleState = "allDone";
     }
 
@@ -99,7 +99,8 @@ export default class TexasTableScene extends TableScene {
     if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
-        (player as TexasPlayer).setState("notAction");
+        /* eslint-disable no-param-reassign */
+        (player as TexasPlayer).setState = "notAction";
       });
       this.cycleState = "notAllDone";
       this.gameState = "secondCycle";
@@ -112,7 +113,8 @@ export default class TexasTableScene extends TableScene {
     if (this.gameState === "secondCycle" && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
-        (player as TexasPlayer).setState("notAction");
+        /* eslint-disable no-param-reassign */
+        (player as TexasPlayer).setState = "notAction";
       });
       this.cycleState = "notAllDone";
       this.gameState = "thirdCycle";
@@ -126,7 +128,8 @@ export default class TexasTableScene extends TableScene {
     if (this.gameState === "thirdCycle" && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
-        (player as TexasPlayer).setState("notAction");
+        /* eslint-disable no-param-reassign */
+        (player as TexasPlayer).setState = "notAction";
       });
       this.cycleState = "notAllDone";
       this.gameState = "compare";
@@ -150,7 +153,7 @@ export default class TexasTableScene extends TableScene {
       // playerがアクションしていない場合、何もしない
       if (
         this.players[i].getPlayerType === "player" &&
-        (this.players[i] as TexasPlayer).getState() === "notAction"
+        (this.players[i] as TexasPlayer).getState === "notAction"
       )
         return;
 
@@ -252,7 +255,7 @@ export default class TexasTableScene extends TableScene {
     console.log("action!!!");
     this.setPot = player.call(100);
     this.drawPots();
-    player.setState("Done");
+    player.setState = "Done";
   }
 
   /**
@@ -274,7 +277,7 @@ export default class TexasTableScene extends TableScene {
         // playerのstate変更
         this.players.forEach((player) => {
           if (player.getPlayerType === "player") {
-            (player as TexasPlayer).setState("Done");
+            (player as TexasPlayer).setState = "Done";
           }
         });
       },
@@ -309,7 +312,7 @@ export default class TexasTableScene extends TableScene {
             (player as TexasPlayer).fold();
 
             // playerのstate変更
-            (player as TexasPlayer).setState("Done");
+            (player as TexasPlayer).setState = "Done";
           }
         });
 
@@ -342,7 +345,7 @@ export default class TexasTableScene extends TableScene {
           if (player.getPlayerType === "player" && player.getChips >= 100) {
             this.setPot = (player as TexasPlayer).call(100);
             // playerのstate変更
-            (player as TexasPlayer).setState("Done");
+            (player as TexasPlayer).setState = "Done";
           }
         });
       },
@@ -389,7 +392,7 @@ export default class TexasTableScene extends TableScene {
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
             this.setPot = (player as TexasPlayer).call(this.getPreBet);
             // playerのstate変更
-            (player as TexasPlayer).setState("Done");
+            (player as TexasPlayer).setState = "Done";
           }
         });
       },
@@ -419,7 +422,7 @@ export default class TexasTableScene extends TableScene {
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
             this.setPot = (player as TexasPlayer).call(this.getPreBet * 2);
             // playerのstate変更
-            (player as TexasPlayer).setState("Done");
+            (player as TexasPlayer).setState = "Done";
           }
         });
       },
