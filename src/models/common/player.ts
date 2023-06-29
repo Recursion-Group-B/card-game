@@ -55,6 +55,10 @@ export default abstract class Player {
     this.bet = bet;
   }
 
+  addChips(chips: number): void {
+    this.chips += chips;
+  }
+
   /**
    * this.handにcardを追加
    * @param card: Card

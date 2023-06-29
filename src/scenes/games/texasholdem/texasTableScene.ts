@@ -44,8 +44,8 @@ export default class TexasTableScene extends TableScene {
   constructor() {
     super();
     this.players = [
-      new TexasPlayer("Player", "player", 1000, 0),
-      new TexasPlayer("Cpu", "cpu", 1000, 0),
+      new TexasPlayer("Player", "player", 10000, 0),
+      new TexasPlayer("Cpu", "cpu", 10000, 0),
     ];
     this.dealer = new TexasPlayer("Dealer", "dealer", 0, 0);
     this.pot = [0];
@@ -87,6 +87,9 @@ export default class TexasTableScene extends TableScene {
 
     // pots更新
     this.drawPots();
+
+    // chips更新
+    this.drawChips();
   }
 
   private cycleControl(): void {
@@ -142,7 +145,22 @@ export default class TexasTableScene extends TableScene {
     // 手札を比較し、ゲーム終了
     if (this.gameState === "compare") {
       this.gameState = "endGame";
-      this.compareHands();
+      this.checkResult();
+    }
+
+    // リザルト表示し、リスタート
+    if (this.gameState === "endGame") {
+      this.gameState = "firstCycle";
+
+      setTimeout(() => {
+        this.displayResult(this.result as string, 0);
+        this.resultView();
+      }, 1000);
+
+      // リスタート
+      setTimeout(() => {
+        this.initGame();
+      }, 5000);
     }
   }
 
@@ -323,7 +341,6 @@ export default class TexasTableScene extends TableScene {
     );
   }
 
-  // TODO betを押すと、chipSize選択できるようにする。
   /**
    * betアクション
    */
@@ -370,7 +387,34 @@ export default class TexasTableScene extends TableScene {
       .setName("pots");
   }
 
-  // TODO callアクションをすると、chipSize選択できるようにする。
+  /**
+   * 所持金表示
+   */
+  private drawChips(): void {
+    // 以前のchipsを削除
+    this.children.list.forEach((element) => {
+      if (element.name === "chips") element.destroy();
+    });
+
+    this.players.forEach((player) => {
+      if (player.getPlayerType === "player") {
+        this.add
+          .text(this.playerPositionX, this.playerPositionY + 70, `chips: ${player.getChips}`)
+          .setFontSize(24)
+          .setFontFamily("Arial")
+          .setOrigin(0.5)
+          .setName("chips");
+      } else if (player.getPlayerType === "cpu") {
+        this.add
+          .text(this.cpuPositionX, this.cpuPositionY + 70, `chips: ${player.getChips}`)
+          .setFontSize(24)
+          .setFontFamily("Arial")
+          .setOrigin(0.5)
+          .setName("chips");
+      }
+    });
+  }
+
   /**
    * callアクション
    */
@@ -400,7 +444,6 @@ export default class TexasTableScene extends TableScene {
     );
   }
 
-  // TODO raiseアクションをすると、chips選択できるようにする。
   /**
    * raiseアクション
    */
@@ -428,25 +471,6 @@ export default class TexasTableScene extends TableScene {
       },
       this
     );
-  }
-
-  /**
-   * 手札を比較し、リザルトを表示
-   */
-  private compareHands(): void {
-    this.checkResult();
-
-    if (this.gameState === "endGame") {
-      setTimeout(() => {
-        this.displayResult(this.result as string, 0);
-        this.resultView();
-      }, 1000);
-
-      // リスタート
-      setTimeout(() => {
-        this.initGame();
-      }, 5000);
-    }
   }
 
   /**
@@ -500,8 +524,18 @@ export default class TexasTableScene extends TableScene {
         card.flipToFront();
       });
 
-      // 役を表示
-      if (player.getPlayerType === "player")
+      // 勝敗
+      if (this.result === "win" && player.getPlayerType === "player") {
+        player.addChips(this.potReturn());
+      } else if (this.result === "lose" && player.getPlayerType === "cpu") {
+        player.addChips(this.potReturn());
+      } else if (this.result === "draw") {
+        player.addChips(Math.floor(this.potReturn() / 2));
+      }
+
+      // player
+      if (player.getPlayerType === "player") {
+        // 役を表示
         this.add
           .text(
             this.playerPositionX,
@@ -513,7 +547,8 @@ export default class TexasTableScene extends TableScene {
             }
           )
           .setName("roleName");
-      else if (player.getPlayerType === "cpu")
+      } else if (player.getPlayerType === "cpu") {
+        // 役を表示
         this.add
           .text(
             this.cpuPositionX,
@@ -525,6 +560,7 @@ export default class TexasTableScene extends TableScene {
             }
           )
           .setName("roleName");
+      }
     });
   }
 
