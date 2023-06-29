@@ -69,11 +69,14 @@ export default class TexasTableScene extends TableScene {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.initGame();
 
-    this.time.addEvent({
-      delay: 5000,
-      callback: this.cycleEvent,
-      callbackScope: this,
-      loop: true,
+    this.players.forEach((player, index) => {
+      this.time.addEvent({
+        delay: 5000,
+        callback: this.cycleEvent,
+        callbackScope: this,
+        args: [player, index],
+        loop: true,
+      });
     });
   }
 
@@ -81,7 +84,6 @@ export default class TexasTableScene extends TableScene {
    * phaser3 フレーム処理
    */
   update(): void {
-    console.log(this.cycleState);
     // gameState管理
     this.cycleControl();
 
@@ -152,35 +154,31 @@ export default class TexasTableScene extends TableScene {
     if (this.gameState === "endGame") {
       this.gameState = "firstCycle";
 
-      setTimeout(() => {
+      this.time.delayedCall(1000, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
-      }, 1000);
+      });
 
       // リスタート
-      setTimeout(() => {
+      this.time.delayedCall(5000, () => {
         this.initGame();
-      }, 5000);
+      });
     }
   }
 
-  private cycleEvent(): void {
+  private cycleEvent(player: TexasPlayer, index: number): void {
     console.log(this.getTotalPot);
+    // playerの場合、何もしない
+    if (player.getPlayerType === "player") return;
 
-    for (let i = 0; i < this.players.length; i += 1) {
-      // playerがアクションしていない場合、何もしない
-      if (
-        this.players[i].getPlayerType === "player" &&
-        (this.players[i] as TexasPlayer).getState === "notAction"
-      )
-        return;
+    // 前者がアクションしていない場合、何もしない。
+    if ((this.players[index - 1] as TexasPlayer).getState === "notAction") return;
 
-      // cpu
-      if (this.players[i].getPlayerType === "cpu" && (this.players[i] as TexasPlayer).getIsDealer) {
-        this.cpuAction(this.players[i] as TexasPlayer, "dealer");
-      } else if (this.players[i].getPlayerType === "cpu") {
-        this.cpuAction(this.players[i] as TexasPlayer);
-      }
+    // cpu
+    if (player.getPlayerType === "cpu" && (player as TexasPlayer).getIsDealer) {
+      this.cpuAction(player as TexasPlayer, "dealer");
+    } else if (player.getPlayerType === "cpu") {
+      this.cpuAction(player as TexasPlayer);
     }
   }
 
