@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import Text = Phaser.GameObjects.Text;
 
 const textStyle = {
-  font: "30px Arial",
+  font: "35px Arial",
   color: "#000000",
   strokeThickness: 2,
 };
@@ -19,7 +19,7 @@ export default class Chip extends Phaser.GameObjects.Image {
   constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string, value: number) {
     super(scene, x, y, textureKey);
     this.value = value;
-    this.textStr = String(value);
+    this.textStr = value < 1000 ? String(value) : "1K";
     this.originScale = 0.9;
 
     scene.add.existing(this);
@@ -67,5 +67,19 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.setInteractive(false);
     this.setVisible(false);
     this.text.setVisible(false);
+  }
+
+  disVisibleText(): void {
+    this.text.setVisible(false);
+  }
+
+  moveTo(toX: number, toY: number, delay: number): void {
+    this.scene.tweens.add({
+      targets: this,
+      x: toX,
+      y: toY,
+      duration: delay,
+      ease: "Linear",
+    });
   }
 }

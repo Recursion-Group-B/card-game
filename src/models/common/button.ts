@@ -61,4 +61,18 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.setVisible(false);
     this.text.setVisible(false);
   }
+
+  disVisibleText(): void {
+    this.text.setVisible(false);
+  }
+
+  moveTo(toX: number, toY: number, delay: number): void {
+    this.scene.tweens.add({
+      targets: this,
+      x: toX,
+      y: toY,
+      duration: delay,
+      ease: "Linear",
+    });
+  }
 }

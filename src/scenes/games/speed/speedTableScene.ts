@@ -30,8 +30,8 @@ export default class SpeedTableScene extends TableScene {
     super({});
 
     this.players = [
-      new SpeedPlayer("TestPlayer", "player", 0, 0),
-      new SpeedPlayer("TestCpu", "cpu", 0, 0),
+      new SpeedPlayer("Player", "player", 1000, 0),
+      new SpeedPlayer("Cpu", "cpu", 0, 0),
     ];
   }
 
@@ -50,10 +50,13 @@ export default class SpeedTableScene extends TableScene {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.gameState = "betting";
 
-    // betテーブル表示
+    this.createGameZone();
+    this.createDropZones();
+    this.createCardDropEvent();
     this.createChips();
     this.createDealButton();
-    //this.createCreditField();
+    this.createClearButton();
+    this.createCreditField();
   }
 
   update(): void {
@@ -81,9 +84,6 @@ export default class SpeedTableScene extends TableScene {
   }
 
   private startGame(): void {
-    this.createGameZone();
-    this.createDropZones();
-    this.createCardDropEvent();
     this.createPlayerDecks();
     this.dealCards();
 

@@ -10,6 +10,12 @@ import GameObject = Phaser.GameObjects.GameObject;
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
 
+const textStyle = {
+  font: "40px Arial",
+  color: "#FFFFFF",
+  strokeThickness: 2,
+};
+
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
 
@@ -25,11 +31,17 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected countDownText: Text | undefined;
 
+  protected creditText: Text | undefined;
+
+  protected betText: Text | undefined;
+
   protected initialTime = 2;
 
   protected chipButtons: Array<Chip> = [];
 
   protected dealButton: Button;
+
+  protected clearButton: Button;
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -181,12 +193,15 @@ export default abstract class TableScene extends Phaser.Scene {
     });
 
     // ハンドラー設定
-    const playerIndex = 0;
-    const player = this.players[playerIndex];
     this.chipButtons.forEach((chip) => {
+      const player = this.players[0];
       chip.setClickHandler(() => {
-        this.bet += chip.getValue;
-        console.log(this.bet);
+        const tempBet = this.bet + chip.getValue;
+        if (tempBet <= player.getChips) {
+          this.bet = tempBet;
+        }
+
+        this.setBetText();
       });
     });
   }
@@ -197,15 +212,46 @@ export default abstract class TableScene extends Phaser.Scene {
   protected createDealButton() {
     this.dealButton = new Button(
       this,
-      this.scale.width / 2,
+      this.scale.width / 2 + 150,
       this.scale.height / 2 + 250,
       "buttonRed",
       "DEAL"
     );
     this.dealButton.setClickHandler(() => {
-      console.log("ゲームを開始します");
-      this.gameState = "playing";
-      this.dealButton.disable();
+      if (this.bet > 0) {
+        // UIをフェードアウトさせる
+        this.chipButtons.forEach((chip) => {
+          chip.moveTo(chip.x, chip.y - 700, 200);
+          chip.disVisibleText();
+        });
+
+        this.dealButton.moveTo(this.dealButton.x, this.dealButton.y + 700, 200);
+        this.clearButton.moveTo(this.clearButton.x, this.clearButton.y + 700, 200);
+        this.dealButton.disVisibleText();
+        this.clearButton.disVisibleText();
+
+        setTimeout(() => {
+          this.gameState = "playing";
+        }, 1000);
+      }
+    });
+  }
+
+  /**
+   * クリアボタンを表示
+   */
+  protected createClearButton() {
+    this.clearButton = new Button(
+      this,
+      this.scale.width / 2 - 150,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "CLEAR"
+    );
+
+    this.clearButton.setClickHandler(() => {
+      this.bet = 0;
+      this.setBetText();
     });
   }
 
@@ -213,14 +259,52 @@ export default abstract class TableScene extends Phaser.Scene {
    * 所持金やbet額などの表示
    */
   protected createCreditField() {
-    // 現在の所持金を表示
-    // 現在のbet額を表示
+    this.createPlayerCreditText();
+    this.createPlayerBetText();
   }
 
+  /**
+   * 所持金を表示
+   */
+  private createPlayerCreditText(): void {
+    this.creditText = this.add.text(
+      0,
+      0,
+      `CREDIT: $${this.players[0].getChips.toString()}`,
+      textStyle
+    );
+
+    Phaser.Display.Align.In.BottomLeft(this.creditText as Text, this.gameZone as Zone, -30, -90);
+  }
+
+  /**
+   * 現在のベット額を表示
+   */
+  private createPlayerBetText(): void {
+    this.betText = this.add.text(
+      90,
+      this.scale.height / 2 + 400,
+      `BET: $${this.bet.toString()}`,
+      textStyle
+    );
+
+    Phaser.Display.Align.In.BottomLeft(this.betText as Text, this.gameZone as Zone, -30, -40);
+  }
+
+  /**
+   * 現在のベット額を画面にセット
+   */
+  protected setBetText(): void {
+    this.betText?.setText(`BET: $${this.bet}`);
+  }
+
+  /**
+   * betフェーズのみ使うUIを非表示にする
+   */
   protected disableBetItem(): void {
     this.chipButtons.forEach((chip) => {
-      console.log(chip);
       chip.disable();
     });
+    this.dealButton.disable();
   }
 }
