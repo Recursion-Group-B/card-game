@@ -27,13 +27,23 @@ export default class PokerTableScene extends TableScene {
     y: 150,
   };
 
-  private unvisibleList: Phaser.GameObjects.Text[] = [];
+  private cycleState: string;
+
+  private actionContainer: Phaser.GameObjects.Container | undefined;
+
+  private result: string | undefined;
+
+  private handScoreList: HandScore[] = [];
 
   constructor() {
     super();
-    this.players = [new PokerPlayer("Player", "player", 0, 0), new PokerPlayer("Cpu", "cpu", 0, 0)];
+    this.players = [
+      new PokerPlayer("Player", "player", 10000, 0),
+      new PokerPlayer("Cpu", "cpu", 10000, 0),
+    ];
     this.pot = [0];
     this.returnPot = 0;
+    this.cycleState = "firstCycle";
   }
 
   addCPU(player: PokerPlayer): void {
@@ -59,6 +69,10 @@ export default class PokerTableScene extends TableScene {
     this.pot.push(amount);
   }
 
+  get getPreBet(): number {
+    return this.pot[this.pot.length - 1];
+  }
+
   get getPot(): number[] {
     return this.pot;
   }
@@ -74,14 +88,6 @@ export default class PokerTableScene extends TableScene {
   }
 
   /**
-   * 山札作成
-   */
-  makeDeck() {
-    this.deck = new Deck(this, 650, 450);
-    this.deck.shuffle();
-  }
-
-  /**
    * phaser3 画像ロード
    */
   preload() {
@@ -94,15 +100,170 @@ export default class PokerTableScene extends TableScene {
    */
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.initGame();
 
-    this.makeDeck();
-    this.dealCards();
-    this.dealHand();
-
+    // アニメーション
     this.clickToUp();
-    this.changeCards();
-    this.compareCards();
-    this.init();
+
+    this.players.forEach((player, index) => {
+      this.time.addEvent({
+        delay: 3000,
+        callback: this.cycleEvent,
+        callbackScope: this,
+        args: [player, index],
+        loop: true,
+      });
+    });
+  }
+
+  update(): void {
+    // gameState管理
+    this.cycleControl();
+
+    // pots更新
+    this.drawPots();
+
+    // chips更新
+    this.drawChips();
+  }
+
+  private cycleEvent(player: PokerPlayer, index: number): void {
+    console.log(this.getTotalPot);
+    console.log(player.getState);
+    // playerの場合、何もしない
+    if (player.getPlayerType === "player") return;
+
+    // 前者がアクションしていない場合、何もしない。
+    if ((this.players[index - 1] as PokerPlayer).getState === "notAction") return;
+
+    // cpu
+    if (player.getPlayerType === "cpu" && (player as PokerPlayer).getIsDealer) {
+      this.cpuAction(player as PokerPlayer, "dealer");
+    } else if (player.getPlayerType === "cpu") {
+      this.cpuAction(player as PokerPlayer);
+    }
+  }
+
+  // TODO サイクル切り替えをbetが揃うまでにする。
+  private cycleControl(): void {
+    // 全員がアクションした
+    if (this.players.every((player) => (player as PokerPlayer).getState === "Done")) {
+      this.cycleState = "allDone";
+    }
+
+    // 一巡目のアクション終了
+    if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
+      // 各stateセット
+      this.players.forEach((player) => {
+        /* eslint-disable no-param-reassign */
+        (player as PokerPlayer).setState = "notAction";
+      });
+      this.cycleState = "notAllDone";
+      this.gameState = "changeCycle";
+      this.drawAction();
+    }
+
+    // change
+    if (this.gameState === "changeCycle" && this.cycleState === "allDone") {
+      // 各stateセット
+      this.players.forEach((player) => {
+        /* eslint-disable no-param-reassign */
+        (player as PokerPlayer).setState = "notAction";
+      });
+      this.cycleState = "notAllDone";
+      this.gameState = "compare";
+    }
+
+    // 手札を比較し、ゲーム終了
+    if (this.gameState === "compare") {
+      this.gameState = "endGame";
+      this.checkResult();
+    }
+
+    // リザルト表示し、リスタート
+    if (this.gameState === "endGame") {
+      this.gameState = "firstCycle";
+
+      this.time.delayedCall(2000, () => {
+        this.displayResult(this.result as string, 0);
+        this.resultView();
+      });
+
+      // リスタート
+      this.time.delayedCall(5000, () => {
+        this.initGame();
+      });
+    }
+  }
+
+  // TODO call/bet/checkくらいはできるようにする。
+  private cpuAction(player: PokerPlayer, dealer?: string): void {
+    if (this.gameState === "firstCycle") {
+      console.log("action!!!");
+      this.setPot = player.call(100);
+      this.drawPots();
+      player.setState = "Done";
+    } else if (this.gameState === "changeCycle") {
+      console.log("change!!!");
+      const changeList: Set<Card> = new Set();
+      const changeAmount = Phaser.Math.RND.integerInRange(0, 5);
+      for (let i = 0; i < changeAmount; i += 1) {
+        changeList.add((player.getHand as Card[])[Phaser.Math.RND.integerInRange(0, 4)]);
+      }
+      player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
+
+      // phaser描画
+      changeList.forEach((card) => card.destroy());
+      this.dealHand();
+
+      // state更新
+      player.setState = "Done";
+    }
+  }
+
+  /**
+   * ポットの表示
+   */
+  private drawPots(): void {
+    // 以前のpotsを削除
+    this.children.list.forEach((element) => {
+      if (element.name === "pots") element.destroy();
+    });
+
+    this.add
+      .text(500, 185, `pots: ${this.getTotalPot}`)
+      .setFontSize(50)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setName("pots");
+  }
+
+  /**
+   * 所持金表示
+   */
+  private drawChips(): void {
+    // 以前のchipsを削除
+    this.children.list.forEach((element) => {
+      if (element.name === "chips") element.destroy();
+    });
+
+    this.players.forEach((player) => {
+      if (player.getPlayerType === "player") {
+        this.add
+          .text(this.playerPositionX, this.playerPositionY + 70, `chips: ${player.getChips}`)
+          .setFontSize(24)
+          .setFontFamily("Arial")
+          .setOrigin(0.5)
+          .setName("chips");
+      } else if (player.getPlayerType === "cpu") {
+        this.add
+          .text(this.cpuPositionX, this.cpuPositionY + 70, `chips: ${player.getChips}`)
+          .setFontSize(24)
+          .setFontFamily("Arial")
+          .setOrigin(0.5)
+          .setName("chips");
+      }
+    });
   }
 
   /**
@@ -111,6 +272,7 @@ export default class PokerTableScene extends TableScene {
   dealHand() {
     this.players.forEach((player) => {
       player.getHand?.forEach((card, index) => {
+        this.children.bringToTop(card);
         if (player.getPlayerType === "player") {
           card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
           setTimeout(() => card.flipToFront(), 800);
@@ -147,7 +309,7 @@ export default class PokerTableScene extends TableScene {
   /**
    * プレイヤーアクション（チェンジ）を描画
    */
-  changeCards(): void {
+  changeAction(): void {
     const change = this.add
       .text(400, 700, "Change")
       .setFontSize(20)
@@ -155,10 +317,13 @@ export default class PokerTableScene extends TableScene {
       .setOrigin(0.5)
       .setInteractive();
 
+    (this.actionContainer as Phaser.GameObjects.Container).add(change);
+
     change.on(
       "pointerdown",
       function changeCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
+          if (player.getPlayerType !== "player") return;
           // data
           const changeList = (player.getHand as Card[]).filter(
             (child) => (child as Card).getClickStatus === true
@@ -173,8 +338,133 @@ export default class PokerTableScene extends TableScene {
           changeList.forEach((card) => card.destroy());
           this.dealHand();
 
-          change.visible = false;
-          this.unvisibleList.push(change);
+          // state更新
+          (player as PokerPlayer).setState = "Done";
+        });
+      },
+      this
+    );
+  }
+
+  /**
+   * betアクション
+   */
+  private betAction(): void {
+    const bet = this.add
+      .text(600, 700, "Bet")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    (this.actionContainer as Phaser.GameObjects.Container).add(bet);
+
+    bet.on(
+      "pointerdown",
+      function betToPot(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        this.players.forEach((player) => {
+          // 100betする
+          if (player.getPlayerType === "player" && player.getChips >= 100) {
+            this.setPot = (player as PokerPlayer).call(100);
+            // playerのstate変更
+            (player as PokerPlayer).setState = "Done";
+          }
+        });
+      },
+      this
+    );
+  }
+
+  // TODO 現状リスタートになっている。要改善
+  /**
+   * foldを描画
+   */
+  private foldAction(): void {
+    const fold = this.add
+      .text(500, 700, "Fold")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    (this.actionContainer as Phaser.GameObjects.Container).add(fold);
+
+    fold.on(
+      "pointerdown",
+      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        // カードを手放す
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player") {
+            (player.getHand as Card[]).forEach((card) => {
+              card.destroy();
+            });
+
+            (player as PokerPlayer).fold();
+
+            // playerのstate変更
+            (player as PokerPlayer).setState = "Done";
+          }
+        });
+
+        // リスタートする
+        this.initGame();
+      },
+      this
+    );
+  }
+
+  /**
+   * callアクション
+   */
+  private callAction(): void {
+    const call = this.add
+      .text(700, 700, "Call")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    (this.actionContainer as Phaser.GameObjects.Container).add(call);
+
+    call.on(
+      "pointerdown",
+      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        this.players.forEach((player) => {
+          // 前のbetSizeでbetする
+          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
+            this.setPot = (player as PokerPlayer).call(this.getPreBet);
+            // playerのstate変更
+            (player as PokerPlayer).setState = "Done";
+          }
+        });
+      },
+      this
+    );
+  }
+
+  /**
+   * raiseアクション
+   */
+  private raiseAction(): void {
+    const raise = this.add
+      .text(800, 700, "Raise")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    (this.actionContainer as Phaser.GameObjects.Container).add(raise);
+
+    raise.on(
+      "pointerdown",
+      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        this.players.forEach((player) => {
+          // 前のbetSizeでbetする
+          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
+            this.setPot = (player as PokerPlayer).call(this.getPreBet * 2);
+            // playerのstate変更
+            (player as PokerPlayer).setState = "Done";
+          }
         });
       },
       this
@@ -184,117 +474,137 @@ export default class PokerTableScene extends TableScene {
   /**
    * 手札を比較するボタンを描画
    */
-  compareCards(): void {
-    const compare = this.add
-      .text(500, 700, "Compare")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
+  private checkResult(): void {
+    const scoreList: Set<number> = new Set();
 
-    compare.on(
-      "pointerdown",
-      function compareCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        const handScoreList: HandScore[] = [];
-        const scoreList: Set<number> = new Set();
-        let winner = "";
+    this.players.forEach((player) => {
+      const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
+      console.log(`${player.getName} role: ${handScore.role}`);
+      this.handScoreList.push(handScore);
+      scoreList.add(handScore.role);
+    });
 
-        // compare非表示
-        compare.visible = false;
-        this.unvisibleList.push(compare);
+    // 同等の役の場合、カードの強い順番
+    if (scoreList.size === 1) {
+      for (let i = 0; i < this.handScoreList[0].highCard.length; i += 1) {
+        if (this.handScoreList[0].highCard[i][0] > this.handScoreList[1].highCard[i][0])
+          this.result = this.players[0].getPlayerType === "player" ? "win" : "lose";
+        else if (this.handScoreList[0].highCard[i][0] < this.handScoreList[1].highCard[i][0])
+          this.result = this.players[1].getPlayerType === "player" ? "win" : "lose";
+      }
+      if (this.result === "") this.result = "draw";
+    } // 役で勝敗決定
+    else {
+      const max = Math.max(...scoreList);
+      this.result =
+        this.players[this.handScoreList.findIndex((score) => score.role === max)].getPlayerType ===
+        "player"
+          ? "win"
+          : "lose";
+    }
+  }
 
-        this.players.forEach((player) => {
-          // ハンドを表へ
-          player.getHand?.forEach((card) => {
-            card.flipToFront();
-          });
-          const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
-          console.log(`${player.getName} role: ${handScore.role}`);
-          handScoreList.push(handScore);
-          scoreList.add(handScore.role);
+  /**
+   * リザルトを描画
+   */
+  private resultView(): void {
+    this.players.forEach((player) => {
+      // ハンドを表へ
+      player.getHand?.forEach((card) => {
+        card.flipToFront();
+      });
 
-          // 役を表示
-          if (player.getPlayerType === "player")
-            this.add
-              .text(this.playerPositionX, this.playerPositionY - 80, `${handScore.name}`, {
-                fontFamily: "Arial Black",
-                fontSize: 12,
-              })
-              .setName("roleName");
-          else if (player.getPlayerType === "cpu")
-            this.add
-              .text(this.cpuPositionX, this.cpuPositionY - 80, `${handScore.name}`, {
-                fontFamily: "Arial Black",
-                fontSize: 12,
-              })
-              .setName("roleName");
-        });
+      // 勝敗
+      if (this.result === "win" && player.getPlayerType === "player") {
+        player.addChips(this.potReturn());
+      } else if (this.result === "lose" && player.getPlayerType === "cpu") {
+        player.addChips(this.potReturn());
+      } else if (this.result === "draw") {
+        player.addChips(Math.floor(this.potReturn() / 2));
+      }
 
-        // 同等の役の場合、カードの強い順番
-        if (scoreList.size === 1) {
-          for (let i = 0; i < handScoreList[0].highCard.length; i += 1) {
-            if (handScoreList[0].highCard[i][0] > handScoreList[1].highCard[i][0])
-              winner = this.players[0].getName;
-            else if (handScoreList[0].highCard[i][0] < handScoreList[1].highCard[i][0])
-              winner = this.players[1].getName;
-          }
-          if (winner === "") winner = "Draw";
-        } else {
-          const max = Math.max(...scoreList);
-          winner = this.players[handScoreList.findIndex((score) => score.role === max)].getName;
-        }
-
-        // 勝者
+      // player
+      if (player.getPlayerType === "player") {
+        // 役を表示
         this.add
-          .text(400, 400, `${winner}`, { fontFamily: "Arial Black", fontSize: 80 })
-          .setName("winner");
-      },
-      this
-    );
+          .text(
+            this.playerPositionX,
+            this.playerPositionY - 80,
+            `${(player as PokerPlayer).getHandScore.name}`,
+            {
+              fontFamily: "Arial Black",
+              fontSize: 12,
+            }
+          )
+          .setName("roleName");
+      } else if (player.getPlayerType === "cpu") {
+        // 役を表示
+        this.add
+          .text(
+            this.cpuPositionX,
+            this.cpuPositionY - 80,
+            `${(player as PokerPlayer).getHandScore.name}`,
+            {
+              fontFamily: "Arial Black",
+              fontSize: 12,
+            }
+          )
+          .setName("roleName");
+      }
+    });
   }
 
   /**
    * リスタートボタンを描画
    */
-  init(): void {
-    const init = this.add
-      .text(600, 700, "Restart")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    init.on(
-      "pointerdown",
-      function initGame(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        // カードオブジェクト削除
-        const destroyList = this.children.list.filter(
-          (child) =>
-            (child as Card) instanceof Card ||
-            (child as Phaser.GameObjects.Text).name === "winner" ||
-            (child as Phaser.GameObjects.Text).name === "roleName"
-        );
-        destroyList.forEach((element) => {
-          element.destroy();
-        });
-
-        // プレイヤーのデータを初期化
-        this.players.forEach((player) => {
-          (player as PokerPlayer).init();
-        });
-
-        // 新しくデッキを組む
-        this.makeDeck();
-        this.dealCards();
-        this.dealHand();
-
-        // 非表示リストを可視化
-        this.unvisibleList.forEach((ele) => {
-          ele.visible = true;
-        });
-      },
-      this
+  private initGame(): void {
+    // カードオブジェクト削除
+    const destroyList = this.children.list.filter(
+      (child) =>
+        child instanceof Card ||
+        child.name === "result" ||
+        child.name === "pots" ||
+        child.name === "roleName" ||
+        child.name === "actionContainer"
     );
+    destroyList.forEach((element) => {
+      element.destroy();
+    });
+
+    // クラス変数初期化
+    this.result = undefined;
+    this.pot = [];
+    this.actionContainer = this.add.container(0, 0).setName("actionContainer");
+    this.gameState = "firstCycle";
+
+    // プレイヤーのデータを初期化
+    this.players.forEach((player) => {
+      (player as PokerPlayer).init();
+    });
+
+    // オブジェクト表示
+    this.deckReset(650, 450);
+    this.dealCards();
+    this.dealHand();
+    this.drawAction();
+    this.drawPots();
+  }
+
+  // TODO アクション出来るもののみ表示させる
+  /**
+   * アクション表示
+   */
+  private drawAction(): void {
+    this.actionContainer?.removeAll(true);
+
+    if (this.gameState === "firstCycle") {
+      this.foldAction();
+      this.betAction();
+      this.callAction();
+      this.raiseAction();
+    } else if (this.gameState === "changeCycle") {
+      this.changeAction();
+    }
   }
 }
 

@@ -11,6 +11,10 @@ export default class PokerPlayer extends Player {
 
   private handList: number[][] | undefined;
 
+  private state: string;
+
+  private isDealer: boolean;
+
   constructor(name: string, playerType: string, chips: number, bet: number) {
     super(name, playerType, chips, bet);
     this.handScore = {
@@ -21,6 +25,8 @@ export default class PokerPlayer extends Player {
     this.suitDict = new Map();
     this.rankDict = new Map();
     this.handList = undefined;
+    this.state = "notAction";
+    this.isDealer = false;
   }
 
   get getSuitDict() {
@@ -33,6 +39,30 @@ export default class PokerPlayer extends Player {
 
   get getRankDict() {
     return this.rankDict;
+  }
+
+  set setHandScore(handScore: HandScore) {
+    this.handScore = handScore;
+  }
+
+  get getHandScore(): HandScore {
+    return this.handScore;
+  }
+
+  set setState(state: string) {
+    this.state = state;
+  }
+
+  get getState(): string {
+    return this.state;
+  }
+
+  set setIsDealer(bool: boolean) {
+    this.isDealer = bool;
+  }
+
+  get getIsDealer(): boolean {
+    return this.isDealer;
   }
 
   /**

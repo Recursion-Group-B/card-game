@@ -211,8 +211,8 @@ export default class TexasTableScene extends TableScene {
     this.pot.push(amount);
   }
 
-  get getPot(): number {
-    return this.pot.reduce((pre, next) => pre + next, 0);
+  get getPot(): number[] {
+    return this.pot;
   }
 
   get getPreBet(): number {
@@ -385,7 +385,7 @@ export default class TexasTableScene extends TableScene {
     });
 
     this.add
-      .text(500, 185, `pots: ${this.getPot}`)
+      .text(500, 185, `pots: ${this.getTotalPot}`)
       .setFontSize(50)
       .setFontFamily("Arial")
       .setOrigin(0.5)
@@ -515,8 +515,6 @@ export default class TexasTableScene extends TableScene {
           ? "win"
           : "lose";
     }
-
-    this.gameState = "endGame";
   }
 
   /**
