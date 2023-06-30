@@ -234,19 +234,17 @@ export default class TexasTableScene extends TableScene {
    */
   dealHand(player: TexasPlayer): void {
     player.getHand?.forEach((card, index) => {
+      this.children.bringToTop(card);
       // player
       if (player.getPlayerType === "player") {
-        this.children.bringToTop(card);
         card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
         setTimeout(() => card.flipToFront(), 500);
         card.setInteractive();
       } // cpu
       else if (player.getPlayerType === "cpu") {
-        this.children.bringToTop(card);
         card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
       } // dealer
       else if (player.getPlayerType === "dealer") {
-        this.children.bringToTop(card);
         card.moveTo(this.dealerPositionX + index * this.cardSize.x, this.dealerPositionY, 500);
         setTimeout(() => card.flipToFront(), 500);
       }
