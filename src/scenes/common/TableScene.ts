@@ -3,6 +3,8 @@ import Deck from "../../models/common/deck";
 import Player from "../../models/common/player";
 import Chip from "../../models/common/chip";
 import Button from "../../models/common/button";
+import GameState from "../../constants/gameState";
+import GameResult from "../../constants/gameResult";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
@@ -116,14 +118,17 @@ export default abstract class TableScene extends Phaser.Scene {
 
     let resultMessage = "";
     switch (result) {
-      case "win":
+      case GameResult.WIN:
         resultMessage = "YOU WIN!!";
         break;
-      case "lose":
+      case GameResult.LOSE:
         resultMessage = "YOU LOSE...";
         break;
-      default:
+      case GameResult.DRAW:
         resultMessage = "DRAW";
+        break;
+      default:
+        resultMessage = "GAME OVER";
     }
 
     const resultStyle = {
@@ -231,7 +236,7 @@ export default abstract class TableScene extends Phaser.Scene {
         this.clearButton.disVisibleText();
 
         setTimeout(() => {
-          this.gameState = "playing";
+          this.gameState = GameState.PLAYING;
         }, 1000);
       }
     });

@@ -2,6 +2,9 @@ import TableScene from "../../common/TableScene";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
+import GameState from "../../../constants/gameState";
+import GameResult from "../../../constants/gameResult";
+import PlayerType from "../../../constants/playerType";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
@@ -30,8 +33,8 @@ export default class SpeedTableScene extends TableScene {
     super({});
 
     this.players = [
-      new SpeedPlayer("Player", "player", 1000, 0),
-      new SpeedPlayer("Cpu", "cpu", 0, 0),
+      new SpeedPlayer("Player", PlayerType.PLAYER, 1000, 0),
+      new SpeedPlayer("Cpu", PlayerType.CPU, 0, 0),
     ];
   }
 
@@ -48,7 +51,7 @@ export default class SpeedTableScene extends TableScene {
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-    this.gameState = "betting";
+    this.gameState = GameState.BETTING;
 
     this.createGameZone();
     this.createDropZones();
@@ -60,7 +63,7 @@ export default class SpeedTableScene extends TableScene {
   }
 
   update(): void {
-    if (this.gameState === "playing" && !this.gameStarted) {
+    if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
       this.startGame();
       this.gameStarted = true;
@@ -68,7 +71,7 @@ export default class SpeedTableScene extends TableScene {
 
     this.checkResult();
 
-    if (this.gameState === "endGame") {
+    if (this.gameState === GameState.END_GAME) {
       this.cpuPlayTimeEvent?.remove();
       this.stallCheckTimeEvent?.remove();
       this.countDownEvent?.remove();
@@ -212,7 +215,7 @@ export default class SpeedTableScene extends TableScene {
    */
   private changeCardDraggable(draggable: boolean): void {
     this.players.forEach((player) => {
-      if (player.getPlayerType === "player") {
+      if (player.getPlayerType === PlayerType.PLAYER) {
         player.getHand?.forEach((card) => {
           if (draggable) {
             card.makeDraggable();
@@ -452,7 +455,7 @@ export default class SpeedTableScene extends TableScene {
    * 勝敗判定
    */
   private checkResult(): void {
-    if (this.gameState !== "playing") return;
+    if (this.gameState !== GameState.PLAYING) return;
 
     const playerHandScore: number = this.players[0].calculateHandScore();
     const cpuHandScore: number = this.players[1].calculateHandScore();
@@ -461,14 +464,14 @@ export default class SpeedTableScene extends TableScene {
     if (playerHandScore > 0 && cpuHandScore > 0) return;
 
     if (playerHandScore === 0 && cpuHandScore === 0) {
-      this.result = "draw";
-      this.gameState = "endGame";
+      this.result = GameResult.DRAW;
+      this.gameState = GameState.END_GAME;
     } else if (playerHandScore === 0) {
-      this.result = "win";
-      this.gameState = "endGame";
+      this.result = GameResult.WIN;
+      this.gameState = GameState.END_GAME;
     } else {
-      this.result = "lose";
-      this.gameState = "endGame";
+      this.result = GameResult.LOSE;
+      this.gameState = GameState.END_GAME;
     }
   }
 
@@ -483,9 +486,9 @@ export default class SpeedTableScene extends TableScene {
       const dropZone = this.add.zone(0, 0, 140 * 1.5, 190 * 1.5).setRectangleDropZone(140, 190);
 
       // ゾーンを中心に配置
-      if (player.getPlayerType === "player") {
+      if (player.getPlayerType === PlayerType.PLAYER) {
         Phaser.Display.Align.In.Center(dropZone, this.gameZone as GameObject, PLAYER_ZONE_OFFSET);
-      } else if (player.getPlayerType === "cpu") {
+      } else if (player.getPlayerType === PlayerType.CPU) {
         Phaser.Display.Align.In.Center(dropZone, this.gameZone as GameObject, -PLAYER_ZONE_OFFSET);
       }
       this.dropZones.push(dropZone);
