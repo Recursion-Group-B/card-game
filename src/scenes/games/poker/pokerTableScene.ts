@@ -69,6 +69,10 @@ export default class PokerTableScene extends TableScene {
     this.pot.push(amount);
   }
 
+  get getPlayer(): PokerPlayer {
+    return this.players.find((player) => player.getPlayerType === "player") as PokerPlayer;
+  }
+
   get getPreBet(): number {
     return this.pot[this.pot.length - 1];
   }
@@ -104,16 +108,6 @@ export default class PokerTableScene extends TableScene {
 
     // アニメーション
     this.clickToUp();
-
-    this.players.forEach((player, index) => {
-      this.time.addEvent({
-        delay: 3000,
-        callback: this.cycleEvent,
-        callbackScope: this,
-        args: [player, index],
-        loop: true,
-      });
-    });
   }
 
   update(): void {
@@ -128,13 +122,25 @@ export default class PokerTableScene extends TableScene {
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
-    console.log(this.getTotalPot);
-    console.log(player.getState);
+    console.log(
+      `player: ${player.getName} ${player.getIsDealer ? "dealer" : "notDealer"} index: ${index} ${
+        player.getState
+      }`
+    );
+    this.drawAction();
     // playerの場合、何もしない
     if (player.getPlayerType === "player") return;
 
-    // 前者がアクションしていない場合、何もしない。
-    if ((this.players[index - 1] as PokerPlayer).getState === "notAction") return;
+    // 前者がアクションしていないかつ自分がディーラーでない場合、何もしない。
+    const prePlayer = index - 1 < 0 ? this.players.length - 1 : index - 1;
+    if ((this.players[prePlayer] as PokerPlayer).getState === "notAction" && !player.getIsDealer)
+      return;
+
+    // アクションしている場合、何もしない
+    if (player.getState !== "notAction") return;
+
+    // ゲーム終了時は何もしない
+    if (this.gameState === "endGame" || this.gameState === "compare") return;
 
     // cpu
     if (player.getPlayerType === "cpu" && (player as PokerPlayer).getIsDealer) {
@@ -147,7 +153,7 @@ export default class PokerTableScene extends TableScene {
   // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
     // 全員がアクションした
-    if (this.players.every((player) => (player as PokerPlayer).getState === "Done")) {
+    if (this.players.every((player) => (player as PokerPlayer).getState !== "notAction")) {
       this.cycleState = "allDone";
     }
 
@@ -157,6 +163,11 @@ export default class PokerTableScene extends TableScene {
       this.players.forEach((player) => {
         /* eslint-disable no-param-reassign */
         (player as PokerPlayer).setState = "notAction";
+        if (player.getPlayerType === "player") {
+          player.getHand?.forEach((card) => {
+            card.setInteractive();
+          });
+        }
       });
       this.cycleState = "notAllDone";
       this.gameState = "changeCycle";
@@ -182,6 +193,7 @@ export default class PokerTableScene extends TableScene {
 
     // リザルト表示し、リスタート
     if (this.gameState === "endGame") {
+      this.time.removeAllEvents();
       this.gameState = "firstCycle";
 
       this.time.delayedCall(2000, () => {
@@ -202,7 +214,7 @@ export default class PokerTableScene extends TableScene {
       console.log("action!!!");
       this.setPot = player.call(100);
       this.drawPots();
-      player.setState = "Done";
+      player.setState = "bet";
     } else if (this.gameState === "changeCycle") {
       console.log("change!!!");
       const changeList: Set<Card> = new Set();
@@ -210,11 +222,13 @@ export default class PokerTableScene extends TableScene {
       for (let i = 0; i < changeAmount; i += 1) {
         changeList.add((player.getHand as Card[])[Phaser.Math.RND.integerInRange(0, 4)]);
       }
-      player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
+      if (changeList.size) {
+        player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
 
-      // phaser描画
-      changeList.forEach((card) => card.destroy());
-      this.dealHand();
+        // phaser描画
+        changeList.forEach((card) => card.destroy());
+        this.dealHand();
+      }
 
       // state更新
       player.setState = "Done";
@@ -276,7 +290,6 @@ export default class PokerTableScene extends TableScene {
         if (player.getPlayerType === "player") {
           card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
           setTimeout(() => card.flipToFront(), 800);
-          card.setInteractive();
         } else if (player.getPlayerType === "cpu") {
           card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
         }
@@ -363,6 +376,7 @@ export default class PokerTableScene extends TableScene {
       "pointerdown",
       function betToPot(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
+          if (player.getPlayerType !== "player") return;
           // 100betする
           if (player.getPlayerType === "player" && player.getChips >= 100) {
             this.setPot = (player as PokerPlayer).call(100);
@@ -480,9 +494,11 @@ export default class PokerTableScene extends TableScene {
     this.players.forEach((player) => {
       const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
       console.log(`${player.getName} role: ${handScore.role}`);
+      console.log(handScore.highCard);
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
     });
+    console.log(this.handScoreList);
 
     // 同等の役の場合、カードの強い順番
     if (scoreList.size === 1) {
@@ -576,18 +592,37 @@ export default class PokerTableScene extends TableScene {
     this.pot = [];
     this.actionContainer = this.add.container(0, 0).setName("actionContainer");
     this.gameState = "firstCycle";
+    this.handScoreList = [];
 
     // プレイヤーのデータを初期化
     this.players.forEach((player) => {
       (player as PokerPlayer).init();
     });
 
+    // ディーラー変更
+    this.players.push(this.players.shift() as PokerPlayer);
+    (this.players[0] as PokerPlayer).setIsDealer = true;
+    console.log(this.players);
+
     // オブジェクト表示
     this.deckReset(650, 450);
     this.dealCards();
     this.dealHand();
-    this.drawAction();
     this.drawPots();
+
+    // タイマーイベント
+    this.time.removeAllEvents();
+    this.players.forEach((player, index) => {
+      this.time.delayedCall(index * 2000, () => {
+        this.time.addEvent({
+          delay: 3000,
+          callback: this.cycleEvent,
+          callbackScope: this,
+          args: [player, index],
+          loop: true,
+        });
+      });
+    });
   }
 
   // TODO アクション出来るもののみ表示させる

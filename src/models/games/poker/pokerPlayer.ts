@@ -102,6 +102,8 @@ export default class PokerPlayer extends Player {
     this.handScore.role = 0;
     this.handScore.highCard = [];
     this.handList = undefined;
+    this.isDealer = false;
+    this.state = "notAction";
   }
 
   /**
