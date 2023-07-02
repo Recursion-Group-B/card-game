@@ -1,4 +1,3 @@
-import Card from "../../common/card";
 import Player from "../../common/player";
 
 export default class WarPlayer extends Player {
