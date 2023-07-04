@@ -5,9 +5,7 @@ import WarPlayer from "../../../models/games/war/warPlayer";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import PlayerType from "../../../constants/playerType";
-import Zone = Phaser.GameObjects.Zone;
-import GameObject = Phaser.GameObjects.GameObject;
-import TimeEvent = Phaser.Time.TimerEvent;
+import Button from "../../../models/common/button";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -17,12 +15,14 @@ export default class WarTableScene extends TableScene {
 
   private gameStarted = false;
 
+  private displayedResult = false;
+
   constructor() {
     super({});
 
     this.players = [
       new WarPlayer("Player", PlayerType.PLAYER, 1000, 0),
-      new WarPlayer("Cpu", PlayerType.CPU, 0, 0),
+      new WarPlayer("Dealer", PlayerType.DEALER, 0, 0),
     ];
   }
 
@@ -41,10 +41,7 @@ export default class WarTableScene extends TableScene {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.gameState = GameState.BETTING;
     this.createGameZone();
-    this.createChips();
-    this.createDealButton();
-    this.createClearButton();
-    this.createCreditField();
+    this.createBetItem();
   }
 
   update(): void {
@@ -54,41 +51,94 @@ export default class WarTableScene extends TableScene {
       this.gameStarted = true;
     }
 
-    this.checkResult();
-
-    if (this.gameState === GameState.END_GAME) {
+    if (this.gameState === GameState.END_GAME && !this.displayedResult) {
       // ゲームresult画面
       if (this.result) {
         this.displayResult(this.result, 0);
 
         // TODO result画面のBGM設定
         // TODO chipやスコアの更新
+        this.displayedResult = true;
       }
     }
   }
 
   private startGame(): void {
+    this.createDeck();
     this.dealCards();
+    this.time.delayedCall(2700, this.checkResult, [], this);
+
+    this.gameZone?.setInteractive();
+    this.gameZone?.on("pointerdown", () => {
+      this.startBet();
+    });
+  }
+
+  private startBet(): void {
+    if (this.gameState !== GameState.END_GAME) return;
+    this.reset();
+    this.enableBetItem();
+    this.fadeInBetItem();
+  }
+
+  private reset(): void {
+    this.gameState = GameState.BETTING;
+    this.gameStarted = false;
+    this.displayedResult = false;
+    this.resultText = undefined;
+
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+
+    this.clearButton.disVisibleText();
+    this.dealButton.disVisibleText();
+
+    // オブジェクト削除
+    const destroyList = this.children.list.filter(
+      (child) =>
+        (child as Card) instanceof Card || (child as Phaser.GameObjects.Text).name === "resultText"
+    );
+
+    destroyList.forEach((element) => {
+      element.destroy();
+    });
+  }
+
+  private createDeck() {
+    this.deck = new Deck(this, this.scale.width, -100);
+    this.deck.shuffle();
+  }
+
+  createBetItem(): void {
+    this.createChips();
+    this.createDealButton();
+    this.createClearButton();
+    this.createCreditField();
   }
 
   /**
    * カードの初期配置処理
    */
   dealCards(): void {
-    console.log("カードの初期配置を開始します");
-    this.deck = new Deck(this, this.scale.width / 2, this.scale.height / 2, [
-      "hearts",
-      "diamonds",
-      "spades",
-      "clubs",
-    ]);
+    const centerWidth = this.scale.width / 2;
+    const centerHeight = this.scale.height / 2;
 
-    // let dropZonesIndex = 0;
-    // this.players.forEach((player, index) => {
-    //   this.dealHandCards(player as SpeedPlayer, index);
-    //   this.dealLeadCards(player as SpeedPlayer, index, this.dropZones[dropZonesIndex]);
-    //   dropZonesIndex += 1;
-    // });
+    this.players.forEach((player) => {
+      const newCard = this.deck?.draw();
+      if (newCard) {
+        player.addCardToHand(newCard);
+        if (player.getPlayerType === PlayerType.PLAYER) {
+          newCard.moveTo(centerWidth, centerHeight + 170, 200);
+        } else if (player.getPlayerType === PlayerType.DEALER) {
+          newCard.moveTo(centerWidth, centerHeight - 170, 200);
+        }
+        // カードを裏返す
+        this.time.delayedCall(1500, () => {
+          newCard.flipToFront();
+        });
+      }
+    });
   }
 
   /**
@@ -97,7 +147,18 @@ export default class WarTableScene extends TableScene {
   private checkResult(): void {
     if (this.gameState !== GameState.PLAYING) return;
     const playerScore = this.players[0].calculateHandScore();
-    const cpuScore = this.players[1].calculateHandScore();
+    const dealerScore = this.players[1].calculateHandScore();
+
+    if (dealerScore === playerScore) {
+      this.result = GameResult.DRAW;
+      this.gameState = GameState.END_GAME;
+    } else if (playerScore > dealerScore) {
+      this.result = GameResult.WIN;
+      this.gameState = GameState.END_GAME;
+    } else {
+      this.result = GameResult.LOSE;
+      this.gameState = GameState.END_GAME;
+    }
   }
 }
 
