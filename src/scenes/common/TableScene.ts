@@ -228,8 +228,8 @@ export default abstract class TableScene extends Phaser.Scene {
     this.dealButton.setClickHandler(() => {
       if (this.bet > 0) {
         const player = this.players[0];
-        player.setChips = player.getChips - this.bet;
-        this.setCreditText();
+        const displayCredit = player.getChips - this.bet;
+        this.setCreditText(displayCredit);
 
         // UIをフェードアウトさせる
         this.chipButtons.forEach((chip) => {
@@ -338,8 +338,8 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 現在の所持金を画面にセット
    */
-  protected setCreditText(): void {
-    this.creditText?.setText(`CREDIT: $${this.players[0].getChips}`);
+  protected setCreditText(displayCredit): void {
+    this.creditText?.setText(`CREDIT: $${displayCredit}`);
   }
 
   /**
