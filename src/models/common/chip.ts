@@ -63,6 +63,11 @@ export default class Chip extends Phaser.GameObjects.Image {
     );
   }
 
+  enable(): void {
+    this.setInteractive(true);
+    this.setVisible(true);
+  }
+
   disable(): void {
     this.setInteractive(false);
     this.setVisible(false);
@@ -71,6 +76,10 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   disVisibleText(): void {
     this.text.setVisible(false);
+  }
+
+  visibleText(): void {
+    this.text.setVisible(true);
   }
 
   moveTo(toX: number, toY: number, delay: number): void {
