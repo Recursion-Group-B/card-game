@@ -37,6 +37,8 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected betText: Text | undefined;
 
+  protected resultText: Text | undefined;
+
   protected initialTime = 2;
 
   protected chipButtons: Array<Chip> = [];
@@ -149,10 +151,11 @@ export default abstract class TableScene extends Phaser.Scene {
     };
 
     // テキストオブジェクトを作成
-    const resultText = this.add.text(0, 0, resultMessage, resultStyle);
+    this.resultText = this.add.text(0, 0, resultMessage, resultStyle);
+    this.resultText.name = "resultText";
 
     Phaser.Display.Align.In.Center(
-      resultText,
+      this.resultText,
       this.add.zone(
         this.cameras.main.width / 2,
         this.cameras.main.height / 2,
@@ -214,7 +217,7 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * Dealボタン作成
    */
-  protected createDealButton() {
+  protected createDealButton(): void {
     this.dealButton = new Button(
       this,
       this.scale.width / 2 + 150,
@@ -245,7 +248,7 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * クリアボタンを表示
    */
-  protected createClearButton() {
+  protected createClearButton(): void {
     this.clearButton = new Button(
       this,
       this.scale.width / 2 - 150,
@@ -304,6 +307,31 @@ export default abstract class TableScene extends Phaser.Scene {
   }
 
   /**
+   * betフェーズに使うUIを表示する
+   */
+  protected enableBetItem() {
+    this.chipButtons.forEach((chip) => {
+      chip.enable();
+    });
+
+    // テキストは時間差で表示する
+    this.time.delayedCall(200, () => {
+      this.chipButtons.forEach((chip) => {
+        chip.visibleText();
+      });
+    });
+
+    this.dealButton.enable();
+    this.clearButton.enable();
+
+    // テキストは時間差で表示する
+    this.time.delayedCall(200, () => {
+      this.dealButton.visibleText();
+      this.clearButton.visibleText();
+    });
+  }
+
+  /**
    * betフェーズのみ使うUIを非表示にする
    */
   protected disableBetItem(): void {
@@ -311,5 +339,19 @@ export default abstract class TableScene extends Phaser.Scene {
       chip.disable();
     });
     this.dealButton.disable();
+    this.clearButton.disable();
+  }
+
+  /**
+   * betフェーズに使うUIをフェードインさせる
+   */
+  protected fadeInBetItem(): void {
+    // UIをフェードインさせる
+    this.chipButtons.forEach((chip) => {
+      chip.moveTo(chip.x, chip.y + 700, 200);
+    });
+
+    this.dealButton.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
+    this.clearButton.moveTo(this.clearButton.x, this.clearButton.y - 700, 200);
   }
 }
