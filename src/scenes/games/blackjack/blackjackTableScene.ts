@@ -1,9 +1,13 @@
 import TableScene from "../../common/TableScene";
 import Deck from "../../../models/common/deck";
-// import Card from "../../../models/common/card";
+import Card from "../../../models/common/card";
 import BlackJackPlayer from "../../../models/games/blackjack/blackjackPlayer";
+import GameState from "../../../constants/gameState";
+import GameResult from "../../../constants/gameResult";
+import PlayerType from "../../../constants/playerType";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
+import TimeEvent = Phaser.Time.TimerEvent;
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -28,36 +32,56 @@ export default class BlackJackTableScene extends TableScene {
     x: 85,
     y: 150,
   };
+  private gameStarted = false;
 
   constructor() {
     super({});
 
     this.players = [
-      new BlackJackPlayer("TestPlayer", "player", 0, 0),
-      new BlackJackPlayer("TestCpu", "cpu", 0, 0),
+      new BlackJackPlayer("Player", PlayerType.PLAYER, 1000, 0),
+      new BlackJackPlayer("Cpu", PlayerType.CPU, 0, 0),
     ];
   }
 
   preload(): void {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/public/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
   }
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-    // 手札の配布までの処理
-    this.makeDeck();
-    this.dealCards();
-    this.dealHand();
-    // 各機能の実装
-    this.stand();
-    this.hit();   // 1枚引く ※ 21をoverしたら強制的に負け
-    // 課題 : hitの2回目から表示させない
-    this.double();
-    this.surrender();
-    // 数値の表示
-    this.playerDisplayTotal(); // Totalが変化したら都度変更を表示したい
+    this.gameState = GameState.BETTING;
+    // ベット系
+    this.createGameZone();
+    this.createChips();
+    this.createDealButton();
+    this.createClearButton();
+    this.createCreditField();
   }
+
+  update(): void {
+    if (this.gameState === GameState.PLAYING && !this.gameStarted) {
+      this.disableBetItem();
+      // 手札の配布までの処理
+      this.makeDeck();
+      this.dealCards();
+      this.dealHand();
+      // 各機能の実装
+      this.stand();
+      this.hit();
+      this.double(); // 課題 : hitの2回目から表示させない
+      this.surrender(); // 課題 : hitの2回目から表示させない
+      this.playerDisplayTotal();
+      this.gameStarted = true;
+    }
+  }
+
 
   /**
   * 山札作成
@@ -326,13 +350,6 @@ export default class BlackJackTableScene extends TableScene {
       this
     );
   }
-
-
-
-
-
-
-
 }
 
 
