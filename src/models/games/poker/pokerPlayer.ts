@@ -174,6 +174,7 @@ export default class PokerPlayer extends Player {
    * @returns: HandScore
    */
   calculateHandScore(): HandScore {
+    if (this.getHand === undefined) return this.handScore;
     this.makeDict();
     this.handList = this.handSort();
 
@@ -186,43 +187,43 @@ export default class PokerPlayer extends Player {
       this.hasChainRank()
     ) {
       this.handScore.name = "ロイヤルストレートフラッシュ";
-      this.handScore.role = 9;
+      this.handScore.role = 10;
     } // ストレートフラッシュ
     else if (this.suitDict.size === 1 && this.rankDict.size === 5 && this.hasChainRank()) {
       this.handScore.name = "ストレートフラッシュ";
-      this.handScore.role = 8;
+      this.handScore.role = 9;
     } // フォーカード
     else if (this.rankDict.size === 2 && this.hasPair(4)) {
       this.handScore.name = "フォーカード";
-      this.handScore.role = 7;
+      this.handScore.role = 8;
     } // フルハウス
     else if (this.rankDict.size === 2 && this.hasPair(2) && this.hasPair(3)) {
       this.handScore.name = "フルハウス";
-      this.handScore.role = 6;
+      this.handScore.role = 7;
     } // フラッシュ
     else if (this.suitDict.size === 1) {
       this.handScore.name = "フラッシュ";
-      this.handScore.role = 5;
+      this.handScore.role = 6;
     } // ストレート
     else if (this.rankDict.size === 5 && this.hasChainRank()) {
       this.handScore.name = "ストレート";
-      this.handScore.role = 4;
+      this.handScore.role = 5;
     } // スリーカード
     else if (this.hasPair(3)) {
       this.handScore.name = "スリーカード";
-      this.handScore.role = 3;
+      this.handScore.role = 4;
     } // ツーペア
     else if (this.hasPair(2, "twoPair")) {
       this.handScore.name = "ツーペア";
-      this.handScore.role = 2;
+      this.handScore.role = 3;
     } // ワンペア
     else if (this.hasPair(2)) {
       this.handScore.name = "ワンペア";
-      this.handScore.role = 1;
+      this.handScore.role = 2;
     } // ハイカード
     else {
       this.handScore.name = "ハイカード";
-      this.handScore.role = 0;
+      this.handScore.role = 1;
     }
     this.handScore.highCard = this.handList;
 

@@ -478,8 +478,7 @@ export default class PokerTableScene extends TableScene {
           }
         });
 
-        // リスタートする
-        this.initGame();
+        this.gameState = "compare";
       },
       this
     );
