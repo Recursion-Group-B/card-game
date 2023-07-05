@@ -155,6 +155,7 @@ export default class PokerTableScene extends TableScene {
     // 全員がアクションした
     if (this.players.every((player) => (player as PokerPlayer).getState !== "notAction")) {
       this.cycleState = "allDone";
+      this.deleteDoneAction();
     }
 
     // 一巡目のアクション終了
@@ -213,6 +214,7 @@ export default class PokerTableScene extends TableScene {
     if (this.gameState === "firstCycle") {
       console.log("action!!!");
       this.setPot = player.call(100);
+      this.drawDoneAction(player, "bet");
       this.drawPots();
       player.setState = "bet";
     } else if (this.gameState === "changeCycle") {
@@ -232,6 +234,7 @@ export default class PokerTableScene extends TableScene {
 
       // state更新
       player.setState = "Done";
+      this.drawDoneAction(player, "change");
     }
   }
 
@@ -353,6 +356,9 @@ export default class PokerTableScene extends TableScene {
 
           // state更新
           (player as PokerPlayer).setState = "Done";
+
+          // action表示
+          this.drawDoneAction(player as PokerPlayer, "change");
         });
       },
       this
@@ -379,6 +385,8 @@ export default class PokerTableScene extends TableScene {
           if (player.getPlayerType === "player") {
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
+            // action表示
+            this.drawDoneAction(player as PokerPlayer, "check");
           }
         });
       },
@@ -409,6 +417,8 @@ export default class PokerTableScene extends TableScene {
             this.setPot = (player as PokerPlayer).call(100);
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
+            // action表示
+            this.drawDoneAction(player as PokerPlayer, "bet");
           }
         });
       },
@@ -444,6 +454,8 @@ export default class PokerTableScene extends TableScene {
 
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
+            // action表示
+            this.drawDoneAction(player as PokerPlayer, "fold");
           }
         });
 
@@ -476,6 +488,8 @@ export default class PokerTableScene extends TableScene {
             this.setPot = (player as PokerPlayer).call(this.getPreBet);
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
+            // action表示
+            this.drawDoneAction(player as PokerPlayer, "call");
           }
         });
       },
@@ -505,6 +519,8 @@ export default class PokerTableScene extends TableScene {
             this.setPot = (player as PokerPlayer).call(this.getPreBet * 2);
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
+            // action表示
+            this.drawDoneAction(player as PokerPlayer, "raise");
           }
         });
       },
@@ -597,6 +613,53 @@ export default class PokerTableScene extends TableScene {
     });
   }
 
+  private deleteDoneAction(): void {
+    this.children.list.forEach((child) => {
+      if (child.name === "action") child.destroy();
+    });
+  }
+
+  private drawDoneAction(player: PokerPlayer, actionType: string): void {
+    const resultColor = "#ff0";
+    const backgroundColor = "rgba(0,0,0,0.5)";
+    const resultStyle = {
+      font: "20px Arial",
+      fill: resultColor,
+      stroke: "#000000",
+      strokeThickness: 9,
+      boundsAlignH: "center",
+      boundsAlignV: "middle",
+      backgroundColor,
+      padding: {
+        top: 15,
+        bottom: 15,
+        left: 15,
+        right: 15,
+      },
+      borderRadius: 10,
+    };
+
+    if (player.getPlayerType === "player") {
+      const action = this.add.text(
+        this.playerPositionX + 180,
+        this.playerPositionY - 20,
+        actionType,
+        resultStyle
+      );
+      action.setName("action");
+      this.children.bringToTop(action);
+    } else {
+      const action = this.add.text(
+        this.cpuPositionX + 180,
+        this.cpuPositionY - 20,
+        actionType,
+        resultStyle
+      );
+      action.setName("action");
+      this.children.bringToTop(action);
+    }
+  }
+
   /**
    * リスタートボタンを描画
    */
@@ -608,7 +671,8 @@ export default class PokerTableScene extends TableScene {
         child.name === "result" ||
         child.name === "pots" ||
         child.name === "roleName" ||
-        child.name === "actionContainer"
+        child.name === "actionContainer" ||
+        child.name === "action"
     );
     destroyList.forEach((element) => {
       element.destroy();
