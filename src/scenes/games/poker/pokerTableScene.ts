@@ -360,6 +360,33 @@ export default class PokerTableScene extends TableScene {
   }
 
   /**
+   * checkを描画
+   */
+  private checkAction(): void {
+    const check = this.add
+      .text(500, 700, "Check")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setOrigin(0.5)
+      .setInteractive();
+
+    (this.actionContainer as Phaser.GameObjects.Container).add(check);
+
+    check.on(
+      "pointerdown",
+      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player") {
+            // playerのstate変更
+            (player as PokerPlayer).setState = "Done";
+          }
+        });
+      },
+      this
+    );
+  }
+
+  /**
    * betアクション
    */
   private betAction(): void {
@@ -395,7 +422,7 @@ export default class PokerTableScene extends TableScene {
    */
   private foldAction(): void {
     const fold = this.add
-      .text(500, 700, "Fold")
+      .text(900, 700, "Fold")
       .setFontSize(20)
       .setFontFamily("Arial")
       .setOrigin(0.5)
@@ -486,7 +513,7 @@ export default class PokerTableScene extends TableScene {
   }
 
   /**
-   * 手札を比較するボタンを描画
+   * 手札を比較する
    */
   private checkResult(): void {
     const scoreList: Set<number> = new Set();
@@ -632,9 +659,13 @@ export default class PokerTableScene extends TableScene {
   private drawAction(): void {
     this.actionContainer?.removeAll(true);
 
-    if (this.gameState === "firstCycle") {
+    if (this.gameState === "firstCycle" && this.getPlayer.getIsDealer) {
+      this.checkAction();
       this.foldAction();
       this.betAction();
+    } else if (this.gameState === "firstCycle") {
+      this.checkAction();
+      this.foldAction();
       this.callAction();
       this.raiseAction();
     } else if (this.gameState === "changeCycle") {
