@@ -38,8 +38,8 @@ export default class PokerTableScene extends TableScene {
   constructor() {
     super();
     this.players = [
-      new PokerPlayer("Player", "player", 10000, 0),
-      new PokerPlayer("Cpu", "cpu", 10000, 0),
+      new PokerPlayer("Player", "player", 1000, 0),
+      new PokerPlayer("Cpu", "cpu", 1000, 0),
     ];
     this.pot = [0];
     this.returnPot = 0;
@@ -236,6 +236,25 @@ export default class PokerTableScene extends TableScene {
       player.setState = "Done";
       this.drawDoneAction(player, "change");
     }
+  }
+
+  private drawDealer(): void {
+    const dealerContainer = this.add.container().setName("dealer");
+    const dealerText = this.add
+      .text(0, 0, "dealer")
+      .setColor("black")
+      .setFontSize(14)
+      .setFontStyle("bold");
+    const dealerTestify = this.add.graphics().fillCircle(23, 6, 30).fillStyle(0xffffff, 1.0);
+    dealerContainer.add(dealerTestify);
+    dealerContainer.add(dealerText);
+    this.players.forEach((player) => {
+      if (player.getPlayerType === "player" && (player as PokerPlayer).getIsDealer) {
+        dealerContainer.setPosition(this.playerPositionX - 100, this.playerPositionY - 100);
+      } else if (player.getPlayerType === "cpu" && (player as PokerPlayer).getIsDealer) {
+        dealerContainer.setPosition(this.cpuPositionX - 100, this.cpuPositionY - 100);
+      }
+    });
   }
 
   /**
@@ -672,7 +691,8 @@ export default class PokerTableScene extends TableScene {
         child.name === "pots" ||
         child.name === "roleName" ||
         child.name === "actionContainer" ||
-        child.name === "action"
+        child.name === "action" ||
+        child.name === "dealer"
     );
     destroyList.forEach((element) => {
       element.destroy();
@@ -693,6 +713,7 @@ export default class PokerTableScene extends TableScene {
     // ディーラー変更
     this.players.push(this.players.shift() as PokerPlayer);
     (this.players[0] as PokerPlayer).setIsDealer = true;
+    this.drawDealer();
     console.log(this.players);
 
     // オブジェクト表示
