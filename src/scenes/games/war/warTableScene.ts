@@ -6,7 +6,6 @@ import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import PlayerType from "../../../constants/playerType";
 import Button from "../../../models/common/button";
-import Player from "../../../models/common/player";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -18,9 +17,11 @@ export default class WarTableScene extends TableScene {
 
   private displayedResult = false;
 
-  private warButton: Button;
+  private warButton: Button | undefined;
 
-  private surrenderButton: Button;
+  private surrenderButton: Button | undefined;
+
+  private didWar = false;
 
   constructor() {
     super({});
@@ -56,29 +57,47 @@ export default class WarTableScene extends TableScene {
       this.gameStarted = true;
     }
 
-    // if (this.result === GameResult.DRAW) {
-    //   console.log("引き分け処理");
-    //   if (this.canWar()) {
-    //     this.createWarButton();
-    //   }
-
-    //   this.createSurrenderButton();
-    //   return;
-    // }
-
     if (this.gameState === GameState.END_GAME && !this.displayedResult) {
       // ゲームresult画面
       if (this.result) {
-        this.displayResult(this.result, 0);
         // TODO result画面のBGM設定
-        // TODO chipやスコアの更新
+        // TODO ハイスコア更新
+
+        this.payOut();
+
+        this.displayResult(this.result, 0);
+
         this.displayedResult = true;
       }
     }
   }
 
+  private payOut(): void {
+    let winAmount = 0;
+    if (this.result === GameResult.WAR_DRAW) {
+      winAmount = this.bet * 2 - this.bet;
+    } else if (this.result === GameResult.WAR_WIN) {
+      winAmount = this.bet * 1.5 - this.bet;
+    } else if (this.result === GameResult.WIN) {
+      winAmount = this.bet;
+    } else if (this.result === GameResult.SURRENDER) {
+      winAmount = -this.bet * 0.5;
+    } else {
+      winAmount = -this.bet;
+    }
+
+    // 所持金の更新
+    this.players[0].setChips = this.players[0].getChips + winAmount;
+    this.setCreditText(this.players[0].getChips);
+
+    // ベット額の更新
+    this.bet = 0;
+    this.setBetText();
+  }
+
   private startGame(): void {
-    this.createDeck();
+    if (!this.didWar) this.createDeck();
+
     this.dealCards();
 
     new Promise<void>((resolve) => {
@@ -87,14 +106,11 @@ export default class WarTableScene extends TableScene {
         resolve();
       });
     }).then(() => {
-      //デバッグ用
-      //this.result = GameResult.DRAW;
-      if (this.result === GameResult.DRAW) {
+      if (this.result === GameResult.DRAW && !this.didWar) {
         if (this.canWar()) {
           this.createWarButton();
         }
         this.createSurrenderButton();
-        return;
       }
 
       this.gameZone?.setInteractive();
@@ -118,29 +134,34 @@ export default class WarTableScene extends TableScene {
     );
 
     this.warButton.setClickHandler(() => {
-      // bet額を倍額にする
-      const warBet = this.bet * 2;
-      this.bet = warBet;
+      this.bet *= 2;
       this.setBetText();
+      this.setCreditText(this.players[0].getChips - this.bet);
 
-      // 所持金と表示creditに反映する
-      this.players[0].setChips = this.players[0].getChips - this.bet;
-      this.setCreditText(this.players[0].getChips);
+      this.warButton?.disable();
+      this.surrenderButton?.disable();
 
-      // TODO
-      // UIをフェードアウトさせる
-      // ゲーム再開
+      this.didWar = true;
+      this.startGame();
     });
   }
 
   private createSurrenderButton(): void {
-    this.warButton = new Button(
+    this.surrenderButton = new Button(
       this,
       this.scale.width / 2 - 150,
       this.scale.height / 2,
       "buttonRed",
       "SURRENDER"
     );
+
+    this.surrenderButton.setClickHandler(() => {
+      this.gameState = GameState.END_GAME;
+      this.result = GameResult.SURRENDER;
+
+      this.warButton?.disable();
+      this.surrenderButton?.disable();
+    });
   }
 
   private startBet(): void {
@@ -154,7 +175,10 @@ export default class WarTableScene extends TableScene {
     this.gameState = GameState.BETTING;
     this.gameStarted = false;
     this.displayedResult = false;
+    this.didWar = false;
     this.resultText = undefined;
+    this.warButton = undefined;
+    this.surrenderButton = undefined;
     this.players.forEach((player) => {
       player.resetHand();
     });
@@ -190,13 +214,14 @@ export default class WarTableScene extends TableScene {
   }
 
   /**
-   * カードの初期配置処理
+   * カードの配布
    */
   dealCards(): void {
     const centerWidth = this.scale.width / 2;
     const centerHeight = this.scale.height / 2;
 
     this.players.forEach((player) => {
+      player.resetHand();
       const newCard = this.deck?.draw();
       if (newCard) {
         player.addCardToHand(newCard);
@@ -205,6 +230,7 @@ export default class WarTableScene extends TableScene {
         } else if (player.getPlayerType === PlayerType.DEALER) {
           newCard.moveTo(centerWidth, centerHeight - 170, 200);
         }
+        this.children.bringToTop(newCard);
         // カードを裏返す
         this.time.delayedCall(1500, () => {
           newCard.flipToFront();
@@ -220,18 +246,51 @@ export default class WarTableScene extends TableScene {
     if (this.gameState !== GameState.PLAYING) return;
     const playerScore = this.players[0].calculateHandScore();
     const dealerScore = this.players[1].calculateHandScore();
-    console.log(`プレイヤー:${playerScore}`);
-    console.log(`ディーラー:${dealerScore}`);
 
-    if (dealerScore === playerScore) {
-      this.result = GameResult.DRAW;
-    } else if (playerScore > dealerScore) {
+    if (this.isWin(playerScore, dealerScore)) {
       this.result = GameResult.WIN;
       this.gameState = GameState.END_GAME;
-    } else {
+    } else if (WarTableScene.isLose(playerScore, dealerScore)) {
       this.result = GameResult.LOSE;
       this.gameState = GameState.END_GAME;
+    } else if (this.isWarWin(playerScore, dealerScore)) {
+      this.result = GameResult.WAR_WIN;
+      this.gameState = GameState.END_GAME;
+    } else if (this.isWarDraw(playerScore, dealerScore)) {
+      this.result = GameResult.WAR_DRAW;
+      this.gameState = GameState.END_GAME;
+    } else {
+      // 初回ドロー
+      this.result = GameResult.DRAW;
     }
+  }
+
+  /**
+   * プレイヤーの勝利条件
+   */
+  private isWin(playerScore: number, dealerScore: number): boolean {
+    return playerScore > dealerScore && !this.didWar;
+  }
+
+  /**
+   * プレイヤーの敗北条件
+   */
+  private static isLose(playerScore: number, dealerScore: number): boolean {
+    return playerScore < dealerScore;
+  }
+
+  /**
+   * ウォー挑戦時の勝利条件
+   */
+  private isWarWin(playerScore: number, dealerScore: number): boolean {
+    return playerScore > dealerScore && this.didWar;
+  }
+
+  /**
+   * ウォー挑戦時も引き分け
+   */
+  private isWarDraw(playerScore: number, dealerScore: number): boolean {
+    return playerScore === dealerScore && this.didWar;
   }
 }
 
