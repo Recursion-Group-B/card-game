@@ -43,7 +43,7 @@ export default class PokerTableScene extends TableScene {
     ];
     this.pot = [0];
     this.returnPot = 0;
-    this.cycleState = "firstCycle";
+    this.cycleState = "notAllAction";
   }
 
   addCPU(player: PokerPlayer): void {
@@ -143,17 +143,26 @@ export default class PokerTableScene extends TableScene {
     if (this.gameState === "endGame" || this.gameState === "compare") return;
 
     // cpu
-    if (player.getPlayerType === "cpu" && (player as PokerPlayer).getIsDealer) {
-      this.cpuAction(player as PokerPlayer, "dealer");
-    } else if (player.getPlayerType === "cpu") {
+    if (player.getPlayerType === "cpu") {
       this.cpuAction(player as PokerPlayer);
     }
   }
 
   // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
+    // レイズした場合、もう一周
+    if (this.players.some((player) => (player as PokerPlayer).getState === "raise")) {
+      this.cycleState = "raise";
+      this.players.forEach((player) => {
+        (player as PokerPlayer).setState = "notAction";
+        this.deleteDoneAction();
+      });
+    }
     // 全員がアクションした
-    if (this.players.every((player) => (player as PokerPlayer).getState !== "notAction")) {
+    if (
+      this.players.every((player) => (player as PokerPlayer).getState !== "notAction") &&
+      !this.players.some((player) => (player as PokerPlayer).getState === "raise")
+    ) {
       this.cycleState = "allDone";
       this.deleteDoneAction();
     }
@@ -209,14 +218,22 @@ export default class PokerTableScene extends TableScene {
     }
   }
 
-  // TODO call/bet/checkくらいはできるようにする。
-  private cpuAction(player: PokerPlayer, dealer?: string): void {
-    if (this.gameState === "firstCycle") {
-      console.log("action!!!");
+  private cpuAction(player: PokerPlayer): void {
+    console.log("cpuAction!!!!!!!!!");
+    if (player.getIsDealer && this.cycleState === "notAllAction") {
+      // bet
       this.setPot = player.call(100);
+      this.deleteDoneAction();
       this.drawDoneAction(player, "bet");
       this.drawPots();
       player.setState = "bet";
+    } else if (this.cycleState === "raise" || this.gameState === "firstCycle") {
+      // call
+      this.setPot = player.call(this.getPreBet);
+      this.deleteDoneAction();
+      this.drawDoneAction(player, "call");
+      this.drawPots();
+      player.setState = "call";
     } else if (this.gameState === "changeCycle") {
       console.log("change!!!");
       const changeList: Set<Card> = new Set();
@@ -536,7 +553,7 @@ export default class PokerTableScene extends TableScene {
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
             this.setPot = (player as PokerPlayer).call(this.getPreBet * 2);
             // playerのstate変更
-            (player as PokerPlayer).setState = "Done";
+            (player as PokerPlayer).setState = "raise";
             // action表示
             this.drawDoneAction(player as PokerPlayer, "raise");
           }
@@ -702,6 +719,7 @@ export default class PokerTableScene extends TableScene {
     this.pot = [];
     this.actionContainer = this.add.container(0, 0).setName("actionContainer");
     this.gameState = "firstCycle";
+    this.cycleState = "notAllAction";
     this.handScoreList = [];
 
     // プレイヤーのデータを初期化
