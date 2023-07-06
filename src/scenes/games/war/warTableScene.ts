@@ -227,14 +227,15 @@ export default class WarTableScene extends TableScene {
         player.addCardToHand(newCard);
         if (player.getPlayerType === PlayerType.PLAYER) {
           newCard.moveTo(centerWidth, centerHeight + 170, 200);
+          newCard.setTexture("cards", newCard.getTextureKey);
         } else if (player.getPlayerType === PlayerType.DEALER) {
           newCard.moveTo(centerWidth, centerHeight - 170, 200);
+          // カードを裏返す
+          this.time.delayedCall(1500, () => {
+            newCard.flipToFront();
+          });
         }
         this.children.bringToTop(newCard);
-        // カードを裏返す
-        this.time.delayedCall(1500, () => {
-          newCard.flipToFront();
-        });
       }
     });
   }
