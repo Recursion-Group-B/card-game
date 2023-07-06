@@ -129,6 +129,15 @@ export default abstract class TableScene extends Phaser.Scene {
       case GameResult.DRAW:
         resultMessage = "DRAW";
         break;
+      case GameResult.WAR_WIN:
+        resultMessage = "YOU WIN!!";
+        break;
+      case GameResult.WAR_DRAW:
+        resultMessage = "WAR DRAW";
+        break;
+      case GameResult.SURRENDER:
+        resultMessage = "SURRENDER";
+        break;
       default:
         resultMessage = "GAME OVER";
     }
