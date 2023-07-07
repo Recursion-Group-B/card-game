@@ -2,6 +2,7 @@ import "../../../style.scss";
 import Phaser from "phaser";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
+import Button from "../../../models/common/button";
 import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
@@ -32,11 +33,21 @@ export default class PokerTableScene extends TableScene {
 
   private cycleState: string;
 
-  private actionContainer: Phaser.GameObjects.Container | undefined;
-
   private result: string | undefined;
 
   private handScoreList: HandScore[] = [];
+
+  private callBtn: Button | undefined;
+
+  private betBtn: Button | undefined;
+
+  private changeBtn: Button | undefined;
+
+  private foldBtn: Button | undefined;
+
+  private checkBtn: Button | undefined;
+
+  private raiseBtn: Button | undefined;
 
   constructor() {
     super();
@@ -125,10 +136,11 @@ export default class PokerTableScene extends TableScene {
     // 所持金等の更新
     this.setBetText("poker");
     this.setCreditText(this.getPlayer.getChips);
+    console.log(this);
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
-    this.drawAction();
+    this.actionControl();
     // playerの場合、何もしない
     if (player.getPlayerType === "player") return;
 
@@ -205,6 +217,7 @@ export default class PokerTableScene extends TableScene {
     // 手札を比較し、ゲーム終了
     if (this.gameState === "compare") {
       this.gameState = "endGame";
+      this.changeBtn?.disable();
       this.checkResult();
     }
 
@@ -339,16 +352,16 @@ export default class PokerTableScene extends TableScene {
    * プレイヤーアクション（チェンジ）を描画
    */
   private changeAction(): void {
-    const change = this.add
-      .text(400, 700, "Change")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    (this.actionContainer as Phaser.GameObjects.Container).add(change);
-
-    change.once(
+    this.changeBtn = new Button(
+      this,
+      this.scale.width / 12,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "change"
+    );
+    this.changeBtn.disable();
+    this.changeBtn.setScale(0.3);
+    this.changeBtn.once(
       "pointerdown",
       function changeCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -382,16 +395,16 @@ export default class PokerTableScene extends TableScene {
    * checkを描画
    */
   private checkAction(): void {
-    const check = this.add
-      .text(500, 700, "Check")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    (this.actionContainer as Phaser.GameObjects.Container).add(check);
-
-    check.once(
+    this.checkBtn = new Button(
+      this,
+      (this.scale.width * 3) / 12,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "check"
+    );
+    this.checkBtn.disable();
+    this.checkBtn.setScale(0.3);
+    this.checkBtn.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -411,16 +424,16 @@ export default class PokerTableScene extends TableScene {
    * betアクション
    */
   private betAction(): void {
-    const bet = this.add
-      .text(600, 700, "Bet")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    (this.actionContainer as Phaser.GameObjects.Container).add(bet);
-
-    bet.once(
+    this.betBtn = new Button(
+      this,
+      (this.scale.width * 5) / 12,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "bet"
+    );
+    this.betBtn.disable();
+    this.betBtn.setScale(0.3);
+    this.betBtn.once(
       "pointerdown",
       function betToPot(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -445,16 +458,16 @@ export default class PokerTableScene extends TableScene {
    * foldを描画
    */
   private foldAction(): void {
-    const fold = this.add
-      .text(900, 700, "Fold")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    (this.actionContainer as Phaser.GameObjects.Container).add(fold);
-
-    fold.once(
+    this.foldBtn = new Button(
+      this,
+      (this.scale.width * 7) / 12,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "fold"
+    );
+    this.foldBtn.disable();
+    this.foldBtn.setScale(0.3);
+    this.foldBtn.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         // カードを手放す
@@ -472,7 +485,6 @@ export default class PokerTableScene extends TableScene {
             this.drawDoneAction(player as PokerPlayer, "fold");
           }
         });
-
         this.gameState = "compare";
       },
       this
@@ -483,16 +495,16 @@ export default class PokerTableScene extends TableScene {
    * callアクション
    */
   private callAction(): void {
-    const call = this.add
-      .text(700, 700, "Call")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    (this.actionContainer as Phaser.GameObjects.Container).add(call);
-
-    call.once(
+    this.callBtn = new Button(
+      this,
+      (this.scale.width * 9) / 12,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "call"
+    );
+    this.callBtn.disable();
+    this.callBtn.setScale(0.3);
+    this.callBtn.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -515,16 +527,16 @@ export default class PokerTableScene extends TableScene {
    * raiseアクション
    */
   private raiseAction(): void {
-    const raise = this.add
-      .text(800, 700, "Raise")
-      .setFontSize(20)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setInteractive();
-
-    (this.actionContainer as Phaser.GameObjects.Container).add(raise);
-
-    raise.once(
+    this.raiseBtn = new Button(
+      this,
+      (this.scale.width * 11) / 12,
+      this.scale.height / 2 + 250,
+      "buttonRed",
+      "raise"
+    );
+    this.raiseBtn.disable();
+    this.raiseBtn.setScale(0.3);
+    this.raiseBtn.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -685,7 +697,6 @@ export default class PokerTableScene extends TableScene {
         child.name === "result" ||
         child.name === "pots" ||
         child.name === "roleName" ||
-        child.name === "actionContainer" ||
         child.name === "action" ||
         child.name === "dealer" ||
         child.name === "playerCredit" ||
@@ -698,7 +709,6 @@ export default class PokerTableScene extends TableScene {
     // クラス変数初期化
     this.result = undefined;
     this.pot = [];
-    this.actionContainer = this.add.container(0, 0).setName("actionContainer");
     this.gameState = "firstCycle";
     this.cycleState = "notAllAction";
     this.handScoreList = [];
@@ -728,6 +738,7 @@ export default class PokerTableScene extends TableScene {
     this.dealHand();
     this.drawPots();
     this.drawDealer();
+    this.drawAction();
 
     // タイマーイベント
     this.time.removeAllEvents();
@@ -749,19 +760,31 @@ export default class PokerTableScene extends TableScene {
    * アクション表示
    */
   private drawAction(): void {
-    this.actionContainer?.removeAll(true);
+    this.checkAction();
+    this.foldAction();
+    this.betAction();
+    this.callAction();
+    this.raiseAction();
+    this.changeAction();
+  }
 
+  private actionControl(): void {
     if (this.gameState === "firstCycle" && this.getPlayer.getIsDealer) {
-      this.checkAction();
-      this.foldAction();
-      this.betAction();
+      this.checkBtn?.enable();
+      this.foldBtn?.enable();
+      this.betBtn?.enable();
     } else if (this.gameState === "firstCycle") {
-      this.checkAction();
-      this.foldAction();
-      this.callAction();
-      this.raiseAction();
+      this.checkBtn?.enable();
+      this.foldBtn?.enable();
+      this.callBtn?.enable();
+      this.raiseBtn?.enable();
     } else if (this.gameState === "changeCycle") {
-      this.changeAction();
+      this.checkBtn?.disable();
+      this.foldBtn?.disable();
+      this.betBtn?.disable();
+      this.callBtn?.disable();
+      this.raiseBtn?.disable();
+      this.changeBtn?.enable();
     }
   }
 }
