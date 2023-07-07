@@ -128,11 +128,6 @@ export default class PokerTableScene extends TableScene {
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
-    console.log(
-      `player: ${player.getName} ${player.getIsDealer ? "dealer" : "notDealer"} index: ${index} ${
-        player.getState
-      }`
-    );
     this.drawAction();
     // playerの場合、何もしない
     if (player.getPlayerType === "player") return;
@@ -194,7 +189,6 @@ export default class PokerTableScene extends TableScene {
       });
       this.cycleState = "notAllDone";
       this.gameState = "changeCycle";
-      this.drawAction();
     }
 
     // change
@@ -232,7 +226,6 @@ export default class PokerTableScene extends TableScene {
   }
 
   private cpuAction(player: PokerPlayer): void {
-    console.log("cpuAction!!!!!!!!!");
     if (player.getIsDealer && this.cycleState === "notAllAction") {
       // bet
       this.setPot = player.call(this.bet);
@@ -248,7 +241,6 @@ export default class PokerTableScene extends TableScene {
       this.drawPots();
       player.setState = "call";
     } else if (this.gameState === "changeCycle") {
-      console.log("change!!!");
       const changeList: Set<Card> = new Set();
       const changeAmount = Phaser.Math.RND.integerInRange(0, 5);
       for (let i = 0; i < changeAmount; i += 1) {
@@ -560,12 +552,9 @@ export default class PokerTableScene extends TableScene {
     this.players.forEach((player) => {
       const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
       console.log(`${player.getName} role: ${handScore.role}`);
-      console.log(handScore.highCard);
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
     });
-    console.log(this.handScoreList);
-
     // 同等の役の場合、カードの強い順番
     if (scoreList.size === 1) {
       for (let i = 0; i < this.handScoreList[0].highCard.length; i += 1) {
