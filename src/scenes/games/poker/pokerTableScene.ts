@@ -371,7 +371,7 @@ export default class PokerTableScene extends TableScene {
 
     (this.actionContainer as Phaser.GameObjects.Container).add(change);
 
-    change.on(
+    change.once(
       "pointerdown",
       function changeCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -414,7 +414,7 @@ export default class PokerTableScene extends TableScene {
 
     (this.actionContainer as Phaser.GameObjects.Container).add(check);
 
-    check.on(
+    check.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -443,7 +443,7 @@ export default class PokerTableScene extends TableScene {
 
     (this.actionContainer as Phaser.GameObjects.Container).add(bet);
 
-    bet.on(
+    bet.once(
       "pointerdown",
       function betToPot(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -476,7 +476,7 @@ export default class PokerTableScene extends TableScene {
 
     (this.actionContainer as Phaser.GameObjects.Container).add(fold);
 
-    fold.on(
+    fold.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         // カードを手放す
@@ -514,7 +514,7 @@ export default class PokerTableScene extends TableScene {
 
     (this.actionContainer as Phaser.GameObjects.Container).add(call);
 
-    call.on(
+    call.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -545,7 +545,7 @@ export default class PokerTableScene extends TableScene {
 
     (this.actionContainer as Phaser.GameObjects.Container).add(raise);
 
-    raise.on(
+    raise.once(
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         this.players.forEach((player) => {
@@ -731,7 +731,6 @@ export default class PokerTableScene extends TableScene {
     this.players.push(this.players.shift() as PokerPlayer);
     (this.players[0] as PokerPlayer).setIsDealer = true;
     this.drawDealer();
-    console.log(this.players);
 
     // オブジェクト表示
     this.deckReset(650, 450);
