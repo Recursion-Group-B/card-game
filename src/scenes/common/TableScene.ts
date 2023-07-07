@@ -49,6 +49,10 @@ export default abstract class TableScene extends Phaser.Scene {
     this.initialTime = time;
   }
 
+  protected get getPlayer(): Player {
+    return this.players.find((player) => player.getPlayerType === "player") as Player;
+  }
+
   /**
    * ゲーム開始時のカード配布
    */
@@ -214,7 +218,9 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * Dealボタン作成
    */
-  protected createDealButton() {
+  protected createDealButton(): void;
+  protected createDealButton(startBet: boolean): void;
+  protected createDealButton(startBet?: boolean): void {
     this.dealButton = new Button(
       this,
       this.scale.width / 2 + 150,
@@ -224,8 +230,9 @@ export default abstract class TableScene extends Phaser.Scene {
     );
     this.dealButton.setClickHandler(() => {
       if (this.bet > 0) {
-        const player = this.players[0];
-        const displayCredit = player.getChips - this.bet;
+        const displayCredit = startBet
+          ? this.getPlayer.getChips
+          : this.getPlayer.getChips - this.bet;
         this.setCreditText(displayCredit);
 
         // UIをフェードアウトさせる
@@ -267,21 +274,24 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 所持金やbet額などの表示
    */
-  protected createCreditField() {
+  protected createCreditField(): void;
+  protected createCreditField(type: string): void;
+  protected createCreditField(type?: string): void {
     this.createPlayerCreditText();
-    this.createPlayerBetText();
+    if (type) {
+      this.createPlayerBetText(type);
+    } else {
+      this.createPlayerBetText();
+    }
   }
 
   /**
    * 所持金を表示
    */
   private createPlayerCreditText(): void {
-    this.creditText = this.add.text(
-      0,
-      0,
-      `CREDIT: $${this.players[0].getChips.toString()}`,
-      textStyle
-    );
+    this.creditText = this.add
+      .text(0, 0, `CREDIT: $${this.getPlayer.getChips.toString()}`, textStyle)
+      .setName("playerCredit");
 
     Phaser.Display.Align.In.BottomLeft(this.creditText as Text, this.gameZone as Zone, -30, -90);
   }
@@ -289,13 +299,14 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 現在のベット額を表示
    */
-  private createPlayerBetText(): void {
-    this.betText = this.add.text(
-      90,
-      this.scale.height / 2 + 400,
-      `BET: $${this.bet.toString()}`,
-      textStyle
-    );
+  private createPlayerBetText(): void;
+  private createPlayerBetText(type: string): void;
+  private createPlayerBetText(type?: string): void {
+    console.log(type);
+    const bet = type === "poker" ? "BetSize" : "Bet";
+    this.betText = this.add
+      .text(90, this.scale.height / 2 + 400, `${bet}: $${this.bet.toString()}`, textStyle)
+      .setName("betSize");
 
     Phaser.Display.Align.In.BottomLeft(this.betText as Text, this.gameZone as Zone, -30, -40);
   }
@@ -303,8 +314,11 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 現在のベット額を画面にセット
    */
-  protected setBetText(): void {
-    this.betText?.setText(`BET: $${this.bet}`);
+  protected setBetText(): void;
+  protected setBetText(type: string): void;
+  protected setBetText(type?: string): void {
+    if (type) this.betText?.setText(`BETSize: $${this.bet}`);
+    else this.betText?.setText(`BET: $${this.bet}`);
   }
 
   /**
@@ -322,5 +336,12 @@ export default abstract class TableScene extends Phaser.Scene {
       chip.disable();
     });
     this.dealButton.disable();
+  }
+
+  /**
+   * １ゲームでの情報をリセットする
+   */
+  protected tableInit(): void {
+    this.bet = 0;
   }
 }

@@ -5,6 +5,7 @@ import Card from "../../../models/common/card";
 import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
+import GameState from "../../../constants/gameState";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -27,6 +28,8 @@ export default class PokerTableScene extends TableScene {
     y: 150,
   };
 
+  private gameStarted: boolean;
+
   private cycleState: string;
 
   private actionContainer: Phaser.GameObjects.Container | undefined;
@@ -44,6 +47,7 @@ export default class PokerTableScene extends TableScene {
     this.pot = [0];
     this.returnPot = 0;
     this.cycleState = "notAllAction";
+    this.gameStarted = false;
   }
 
   addCPU(player: PokerPlayer): void {
@@ -67,10 +71,6 @@ export default class PokerTableScene extends TableScene {
 
   set setPot(amount: number) {
     this.pot.push(amount);
-  }
-
-  get getPlayer(): PokerPlayer {
-    return this.players.find((player) => player.getPlayerType === "player") as PokerPlayer;
   }
 
   get getPreBet(): number {
@@ -97,6 +97,12 @@ export default class PokerTableScene extends TableScene {
   preload() {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/public/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
   }
 
   /**
@@ -104,6 +110,8 @@ export default class PokerTableScene extends TableScene {
    */
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.createGameZone();
+
     this.initGame();
 
     // アニメーション
@@ -114,11 +122,9 @@ export default class PokerTableScene extends TableScene {
     // gameState管理
     this.cycleControl();
 
-    // pots更新
-    this.drawPots();
-
-    // chips更新
-    this.drawChips();
+    // 所持金等の更新
+    this.setBetText("poker");
+    this.setCreditText(this.getPlayer.getChips);
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
@@ -150,6 +156,13 @@ export default class PokerTableScene extends TableScene {
 
   // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
+    // ベット終了
+    if (this.gameState === GameState.PLAYING && !this.gameStarted) {
+      this.gameState = "firstCycle";
+      this.gameStarted = true;
+      this.startGame();
+      this.disableBetItem();
+    }
     // レイズした場合、もう一周
     if (this.players.some((player) => (player as PokerPlayer).getState === "raise")) {
       this.cycleState = "raise";
@@ -222,7 +235,7 @@ export default class PokerTableScene extends TableScene {
     console.log("cpuAction!!!!!!!!!");
     if (player.getIsDealer && this.cycleState === "notAllAction") {
       // bet
-      this.setPot = player.call(100);
+      this.setPot = player.call(this.bet);
       this.deleteDoneAction();
       this.drawDoneAction(player, "bet");
       this.drawPots();
@@ -289,34 +302,6 @@ export default class PokerTableScene extends TableScene {
       .setFontFamily("Arial")
       .setOrigin(0.5)
       .setName("pots");
-  }
-
-  /**
-   * 所持金表示
-   */
-  private drawChips(): void {
-    // 以前のchipsを削除
-    this.children.list.forEach((element) => {
-      if (element.name === "chips") element.destroy();
-    });
-
-    this.players.forEach((player) => {
-      if (player.getPlayerType === "player") {
-        this.add
-          .text(this.playerPositionX, this.playerPositionY + 70, `chips: ${player.getChips}`)
-          .setFontSize(24)
-          .setFontFamily("Arial")
-          .setOrigin(0.5)
-          .setName("chips");
-      } else if (player.getPlayerType === "cpu") {
-        this.add
-          .text(this.cpuPositionX, this.cpuPositionY + 70, `chips: ${player.getChips}`)
-          .setFontSize(24)
-          .setFontFamily("Arial")
-          .setOrigin(0.5)
-          .setName("chips");
-      }
-    });
   }
 
   /**
@@ -449,8 +434,9 @@ export default class PokerTableScene extends TableScene {
         this.players.forEach((player) => {
           if (player.getPlayerType !== "player") return;
           // 100betする
-          if (player.getPlayerType === "player" && player.getChips >= 100) {
-            this.setPot = (player as PokerPlayer).call(100);
+          if (player.getPlayerType === "player" && player.getChips >= this.bet) {
+            this.setPot = (player as PokerPlayer).call(this.bet);
+            this.drawPots();
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
             // action表示
@@ -521,6 +507,7 @@ export default class PokerTableScene extends TableScene {
           // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
             this.setPot = (player as PokerPlayer).call(this.getPreBet);
+            this.drawPots();
             // playerのstate変更
             (player as PokerPlayer).setState = "Done";
             // action表示
@@ -552,6 +539,7 @@ export default class PokerTableScene extends TableScene {
           // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
             this.setPot = (player as PokerPlayer).call(this.getPreBet * 2);
+            this.drawPots();
             // playerのstate変更
             (player as PokerPlayer).setState = "raise";
             // action表示
@@ -699,6 +687,8 @@ export default class PokerTableScene extends TableScene {
    * リスタートボタンを描画
    */
   private initGame(): void {
+    this.gameState = GameState.BETTING;
+
     // カードオブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
@@ -708,7 +698,9 @@ export default class PokerTableScene extends TableScene {
         child.name === "roleName" ||
         child.name === "actionContainer" ||
         child.name === "action" ||
-        child.name === "dealer"
+        child.name === "dealer" ||
+        child.name === "playerCredit" ||
+        child.name === "betSize"
     );
     destroyList.forEach((element) => {
       element.destroy();
@@ -721,6 +713,8 @@ export default class PokerTableScene extends TableScene {
     this.gameState = "firstCycle";
     this.cycleState = "notAllAction";
     this.handScoreList = [];
+    this.gameStarted = false;
+    this.tableInit();
 
     // プレイヤーのデータを初期化
     this.players.forEach((player) => {
@@ -730,13 +724,21 @@ export default class PokerTableScene extends TableScene {
     // ディーラー変更
     this.players.push(this.players.shift() as PokerPlayer);
     (this.players[0] as PokerPlayer).setIsDealer = true;
-    this.drawDealer();
 
+    // betting
+    this.createChips();
+    this.createClearButton();
+    this.createDealButton(true);
+    this.createCreditField("poker");
+  }
+
+  private startGame(): void {
     // オブジェクト表示
     this.deckReset(650, 450);
     this.dealCards();
     this.dealHand();
     this.drawPots();
+    this.drawDealer();
 
     // タイマーイベント
     this.time.removeAllEvents();
