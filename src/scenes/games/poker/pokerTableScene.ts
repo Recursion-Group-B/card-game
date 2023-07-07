@@ -316,7 +316,7 @@ export default class PokerTableScene extends TableScene {
   /**
    * クリック時にポップアップするアニメーション
    */
-  clickToUp(): void {
+  private clickToUp(): void {
     this.input.on("gameobjectdown", (pointer: Phaser.Input.Pointer, gameObject: Card) => {
       // Cardオブジェクト以外無効
       if (!(gameObject instanceof Card)) return;
@@ -338,7 +338,7 @@ export default class PokerTableScene extends TableScene {
   /**
    * プレイヤーアクション（チェンジ）を描画
    */
-  changeAction(): void {
+  private changeAction(): void {
     const change = this.add
       .text(400, 700, "Change")
       .setFontSize(20)
