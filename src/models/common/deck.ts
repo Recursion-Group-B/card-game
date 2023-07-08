@@ -55,4 +55,52 @@ export default class Deck {
   isEmpty(): boolean {
     return this.cards.length === 0;
   }
+
+  /**
+   * WAR DRAWのチェック用デッキ
+   * デバッグ用です
+   * 開発終わったら消すかも
+   */
+  createDrawDeck(rank: string): void {
+    this.cards = []; // Clear the current deck
+
+    // Create new deck with all cards of the specified rank
+    SUITS.forEach((suit) => {
+      const textureKey = `${suit}${rank}`;
+      this.cards.push(new Card(this.scene, this.x, this.y, rank, suit, textureKey, true));
+    });
+  }
+
+  /**
+   * WAR WINのチェック用デッキ
+   * デバッグ用です
+   * 開発終わったら消すかも
+   */
+  createPlayerWarWinDeck(): void {
+    this.cards = []; // Clear the current deck
+
+    // Dealer's war loss card
+    const dealerWarLossCardTextureKey = `clubs2`;
+    this.cards.push(
+      new Card(this.scene, this.x, this.y, "2", "clubs", dealerWarLossCardTextureKey, true)
+    );
+
+    // Player's war win card
+    const playerWarWinCardTextureKey = `heartsKing`;
+    this.cards.push(
+      new Card(this.scene, this.x, this.y, "King", "hearts", playerWarWinCardTextureKey, true)
+    );
+
+    // Player's draw card
+    const playerDrawCardTextureKey = `diamondsQueen`;
+    this.cards.push(
+      new Card(this.scene, this.x, this.y, "Queen", "diamonds", playerDrawCardTextureKey, true)
+    );
+
+    // Dealer's draw card
+    const dealerDrawCardTextureKey = `spadesQueen`;
+    this.cards.push(
+      new Card(this.scene, this.x, this.y, "Queen", "spades", dealerDrawCardTextureKey, true)
+    );
+  }
 }
