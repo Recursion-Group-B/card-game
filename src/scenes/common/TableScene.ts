@@ -362,33 +362,12 @@ export default abstract class TableScene extends Phaser.Scene {
     });
   }
 
-  protected createHelpButton(content: string): void;
-  protected createHelpButton(content: HelpContainer): void;
-  protected createHelpButton(content: string | HelpContainer): void {
+  protected createHelpButton(content: HelpContainer): void {
     this.helpButton = new Button(this, this.scale.width - 10, 10, "help", "");
     this.helpButton.setOrigin(1, 0);
     this.helpButton.setClickHandler(() => {
-      if (typeof content === "string") {
-        const helpText = this.add.text(0, 0, content, helpStyle);
-        Phaser.Display.Align.In.Center(helpText, this.gameZone as Phaser.GameObjects.Zone, 0, 0);
-        const helpLocation = helpText.getTopRight();
-
-        this.backButton = new Button(
-          this,
-          helpLocation.x as number,
-          helpLocation.y as number,
-          "back",
-          ""
-        );
-        this.backButton.setOrigin(1, 0);
-        this.backButton.setClickHandler(() => {
-          helpText.destroy();
-          this.backButton?.destroy();
-        });
-      } else if (content instanceof HelpContainer) {
-        this.add.existing(content);
-        content.createContent();
-      }
+      this.add.existing(content);
+      content.createContent();
     });
   }
 }
