@@ -1,4 +1,22 @@
 import Phaser from "phaser";
+import GameManager from "../../models/common/gameManager";
+import GameType from "../../constants/gameType";
+
+/**
+ * home画面非表示
+ */
+function hideHome() {
+  const homeElement = document.getElementById("home");
+  const headerElement = document.getElementById("header");
+
+  if (homeElement) {
+    homeElement.classList.add("d-none");
+  }
+
+  if (headerElement) {
+    headerElement.classList.add("d-none");
+  }
+}
 
 export default async function initGame(gameType: string) {
   let gameScene;
@@ -19,6 +37,12 @@ export default async function initGame(gameType: string) {
     default:
       throw new Error("Invalid game type");
   }
+
+  // Homeを非表示
+  hideHome();
+
+  // ゲームの設定
+  GameManager.setGameType(gameType as GameType);
 
   const D_WIDTH = 1320;
   const D_HEIGHT = 920;

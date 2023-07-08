@@ -5,6 +5,7 @@ import Card from "../../../models/common/card";
 import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
+import Game from "../../../models/common/game";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -34,6 +35,10 @@ export default class PokerTableScene extends TableScene {
     this.players = [new PokerPlayer("Player", "player", 0, 0), new PokerPlayer("Cpu", "cpu", 0, 0)];
     this.pot = [0];
     this.returnPot = 0;
+
+    console.log("aaaaaaaaaaaaaaaa");
+    console.log(Game.CONFIG.DIFFICULTY);
+    console.log(Game.CONFIG.GAME_MODE);
   }
 
   addCPU(player: PokerPlayer): void {

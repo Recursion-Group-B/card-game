@@ -1,6 +1,7 @@
 import TableScene from "../../common/TableScene";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
+import Game from "../../../models/common/game";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
@@ -52,6 +53,10 @@ export default class SpeedTableScene extends TableScene {
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.gameState = GameState.BETTING;
+
+    console.log("aaaaaaaaaaaaaaaa");
+    console.log(Game.CONFIG.DIFFICULTY);
+    console.log(Game.CONFIG.GAME_MODE);
 
     this.createGameZone();
     this.createDropZones();
