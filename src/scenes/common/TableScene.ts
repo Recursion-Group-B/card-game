@@ -45,8 +45,18 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected clearButton: Button;
 
+  protected backHomeButton: Button | undefined;
+
+  protected tutorialButton: Button | undefined;
+
+  protected helpButton: Button | undefined;
+
   protected set setInitialTime(time: number) {
     this.initialTime = time;
+  }
+
+  constructor() {
+    super({ key: "game" });
   }
 
   /**
@@ -322,5 +332,34 @@ export default abstract class TableScene extends Phaser.Scene {
       chip.disable();
     });
     this.dealButton.disable();
+  }
+
+  /**
+   * １ゲームでの情報をリセットする
+   */
+  protected tableInit(): void {
+    this.bet = 0;
+  }
+
+  protected createBackHomeButton(): void {
+    this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
+    this.backHomeButton.setOrigin(0);
+    this.backHomeButton.setClickHandler(() => {
+      if (this.scene.key === "game") window.location.href = "../../../index.html";
+      else if (this.scene.key === "tutorial") this.scene.start("game");
+    });
+  }
+
+  protected createTutorialButton(): void {
+    this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
+    this.tutorialButton.setOrigin(1, 0);
+    this.tutorialButton.setClickHandler(() => {
+      this.scene.start("tutorial");
+    });
+  }
+
+  protected createHelpButton(): void {
+    this.helpButton = new Button(this, this.scale.width - 10, 10, "help", "");
+    this.helpButton.setOrigin(1, 0);
   }
 }

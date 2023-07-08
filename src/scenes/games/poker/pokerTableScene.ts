@@ -5,6 +5,7 @@ import Card from "../../../models/common/card";
 import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
+import PokerTutorial from "./pokerTutorial";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -87,6 +88,15 @@ export default class PokerTableScene extends TableScene {
   preload() {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/public/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
+    this.load.image("uTurn", "/public/assets/images/uTurn.svg");
+    this.load.image("tutorial", "/public/assets/images/tutorial.svg");
+    this.load.image("help", "/public/assets/images/help.svg");
   }
 
   /**
@@ -94,6 +104,10 @@ export default class PokerTableScene extends TableScene {
    */
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.createGameZone();
+    this.createBackHomeButton();
+    this.createTutorialButton();
+    this.createHelpButton();
 
     this.makeDeck();
     this.dealCards();
@@ -296,7 +310,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: D_WIDTH,
   height: D_HEIGHT,
   antialias: false,
-  scene: PokerTableScene,
+  scene: [PokerTableScene, PokerTutorial],
   mode: Phaser.Scale.FIT,
   parent: "game-content",
   autoCenter: Phaser.Scale.CENTER_BOTH,
