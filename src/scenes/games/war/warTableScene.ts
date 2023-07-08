@@ -77,7 +77,7 @@ export default class WarTableScene extends TableScene {
     if (this.result === GameResult.WAR_DRAW) {
       winAmount = this.bet * 2;
     } else if (this.result === GameResult.WAR_WIN) {
-      winAmount = this.bet * 1.5 - this.bet;
+      winAmount = this.bet * 1.5;
     } else if (this.result === GameResult.WIN) {
       winAmount = this.bet;
     } else if (this.result === GameResult.SURRENDER) {
