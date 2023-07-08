@@ -17,6 +17,7 @@ export default abstract class Tutorial extends Phaser.Scene {
     this.backButton.setClickHandler(() => {
       this.scene.start("game");
     });
+    this.children.bringToTop(this.backButton as Phaser.GameObjects.Image);
   }
 
   protected createGameZone(): void {

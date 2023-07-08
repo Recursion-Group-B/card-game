@@ -8,15 +8,11 @@ import GameResult from "../../constants/gameResult";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
+import HelpContainer from "./helpContainer";
+import { textStyle, helpStyle } from "../../constants/styles";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
-
-const textStyle = {
-  font: "40px Arial",
-  color: "#FFFFFF",
-  strokeThickness: 2,
-};
 
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
@@ -50,6 +46,10 @@ export default abstract class TableScene extends Phaser.Scene {
   protected tutorialButton: Button | undefined;
 
   protected helpButton: Button | undefined;
+
+  protected backButton: Button | undefined;
+
+  protected helpContent: HelpContainer | undefined;
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -177,6 +177,10 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected createGameZone(): void {
     this.gameZone = this.add.zone(D_WIDTH / 2, D_HEIGHT / 2, D_WIDTH, D_HEIGHT);
+  }
+
+  get getGameZone(): Phaser.GameObjects.Zone {
+    return this.gameZone as Phaser.GameObjects.Zone;
   }
 
   /**
@@ -320,7 +324,7 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 現在の所持金を画面にセット
    */
-  protected setCreditText(displayCredit): void {
+  protected setCreditText(displayCredit: number): void {
     this.creditText?.setText(`CREDIT: $${displayCredit}`);
   }
 
@@ -358,8 +362,33 @@ export default abstract class TableScene extends Phaser.Scene {
     });
   }
 
-  protected createHelpButton(): void {
+  protected createHelpButton(content: string): void;
+  protected createHelpButton(content: HelpContainer): void;
+  protected createHelpButton(content: string | HelpContainer): void {
     this.helpButton = new Button(this, this.scale.width - 10, 10, "help", "");
     this.helpButton.setOrigin(1, 0);
+    this.helpButton.setClickHandler(() => {
+      if (typeof content === "string") {
+        const helpText = this.add.text(0, 0, content, helpStyle);
+        Phaser.Display.Align.In.Center(helpText, this.gameZone as Phaser.GameObjects.Zone, 0, 0);
+        const helpLocation = helpText.getTopRight();
+
+        this.backButton = new Button(
+          this,
+          helpLocation.x as number,
+          helpLocation.y as number,
+          "back",
+          ""
+        );
+        this.backButton.setOrigin(1, 0);
+        this.backButton.setClickHandler(() => {
+          helpText.destroy();
+          this.backButton?.destroy();
+        });
+      } else if (content instanceof HelpContainer) {
+        this.add.existing(content);
+        content.createContent();
+      }
+    });
   }
 }
