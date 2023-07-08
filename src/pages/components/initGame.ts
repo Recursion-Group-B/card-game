@@ -29,10 +29,10 @@ export default async function initGame(gameType: string) {
       gameScene = (await import("../../scenes/games/poker/pokerTableScene")).default;
       break;
     case "blackjack":
-      gameScene = (await import("../../scenes/games/poker/pokerTableScene")).default;
+      gameScene = (await import("../../scenes/games/blackjack/blackjackTableScene")).default;
       break;
     case "war":
-      gameScene = (await import("../../scenes/games/poker/pokerTableScene")).default;
+      gameScene = (await import("../../scenes/games/war/warTableScene")).default;
       break;
     default:
       throw new Error("Invalid game type");
