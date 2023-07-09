@@ -54,10 +54,6 @@ export default class SpeedTableScene extends TableScene {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.gameState = GameState.BETTING;
 
-    console.log("aaaaaaaaaaaaaaaa");
-    console.log(Game.CONFIG.DIFFICULTY);
-    console.log(Game.CONFIG.GAME_MODE);
-
     this.createGameZone();
     this.createDropZones();
     this.createCardDropEvent();

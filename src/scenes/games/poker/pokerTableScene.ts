@@ -35,10 +35,6 @@ export default class PokerTableScene extends TableScene {
     this.players = [new PokerPlayer("Player", "player", 0, 0), new PokerPlayer("Cpu", "cpu", 0, 0)];
     this.pot = [0];
     this.returnPot = 0;
-
-    console.log("aaaaaaaaaaaaaaaa");
-    console.log(Game.CONFIG.DIFFICULTY);
-    console.log(Game.CONFIG.GAME_MODE);
   }
 
   addCPU(player: PokerPlayer): void {
