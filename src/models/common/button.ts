@@ -72,6 +72,10 @@ export default class Button extends Phaser.GameObjects.Image {
     this.text.setVisible(true);
   }
 
+  visibleText(): void {
+    this.text.setVisible(true);
+  }
+
   moveTo(toX: number, toY: number, delay: number): void {
     this.scene.tweens.add({
       targets: this,

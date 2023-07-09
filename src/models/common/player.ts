@@ -90,5 +90,12 @@ export default abstract class Player {
     }
   }
 
+  /**
+   * 手札のリセット
+   */
+  resetHand(): void {
+    this.hand = [];
+  }
+
   abstract calculateHandScore(): number | HandScore;
 }

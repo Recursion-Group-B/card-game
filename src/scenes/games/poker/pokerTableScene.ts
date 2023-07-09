@@ -7,6 +7,7 @@ import PokerPlayer from "../../../models/games/poker/pokerPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
 import GameState from "../../../constants/gameState";
+import GameResult from "../../../constants/gameResult";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -571,19 +572,21 @@ export default class PokerTableScene extends TableScene {
     if (scoreList.size === 1) {
       for (let i = 0; i < this.handScoreList[0].highCard.length; i += 1) {
         if (this.handScoreList[0].highCard[i][0] > this.handScoreList[1].highCard[i][0])
-          this.result = this.players[0].getPlayerType === "player" ? "win" : "lose";
+          this.result =
+            this.players[0].getPlayerType === "player" ? GameResult.WIN : GameResult.LOSE;
         else if (this.handScoreList[0].highCard[i][0] < this.handScoreList[1].highCard[i][0])
-          this.result = this.players[1].getPlayerType === "player" ? "win" : "lose";
+          this.result =
+            this.players[1].getPlayerType === "player" ? GameResult.WIN : GameResult.LOSE;
       }
-      if (this.result === "") this.result = "draw";
+      if (this.result === "") this.result = GameResult.DRAW;
     } // 役で勝敗決定
     else {
       const max = Math.max(...scoreList);
       this.result =
         this.players[this.handScoreList.findIndex((score) => score.role === max)].getPlayerType ===
         "player"
-          ? "win"
-          : "lose";
+          ? GameResult.WIN
+          : GameResult.LOSE;
     }
   }
 
@@ -598,11 +601,11 @@ export default class PokerTableScene extends TableScene {
       });
 
       // 勝敗
-      if (this.result === "win" && player.getPlayerType === "player") {
+      if (this.result === GameResult.WIN && player.getPlayerType === "player") {
         player.addChips(this.potReturn());
-      } else if (this.result === "lose" && player.getPlayerType === "cpu") {
+      } else if (this.result === GameResult.LOSE && player.getPlayerType === "cpu") {
         player.addChips(this.potReturn());
-      } else if (this.result === "draw") {
+      } else if (this.result === GameResult.DRAW) {
         player.addChips(Math.floor(this.potReturn() / 2));
       }
 
@@ -694,7 +697,7 @@ export default class PokerTableScene extends TableScene {
     const destroyList = this.children.list.filter(
       (child) =>
         child instanceof Card ||
-        child.name === "result" ||
+        child.name === "resultText" ||
         child.name === "pots" ||
         child.name === "roleName" ||
         child.name === "action" ||
