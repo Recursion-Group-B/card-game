@@ -24,6 +24,8 @@ const Home = `
     <div id="myPage" class="d-none page">
         ${myPage}
     </div>
+    <div id="game-content">
+    </div>
 `;
 
 export default Home;
