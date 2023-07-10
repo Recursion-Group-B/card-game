@@ -9,7 +9,7 @@ import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
 import HelpContainer from "./helpContainer";
-import { textStyle, helpStyle } from "../../constants/styles";
+import { textStyle } from "../../constants/styles";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -52,6 +52,12 @@ export default abstract class TableScene extends Phaser.Scene {
   protected backButton: Button | undefined;
 
   protected helpContent: HelpContainer | undefined;
+
+  protected homeElement: HTMLElement | null = document.getElementById("home");
+
+  protected headerElement: HTMLElement | null = document.getElementById("header");
+
+  protected gameElement: HTMLElement | null = document.getElementById("game-content");
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -396,11 +402,24 @@ export default abstract class TableScene extends Phaser.Scene {
     this.bet = 0;
   }
 
+  private drawHomePage(): void {
+    // game-content
+    (this.gameElement as HTMLElement).innerHTML = "";
+
+    // home
+    this.homeElement?.classList.remove("d-none");
+    this.homeElement?.classList.add("d-block");
+
+    // header
+    this.headerElement?.classList.remove("d-none");
+    this.headerElement?.classList.add("d-block");
+  }
+
   protected createBackHomeButton(): void {
     this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
     this.backHomeButton.setOrigin(0);
     this.backHomeButton.setClickHandler(() => {
-      if (this.scene.key === "game") window.location.href = "../../../index.html";
+      if (this.scene.key === "game") this.drawHomePage();
       else if (this.scene.key === "tutorial") this.scene.start("game");
     });
   }
