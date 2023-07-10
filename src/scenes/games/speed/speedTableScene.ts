@@ -54,7 +54,7 @@ export default class SpeedTableScene extends TableScene {
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-    this.gameState = GameState.END_GAME;
+    this.gameState = GameState.BETTING;
 
     this.createGameZone();
     this.createDropZones();
@@ -77,6 +77,7 @@ export default class SpeedTableScene extends TableScene {
     if (this.gameState === GameState.END_GAME && !this.displayedResult) {
       // ゲームresult画面
       if (this.result) {
+        this.payOut();
         this.displayResult(this.result, 0);
 
         this.cpuPlayTimeEvent?.remove();
@@ -84,14 +85,13 @@ export default class SpeedTableScene extends TableScene {
         this.countDownEvent?.remove();
         this.displayedResult = true;
 
-        // bet画面に戻る
         this.gameZone?.setInteractive();
         this.gameZone?.on("pointerdown", () => {
           this.startBet();
         });
 
         // TODO result画面のBGM設定
-        // TODO chipやスコアの更新
+        // TODO スコアの更新
       }
     }
   }
@@ -127,6 +127,9 @@ export default class SpeedTableScene extends TableScene {
     });
   }
 
+  /**
+   * ベット開始
+   */
   private startBet(): void {
     if (this.gameState !== GameState.END_GAME) return;
     this.reset();
@@ -134,6 +137,9 @@ export default class SpeedTableScene extends TableScene {
     this.fadeInBetItem();
   }
 
+  /**
+   * ゲームの初期化処理
+   */
   private reset(): void {
     this.gameState = GameState.BETTING;
     this.gameStarted = false;
@@ -160,6 +166,26 @@ export default class SpeedTableScene extends TableScene {
     destroyList.forEach((element) => {
       element.destroy();
     });
+  }
+
+  /**
+   * 配当の分配処理
+   */
+  private payOut(): void {
+    let winAmount = 0;
+    if (this.result === GameResult.WIN) {
+      winAmount = this.bet;
+    } else if (this.result === GameResult.LOSE) {
+      winAmount = -this.bet;
+    }
+
+    // 所持金の更新
+    this.players[0].setChips = this.players[0].getChips + winAmount;
+    this.setCreditText(this.players[0].getChips);
+
+    // ベット額の更新
+    this.bet = 0;
+    this.setBetText();
   }
 
   /**
