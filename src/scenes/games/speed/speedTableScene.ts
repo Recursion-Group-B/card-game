@@ -1,6 +1,7 @@
 import TableScene from "../../common/TableScene";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
+import Game from "../../../models/common/game";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
@@ -8,7 +9,6 @@ import PlayerType from "../../../constants/playerType";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
-import speedTutorial from "./speedTutorial";
 import SpeedHelp from "./speedHelp";
 
 const D_WIDTH = 1320;
@@ -505,31 +505,3 @@ export default class SpeedTableScene extends TableScene {
     });
   }
 }
-
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  width: D_WIDTH,
-  height: D_HEIGHT,
-  antialias: false,
-  scene: [SpeedTableScene, speedTutorial],
-  mode: Phaser.Scale.FIT,
-  parent: "game-content",
-  autoCenter: Phaser.Scale.CENTER_BOTH,
-  min: {
-    width: 720,
-    height: 345,
-  },
-  max: {
-    width: 1920,
-    height: 920,
-  },
-  fps: {
-    target: 60,
-    forceSetTimeOut: true,
-  },
-  physics: {
-    default: "arcade",
-  },
-};
-
-const phaser = new Phaser.Game(config);

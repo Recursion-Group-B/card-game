@@ -180,6 +180,23 @@ export default class Card extends Phaser.GameObjects.Image {
           King: 13,
         };
         break;
+      case "war":
+        rankToNum = {
+          Ace: 14,
+          "2": 2,
+          "3": 3,
+          "4": 4,
+          "5": 5,
+          "6": 6,
+          "7": 7,
+          "8": 8,
+          "9": 9,
+          "10": 10,
+          Jack: 11,
+          Queen: 12,
+          King: 13,
+        };
+        break;
       default:
         rankToNum = {
           Ace: 1,
