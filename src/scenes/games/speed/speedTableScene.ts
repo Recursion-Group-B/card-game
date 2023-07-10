@@ -30,6 +30,8 @@ export default class SpeedTableScene extends TableScene {
 
   private gameStarted = false;
 
+  private displayedResult = false;
+
   constructor() {
     super({});
 
@@ -52,7 +54,7 @@ export default class SpeedTableScene extends TableScene {
 
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-    this.gameState = GameState.BETTING;
+    this.gameState = GameState.END_GAME;
 
     this.createGameZone();
     this.createDropZones();
@@ -72,14 +74,21 @@ export default class SpeedTableScene extends TableScene {
 
     this.checkResult();
 
-    if (this.gameState === GameState.END_GAME) {
-      this.cpuPlayTimeEvent?.remove();
-      this.stallCheckTimeEvent?.remove();
-      this.countDownEvent?.remove();
-
+    if (this.gameState === GameState.END_GAME && !this.displayedResult) {
       // ゲームresult画面
       if (this.result) {
         this.displayResult(this.result, 0);
+
+        this.cpuPlayTimeEvent?.remove();
+        this.stallCheckTimeEvent?.remove();
+        this.countDownEvent?.remove();
+        this.displayedResult = true;
+
+        // bet画面に戻る
+        this.gameZone?.setInteractive();
+        this.gameZone?.on("pointerdown", () => {
+          this.startBet();
+        });
 
         // TODO result画面のBGM設定
         // TODO chipやスコアの更新
@@ -115,6 +124,41 @@ export default class SpeedTableScene extends TableScene {
         callbackScope: this,
         loop: true,
       });
+    });
+  }
+
+  private startBet(): void {
+    if (this.gameState !== GameState.END_GAME) return;
+    this.reset();
+    this.enableBetItem();
+    this.fadeInBetItem();
+  }
+
+  private reset(): void {
+    this.gameState = GameState.BETTING;
+    this.gameStarted = false;
+    this.displayedResult = false;
+    this.resultText = undefined;
+    this.setInitialTime = 2;
+    this.players.forEach((player) => {
+      player.resetHand();
+    });
+
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+
+    this.clearButton.disVisibleText();
+    this.dealButton.disVisibleText();
+
+    // オブジェクト削除
+    const destroyList = this.children.list.filter(
+      (child) =>
+        (child as Card) instanceof Card || (child as Phaser.GameObjects.Text).name === "resultText"
+    );
+
+    destroyList.forEach((element) => {
+      element.destroy();
     });
   }
 
