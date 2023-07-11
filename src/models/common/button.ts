@@ -7,7 +7,7 @@ const textStyle = {
   strokeThickness: 2,
 };
 
-export default class Chip extends Phaser.GameObjects.Image {
+export default class Button extends Phaser.GameObjects.Image {
   private textStr: string | undefined;
 
   private text: Text;
@@ -70,11 +70,6 @@ export default class Chip extends Phaser.GameObjects.Image {
     );
   }
 
-  enable(): void {
-    this.setInteractive(true);
-    this.setVisible(true);
-  }
-
   disable(): void {
     this.setInteractive(false);
     this.setVisible(false);
@@ -83,6 +78,12 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   disVisibleText(): void {
     this.text.setVisible(false);
+  }
+
+  enable(): void {
+    this.setInteractive(true);
+    this.setVisible(true);
+    this.text.setVisible(true);
   }
 
   visibleText(): void {

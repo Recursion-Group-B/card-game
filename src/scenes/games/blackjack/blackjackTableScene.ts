@@ -14,23 +14,33 @@ const D_HEIGHT = 920;
 
 export default class BlackJackTableScene extends TableScene {
   private playerPositionX = 500;
+
   private playerPositionY = 600;
+
   private cpuPositionX = 500;
+
   private cpuPositionY = 300;
+
   // 追加
   private addPlayerPositionX = 0;
+
   private addCpuPositionX = 0;
+
   private playerTotalhand = 0;
+
   private cpuTotalhand = 0;
 
   // 追加 ※ 共通化できる場所
   private playerScoreTexts: Phaser.GameObjects.Text[] = [];
+
   private cpuScoreTexts: Phaser.GameObjects.Text[] = [];
   // ここまで追加
+
   private cardSize = {
     x: 85,
     y: 150,
   };
+
   private gameStarted = false;
 
   constructor() {
@@ -229,7 +239,7 @@ export default class BlackJackTableScene extends TableScene {
               fontSize: 50,
             })
             .setName("roleName");
-        } else if (this.playerTotalhand == this.cpuTotalhand) {
+        } else if (this.playerTotalhand === this.cpuTotalhand) {
           // 引き分けの表示
           this.add
             .text(this.playerPositionX, this.playerPositionY - 180, `DRAW`, {

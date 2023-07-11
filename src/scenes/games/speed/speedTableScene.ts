@@ -426,8 +426,10 @@ export default class SpeedTableScene extends TableScene {
    * CPUのゲーム進行
    */
   private playCpu(): void {
-    if (this.canPlayCard(this.players[1])) {
-      const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(this.players[1]);
+    if (this.canPlayCard(this.players[1] as SpeedPlayer)) {
+      const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(
+        this.players[1] as SpeedPlayer
+      );
 
       // カードを出す
       if (dropCard && toX && toY) {
@@ -524,7 +526,10 @@ export default class SpeedTableScene extends TableScene {
    * ゲーム停滞時の挙動
    */
   private checkGameStallAndDrawCard(): void {
-    if (!this.canPlayCard(this.players[0]) && !this.canPlayCard(this.players[1])) {
+    if (
+      !this.canPlayCard(this.players[0] as SpeedPlayer) &&
+      !this.canPlayCard(this.players[1] as SpeedPlayer)
+    ) {
       // カードのドラッグ不可
       this.changeCardDraggable(false);
 
@@ -534,7 +539,7 @@ export default class SpeedTableScene extends TableScene {
       // 台札にカードをセット
       let dropZonesIndex = 0;
       this.players.forEach((player, index) => {
-        this.dealLeadCards(player, index, this.dropZones[dropZonesIndex]);
+        this.dealLeadCards(player as SpeedPlayer, index, this.dropZones[dropZonesIndex]);
         dropZonesIndex += 1;
       });
 
