@@ -780,7 +780,7 @@ export default class PokerTableScene extends TableScene {
   }
 
   private actionControl(): void {
-    if (this.gameState === "firstCycle" && (this.getPlayer.getIsDealer as PokerPlayer)) {
+    if (this.gameState === "firstCycle" && (this.getPlayer as PokerPlayer).getIsDealer) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.betBtn?.enable();
