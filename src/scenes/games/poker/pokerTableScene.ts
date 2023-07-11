@@ -9,6 +9,7 @@ import { HandScore } from "../../../models/games/poker/type";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 
+
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
 
@@ -772,7 +773,7 @@ export default class PokerTableScene extends TableScene {
   }
 
   private actionControl(): void {
-    if (this.gameState === "firstCycle" && this.getPlayer.getIsDealer) {
+    if (this.gameState === "firstCycle" && this.getPlayer.getIsDealer as PokerPlayer) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.betBtn?.enable();
@@ -791,31 +792,3 @@ export default class PokerTableScene extends TableScene {
     }
   }
 }
-
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  width: D_WIDTH,
-  height: D_HEIGHT,
-  antialias: false,
-  scene: PokerTableScene,
-  mode: Phaser.Scale.FIT,
-  parent: "game-content",
-  autoCenter: Phaser.Scale.CENTER_BOTH,
-  min: {
-    width: 720,
-    height: 345,
-  },
-  max: {
-    width: 1920,
-    height: 920,
-  },
-  fps: {
-    target: 60,
-    forceSetTimeOut: true,
-  },
-  physics: {
-    default: "arcade",
-  },
-};
-
-const phaser = new Phaser.Game(config);

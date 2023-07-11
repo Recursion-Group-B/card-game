@@ -294,31 +294,3 @@ export default class WarTableScene extends TableScene {
     return playerScore === dealerScore && this.didWar;
   }
 }
-
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  width: D_WIDTH,
-  height: D_HEIGHT,
-  antialias: false,
-  scene: WarTableScene,
-  mode: Phaser.Scale.FIT,
-  parent: "game-content",
-  autoCenter: Phaser.Scale.CENTER_BOTH,
-  min: {
-    width: 720,
-    height: 345,
-  },
-  max: {
-    width: 1920,
-    height: 920,
-  },
-  fps: {
-    target: 60,
-    forceSetTimeOut: true,
-  },
-  physics: {
-    default: "arcade",
-  },
-};
-
-const phaser = new Phaser.Game(config);

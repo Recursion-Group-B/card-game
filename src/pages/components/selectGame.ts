@@ -3,9 +3,9 @@ const selectGame = `
     <div id="imgList" class="d-none">
         <div id="poker" class="slider-item">
             <h3>Poker</h3>
-            <a href="src/pages/poker.html">
+            <button class="btn btn-link text-reset" data-game="poker">
                 <img src="public/pokerImg.png" class="img-fit">
-            </a>
+            </button>
         </div>
         <div id="texas" class="slider-item">
             <h3>Texas Hold'em Poker</h3>
@@ -15,21 +15,21 @@ const selectGame = `
         </div>
         <div id="blackjack" class="slider-item">
             <h3>BlackJack</h3>
-            <a href="src/pages/blackjack.html">
+            <button class="btn btn-link text-reset" data-game="blackjack">
                 <img src="public/blackjackImg.png" class="img-fit">
-            </a>
+            </button>
         </div>
         <div id="war" class="slider-item">
             <h3>War</h3>
-            <a href="src/pages/war.html">
+            <button class="btn btn-link text-reset" data-game="war">
                 <img src="public/warImg.png" class="img-fit">
-            </a>
+            </button>
         </div>
         <div id="speed" class="slider-item">
             <h3>Speed</h3>
-            <a href="src/pages/speed.html">
+            <button class="btn btn-link text-reset" data-game="speed">
                 <img src="public/speedImg.png" class="img-fit">
-            </a>
+            </button>
         </div>
     </div>
     <div class="slides d-flex justify-content-around">
