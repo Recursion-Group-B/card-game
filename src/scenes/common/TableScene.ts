@@ -9,15 +9,11 @@ import GAME from "../../models/common/game";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
+import HelpContainer from "./helpContainer";
+import { textStyle } from "../../constants/styles";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
-
-const textStyle = {
-  font: "40px Arial",
-  color: "#FFFFFF",
-  strokeThickness: 2,
-};
 
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
@@ -44,12 +40,32 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected chipButtons: Array<Chip> = [];
 
-  protected dealButton: Button | undefined;
+  protected dealButton: Button;
 
   protected clearButton: Button | undefined;
 
+  protected backHomeButton: Button | undefined;
+
+  protected tutorialButton: Button | undefined;
+
+  protected helpButton: Button | undefined;
+
+  protected backButton: Button | undefined;
+
+  protected helpContent: HelpContainer | undefined;
+
+  protected homeElement: HTMLElement | null = document.getElementById("home");
+
+  protected headerElement: HTMLElement | null = document.getElementById("header");
+
+  protected gameElement: HTMLElement | null = document.getElementById("game-content");
+
   protected set setInitialTime(time: number) {
     this.initialTime = time;
+  }
+
+  constructor() {
+    super({ key: "game" });
   }
 
   protected playerWinSound: Phaser.Sound.BaseSound | undefined;
@@ -196,6 +212,10 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected createGameZone(): void {
     this.gameZone = this.add.zone(D_WIDTH / 2, D_HEIGHT / 2, D_WIDTH, D_HEIGHT);
+  }
+
+  get getGameZone(): Phaser.GameObjects.Zone {
+    return this.gameZone as Phaser.GameObjects.Zone;
   }
 
   /**
@@ -433,5 +453,44 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected tableInit(): void {
     this.bet = 0;
+  }
+
+  private drawHomePage(): void {
+    // game-content
+    (this.gameElement as HTMLElement).innerHTML = "";
+
+    // home
+    this.homeElement?.classList.remove("d-none");
+    this.homeElement?.classList.add("d-block");
+
+    // header
+    this.headerElement?.classList.remove("d-none");
+    this.headerElement?.classList.add("d-block");
+  }
+
+  protected createBackHomeButton(): void {
+    this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
+    this.backHomeButton.setOrigin(0);
+    this.backHomeButton.setClickHandler(() => {
+      if (this.scene.key === "game") this.drawHomePage();
+      else if (this.scene.key === "tutorial") this.scene.start("game");
+    });
+  }
+
+  protected createTutorialButton(): void {
+    this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
+    this.tutorialButton.setOrigin(1, 0);
+    this.tutorialButton.setClickHandler(() => {
+      this.scene.start("tutorial");
+    });
+  }
+
+  protected createHelpButton(content: HelpContainer): void {
+    this.helpButton = new Button(this, this.scale.width - 10, 10, "help", "");
+    this.helpButton.setOrigin(1, 0);
+    this.helpButton.setClickHandler(() => {
+      this.add.existing(content);
+      content.createContent();
+    });
   }
 }

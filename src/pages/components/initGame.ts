@@ -20,19 +20,24 @@ function hideHome() {
 
 export default async function initGame(gameType: string) {
   let gameScene;
+  let tutorialScene;
 
   switch (gameType) {
     case "speed":
       gameScene = (await import("../../scenes/games/speed/speedTableScene")).default;
+      tutorialScene = (await import("../../scenes/games/speed/speedTutorial")).default;
       break;
     case "poker":
       gameScene = (await import("../../scenes/games/poker/pokerTableScene")).default;
+      tutorialScene = (await import("../../scenes/games/poker/pokerTutorial")).default;
       break;
     case "blackjack":
       gameScene = (await import("../../scenes/games/blackjack/blackjackTableScene")).default;
+      tutorialScene = (await import("../../scenes/games/blackjack/blackjackTutorial")).default;
       break;
     case "war":
       gameScene = (await import("../../scenes/games/war/warTableScene")).default;
+      tutorialScene = (await import("../../scenes/games/war/warTutorial")).default;
       break;
     default:
       throw new Error("Invalid game type");
@@ -52,7 +57,7 @@ export default async function initGame(gameType: string) {
     width: D_WIDTH,
     height: D_HEIGHT,
     antialias: false,
-    scene: gameScene,
+    scene: [gameScene, tutorialScene],
     mode: Phaser.Scale.FIT,
     parent: "game-content",
     autoCenter: Phaser.Scale.CENTER_BOTH,

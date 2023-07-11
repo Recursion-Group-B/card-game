@@ -6,6 +6,7 @@ import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import PlayerType from "../../../constants/playerType";
 import Button from "../../../models/common/button";
+import WarHelp from "./warHelp";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -41,6 +42,10 @@ export default class WarTableScene extends TableScene {
     this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
     this.load.image("chipRed", "/public/assets/images/chipRed.png");
     this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
+    this.load.image("uTurn", "/public/assets/images/uTurn.svg");
+    this.load.image("tutorial", "/public/assets/images/tutorial.svg");
+    this.load.image("help", "/public/assets/images/help.svg");
+    this.load.image("back", "/public/assets/images/back.svg");
 
     this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
     this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
@@ -57,6 +62,12 @@ export default class WarTableScene extends TableScene {
     this.gameState = GameState.BETTING;
     this.createGameZone();
     this.createBetItem();
+
+    // UI
+    this.createBackHomeButton();
+    this.createTutorialButton();
+    this.helpContent = new WarHelp(this);
+    this.createHelpButton(this.helpContent);
     this.createCommonSound();
   }
 

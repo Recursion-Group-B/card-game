@@ -8,6 +8,7 @@ import PlayerType from "../../../constants/playerType";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
+import BlackJackHelp from "./blackjackHelp";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -34,6 +35,7 @@ export default class BlackJackTableScene extends TableScene {
   private playerScoreTexts: Phaser.GameObjects.Text[] = [];
 
   private cpuScoreTexts: Phaser.GameObjects.Text[] = [];
+
   // ここまで追加
 
   private cardSize = {
@@ -44,7 +46,7 @@ export default class BlackJackTableScene extends TableScene {
   private gameStarted = false;
 
   constructor() {
-    super({});
+    super();
 
     this.players = [
       new BlackJackPlayer("Player", PlayerType.PLAYER, 1000, 0),
@@ -61,6 +63,10 @@ export default class BlackJackTableScene extends TableScene {
     this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
     this.load.image("chipRed", "/public/assets/images/chipRed.png");
     this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
+    this.load.image("uTurn", "/public/assets/images/uTurn.svg");
+    this.load.image("tutorial", "/public/assets/images/tutorial.svg");
+    this.load.image("help", "/public/assets/images/help.svg");
+    this.load.image("back", "/public/assets/images/back.svg");
 
     this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
     this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
@@ -81,6 +87,12 @@ export default class BlackJackTableScene extends TableScene {
     this.createDealButton();
     this.createClearButton();
     this.createCreditField();
+
+    // UI
+    this.createBackHomeButton();
+    this.createTutorialButton();
+    this.helpContent = new BlackJackHelp(this);
+    this.createHelpButton(this.helpContent);
     this.createCommonSound();
   }
 
@@ -142,7 +154,7 @@ export default class BlackJackTableScene extends TableScene {
           } else {
             card.moveTo(this.cpuPositionX + this.addCpuPositionX, this.cpuPositionY, 500);
           }
-          this.addCpuPositionX = this.addCpuPositionX + 85;
+          this.addCpuPositionX += 85;
           this.cpuTotalhand += card.getRankNumber("blackjack");
         }
       });

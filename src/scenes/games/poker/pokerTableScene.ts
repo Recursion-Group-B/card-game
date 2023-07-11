@@ -8,6 +8,7 @@ import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
+import PokerHelp from "./pokerHelp";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -109,6 +110,16 @@ export default class PokerTableScene extends TableScene {
   preload() {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/public/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
+    this.load.image("uTurn", "/public/assets/images/uTurn.svg");
+    this.load.image("tutorial", "/public/assets/images/tutorial.svg");
+    this.load.image("help", "/public/assets/images/help.svg");
+    this.load.image("back", "/public/assets/images/back.svg");
     this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
     this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
     this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
@@ -132,6 +143,12 @@ export default class PokerTableScene extends TableScene {
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.createGameZone();
+
+    this.createBackHomeButton();
+    this.createTutorialButton();
+    this.helpContent = new PokerHelp(this);
+    this.createHelpButton(this.helpContent);
+
     this.initGame();
     // アニメーション
     this.clickToUp();
