@@ -51,6 +51,15 @@ export default class BlackJackTableScene extends TableScene {
     this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
     this.load.image("chipRed", "/public/assets/images/chipRed.png");
     this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
+
+    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
   }
 
   create(): void {
@@ -62,6 +71,7 @@ export default class BlackJackTableScene extends TableScene {
     this.createDealButton();
     this.createClearButton();
     this.createCreditField();
+    this.createCommonSound();
   }
 
   update(): void {

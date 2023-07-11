@@ -63,6 +63,10 @@ export default class Card extends Phaser.GameObjects.Image {
     return this.textureKey;
   }
 
+  get getIsBackSide(): boolean {
+    return this.isBackSide;
+  }
+
   set setIsBackSide(isBackSideVisible: boolean) {
     this.isBackSide = isBackSideVisible;
   }

@@ -1,7 +1,7 @@
 import TableScene from "../../common/TableScene";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
-import Game from "../../../models/common/game";
+import GAME from "../../../models/common/game";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
@@ -33,6 +33,8 @@ export default class SpeedTableScene extends TableScene {
   private displayedResult = false;
 
   private cardsDealt = false;
+
+  private countdownSound: Phaser.Sound.BaseSound | undefined;
 
   constructor() {
     super({});
@@ -71,6 +73,8 @@ export default class SpeedTableScene extends TableScene {
     this.createDropZones();
     this.createCardDropEvent();
     this.createChips();
+    this.createCommonSound();
+    this.createSpeedSound();
     this.createDealButton();
     this.createClearButton();
     this.createCreditField();
@@ -94,6 +98,7 @@ export default class SpeedTableScene extends TableScene {
         this.cpuPlayTimeEvent?.remove();
         this.stallCheckTimeEvent?.remove();
         this.countDownEvent?.remove();
+        this.time.removeAllEvents();
         this.displayedResult = true;
 
         this.gameZone?.setInteractive();
@@ -231,9 +236,11 @@ export default class SpeedTableScene extends TableScene {
       this.dropZoneCards[playerIndex] = card;
 
       // カードを裏返す
-      this.time.delayedCall(1500, () => {
-        card?.flipToFront();
-      });
+      if (card.getIsBackSide) {
+        this.time.delayedCall(1500, () => {
+          card?.flipToFront();
+        });
+      }
     }
   }
 
@@ -290,7 +297,7 @@ export default class SpeedTableScene extends TableScene {
    */
   private startCountDownEvent(): void {
     this.createCountDownText();
-
+    this.countdownSound?.play();
     this.countDownEvent = this.time.addEvent({
       delay: 1000,
       callback: () => {
@@ -546,6 +553,15 @@ export default class SpeedTableScene extends TableScene {
         });
       });
     }
+  }
+
+  /**
+   * BGM設定
+   */
+  private createSpeedSound(): void {
+    this.countdownSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.COUNTDOWN_KEY, {
+      volume: 0.6,
+    });
   }
 
   /**

@@ -52,6 +52,12 @@ export default abstract class TableScene extends Phaser.Scene {
     this.initialTime = time;
   }
 
+  protected playerWinSound: Phaser.Sound.BaseSound | undefined;
+
+  protected playerLoseSound: Phaser.Sound.BaseSound | undefined;
+
+  protected playerDrawSound: Phaser.Sound.BaseSound | undefined;
+
   /**
    * ゲーム開始時のカード配布
    */
@@ -122,21 +128,27 @@ export default abstract class TableScene extends Phaser.Scene {
     let resultMessage = "";
     switch (result) {
       case GameResult.WIN:
+        this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.LOSE:
+        this.playerLoseSound?.play();
         resultMessage = "YOU LOSE...";
         break;
       case GameResult.DRAW:
+        this.playerDrawSound?.play();
         resultMessage = "DRAW";
         break;
       case GameResult.WAR_WIN:
+        this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.WAR_DRAW:
+        this.playerDrawSound?.play();
         resultMessage = "WAR DRAW";
         break;
       case GameResult.SURRENDER:
+        this.playerLoseSound?.play();
         resultMessage = "SURRENDER";
         break;
       default:
@@ -383,5 +395,22 @@ export default abstract class TableScene extends Phaser.Scene {
 
     this.dealButton?.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
     this.clearButton?.moveTo(this.clearButton.x, this.clearButton.y - 700, 200);
+  }
+
+  /**
+   * 共通のサウンドを設定
+   */
+  protected createCommonSound(): void {
+    this.playerWinSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.PLAYER_WIN_KEY, {
+      volume: 0.6,
+    });
+
+    this.playerLoseSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.PLAYER_LOSE_KEY, {
+      volume: 0.6,
+    });
+
+    this.playerDrawSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.PLAYER_DRAW_KEY, {
+      volume: 0.6,
+    });
   }
 }

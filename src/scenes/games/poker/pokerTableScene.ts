@@ -88,6 +88,15 @@ export default class PokerTableScene extends TableScene {
   preload() {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+
+    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
   }
 
   /**
@@ -104,6 +113,7 @@ export default class PokerTableScene extends TableScene {
     this.changeCards();
     this.compareCards();
     this.init();
+    this.createCommonSound();
   }
 
   /**
