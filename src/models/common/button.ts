@@ -7,14 +7,23 @@ const textStyle = {
   strokeThickness: 2,
 };
 
-export default class Chip extends Phaser.GameObjects.Image {
+export default class Button extends Phaser.GameObjects.Image {
   private textStr: string | undefined;
 
   private text: Text;
 
   private originScale: number;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string, text: string) {
+  private clickSound: Phaser.Sound.BaseSound | undefined;
+
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    textureKey: string,
+    text: string,
+    soundKey = ""
+  ) {
     super(scene, x, y, textureKey);
     this.originScale = 0.35;
     this.textStr = text;
@@ -27,6 +36,10 @@ export default class Chip extends Phaser.GameObjects.Image {
 
     this.text = this.scene.add.text(0, 0, this.textStr, textStyle);
     Phaser.Display.Align.In.Center(this.text, this);
+
+    if (soundKey) {
+      this.clickSound = this.scene.sound.add(soundKey, { volume: 1.0 });
+    }
   }
 
   private setPushAnimation(): void {
@@ -50,15 +63,11 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.on(
       "pointerdown",
       () => {
+        if (this.clickSound) this.clickSound.play();
         pushHandler();
       },
       this
     );
-  }
-
-  enable(): void {
-    this.setInteractive(true);
-    this.setVisible(true);
   }
 
   disable(): void {
@@ -69,6 +78,12 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   disVisibleText(): void {
     this.text.setVisible(false);
+  }
+
+  enable(): void {
+    this.setInteractive(true);
+    this.setVisible(true);
+    this.text.setVisible(true);
   }
 
   visibleText(): void {

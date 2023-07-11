@@ -37,6 +37,7 @@ export default class BlackJackTableScene extends TableScene {
   private cpuScoreTexts: Phaser.GameObjects.Text[] = [];
 
   // ここまで追加
+
   private cardSize = {
     x: 85,
     y: 150,
@@ -66,6 +67,15 @@ export default class BlackJackTableScene extends TableScene {
     this.load.image("tutorial", "/public/assets/images/tutorial.svg");
     this.load.image("help", "/public/assets/images/help.svg");
     this.load.image("back", "/public/assets/images/back.svg");
+
+    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
   }
 
   create(): void {
@@ -83,6 +93,7 @@ export default class BlackJackTableScene extends TableScene {
     this.createTutorialButton();
     this.helpContent = new BlackJackHelp(this);
     this.createHelpButton(this.helpContent);
+    this.createCommonSound();
   }
 
   update(): void {

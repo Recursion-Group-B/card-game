@@ -46,6 +46,15 @@ export default class WarTableScene extends TableScene {
     this.load.image("tutorial", "/public/assets/images/tutorial.svg");
     this.load.image("help", "/public/assets/images/help.svg");
     this.load.image("back", "/public/assets/images/back.svg");
+
+    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
   }
 
   create(): void {
@@ -59,6 +68,7 @@ export default class WarTableScene extends TableScene {
     this.createTutorialButton();
     this.helpContent = new WarHelp(this);
     this.createHelpButton(this.helpContent);
+    this.createCommonSound();
   }
 
   update(): void {
@@ -198,8 +208,8 @@ export default class WarTableScene extends TableScene {
       chip.disVisibleText();
     });
 
-    this.clearButton.disVisibleText();
-    this.dealButton.disVisibleText();
+    this.clearButton?.disVisibleText();
+    this.dealButton?.disVisibleText();
 
     // オブジェクト削除
     const destroyList = this.children.list.filter(
@@ -256,8 +266,8 @@ export default class WarTableScene extends TableScene {
    */
   private checkResult(): void {
     if (this.gameState !== GameState.PLAYING) return;
-    const playerScore = this.players[0].calculateHandScore();
-    const dealerScore = this.players[1].calculateHandScore();
+    const playerScore = this.players[0].calculateHandScore() as number;
+    const dealerScore = this.players[1].calculateHandScore() as number;
 
     if (this.isWin(playerScore, dealerScore)) {
       this.result = GameResult.WIN;

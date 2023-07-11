@@ -1,7 +1,7 @@
 import TableScene from "../../common/TableScene";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
-import Game from "../../../models/common/game";
+import GAME from "../../../models/common/game";
 import SpeedPlayer from "../../../models/games/speed/speedPlayer";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
@@ -31,6 +31,12 @@ export default class SpeedTableScene extends TableScene {
 
   private gameStarted = false;
 
+  private displayedResult = false;
+
+  private cardsDealt = false;
+
+  private countdownSound: Phaser.Sound.BaseSound | undefined;
+
   constructor() {
     super();
 
@@ -53,6 +59,15 @@ export default class SpeedTableScene extends TableScene {
     this.load.image("tutorial", "/public/assets/images/tutorial.svg");
     this.load.image("help", "/public/assets/images/help.svg");
     this.load.image("back", "/public/assets/images/back.svg");
+
+    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
   }
 
   create(): void {
@@ -63,6 +78,8 @@ export default class SpeedTableScene extends TableScene {
     this.createDropZones();
     this.createCardDropEvent();
     this.createChips();
+    this.createCommonSound();
+    this.createSpeedSound();
     this.createDealButton();
     this.createClearButton();
     this.createCreditField();
@@ -81,17 +98,25 @@ export default class SpeedTableScene extends TableScene {
 
     this.checkResult();
 
-    if (this.gameState === GameState.END_GAME) {
-      this.cpuPlayTimeEvent?.remove();
-      this.stallCheckTimeEvent?.remove();
-      this.countDownEvent?.remove();
-
+    if (this.gameState === GameState.END_GAME && !this.displayedResult) {
       // ゲームresult画面
       if (this.result) {
+        this.payOut();
         this.displayResult(this.result, 0);
 
+        this.cpuPlayTimeEvent?.remove();
+        this.stallCheckTimeEvent?.remove();
+        this.countDownEvent?.remove();
+        this.time.removeAllEvents();
+        this.displayedResult = true;
+
+        this.gameZone?.setInteractive();
+        this.gameZone?.on("pointerdown", () => {
+          this.startBet();
+        });
+
         // TODO result画面のBGM設定
-        // TODO chipやスコアの更新
+        // TODO スコアの更新
       }
     }
   }
@@ -128,6 +153,68 @@ export default class SpeedTableScene extends TableScene {
   }
 
   /**
+   * ベット開始
+   */
+  private startBet(): void {
+    if (this.gameState !== GameState.END_GAME) return;
+    this.reset();
+    this.enableBetItem();
+    this.fadeInBetItem();
+  }
+
+  /**
+   * ゲームの初期化処理
+   */
+  private reset(): void {
+    this.gameState = GameState.BETTING;
+    this.gameStarted = false;
+    this.displayedResult = false;
+    this.cardsDealt = false;
+    this.resultText = undefined;
+    this.setInitialTime = 2;
+    this.players.forEach((player) => {
+      player.resetHand();
+    });
+
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+
+    this.clearButton?.disVisibleText();
+    this.dealButton?.disVisibleText();
+
+    // オブジェクト削除
+    const destroyList = this.children.list.filter(
+      (child) =>
+        (child as Card) instanceof Card || (child as Phaser.GameObjects.Text).name === "resultText"
+    );
+
+    destroyList.forEach((element) => {
+      element.destroy();
+    });
+  }
+
+  /**
+   * 配当の分配処理
+   */
+  private payOut(): void {
+    let winAmount = 0;
+    if (this.result === GameResult.WIN) {
+      winAmount = this.bet;
+    } else if (this.result === GameResult.LOSE) {
+      winAmount = -this.bet;
+    }
+
+    // 所持金の更新
+    this.players[0].setChips = this.players[0].getChips + winAmount;
+    this.setCreditText(this.players[0].getChips);
+
+    // ベット額の更新
+    this.bet = 0;
+    this.setBetText();
+  }
+
+  /**
    * カードの初期配置処理
    */
   dealCards(): void {
@@ -158,9 +245,11 @@ export default class SpeedTableScene extends TableScene {
       this.dropZoneCards[playerIndex] = card;
 
       // カードを裏返す
-      this.time.delayedCall(1500, () => {
-        card?.flipToFront();
-      });
+      if (card.getIsBackSide) {
+        this.time.delayedCall(1500, () => {
+          card?.flipToFront();
+        });
+      }
     }
   }
 
@@ -181,21 +270,35 @@ export default class SpeedTableScene extends TableScene {
 
     // アニメーションの設定
     const cardInterval = 110;
-    const animationDelay = 400;
+    const animationDelay = 200;
 
-    for (let i = 0; i < 4; i += 1) {
-      const card = this.playerDecks[playerIndex].draw();
+    let i = 0;
+    this.time.addEvent({
+      delay: animationDelay,
+      callback: () => {
+        const card = this.playerDecks[playerIndex].draw();
+        if (card) {
+          player.addCardToHand(card);
+          card.moveTo(startPosX + i * cardInterval * direction, startPosY, i * animationDelay);
+        }
+        i += 1;
+      },
+      repeat: 3,
+      callbackScope: this,
+    });
 
-      if (card) {
-        player.addCardToHand(card);
-        card.moveTo(startPosX + i * cardInterval * direction, startPosY, i * animationDelay);
-
-        // カードを裏返す
-        this.time.delayedCall(1500, () => {
+    // カードを裏返す
+    this.time.delayedCall(1500, () => {
+      this.players.forEach((currentPlayer) => {
+        currentPlayer.getHand?.forEach((card) => {
           card.flipToFront();
         });
-      }
-    }
+      });
+    });
+
+    this.time.delayedCall(4 * animationDelay + 1500, () => {
+      this.cardsDealt = true;
+    });
   }
 
   /**
@@ -203,7 +306,7 @@ export default class SpeedTableScene extends TableScene {
    */
   private startCountDownEvent(): void {
     this.createCountDownText();
-
+    this.countdownSound?.play();
     this.countDownEvent = this.time.addEvent({
       delay: 1000,
       callback: () => {
@@ -332,12 +435,15 @@ export default class SpeedTableScene extends TableScene {
    * CPUのゲーム進行
    */
   private playCpu(): void {
-    if (this.canPlayCard(this.players[1])) {
-      const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(this.players[1]);
+    if (this.canPlayCard(this.players[1] as SpeedPlayer)) {
+      const [dropCard, toX, toY] = this.getAvailableCardAndCoordinate(
+        this.players[1] as SpeedPlayer
+      );
 
       // カードを出す
       if (dropCard && toX && toY) {
         this.moveCardHandToLead(dropCard, toX, toY);
+        this.checkResult();
       }
     }
   }
@@ -425,8 +531,14 @@ export default class SpeedTableScene extends TableScene {
     }
   }
 
+  /**
+   * ゲーム停滞時の挙動
+   */
   private checkGameStallAndDrawCard(): void {
-    if (!this.canPlayCard(this.players[0]) && !this.canPlayCard(this.players[1])) {
+    if (
+      !this.canPlayCard(this.players[0] as SpeedPlayer) &&
+      !this.canPlayCard(this.players[1] as SpeedPlayer)
+    ) {
       // カードのドラッグ不可
       this.changeCardDraggable(false);
 
@@ -436,9 +548,12 @@ export default class SpeedTableScene extends TableScene {
       // 台札にカードをセット
       let dropZonesIndex = 0;
       this.players.forEach((player, index) => {
-        this.dealLeadCards(player, index, this.dropZones[dropZonesIndex]);
+        this.dealLeadCards(player as SpeedPlayer, index, this.dropZones[dropZonesIndex]);
         dropZonesIndex += 1;
       });
+
+      this.checkResult();
+      if (this.gameState === GameState.END_GAME) return;
 
       // インターバルの後にカウントダウン開始とCPUプレイ再開
       this.time.delayedCall(2000, () => {
@@ -462,27 +577,38 @@ export default class SpeedTableScene extends TableScene {
   }
 
   /**
+   * BGM設定
+   */
+  private createSpeedSound(): void {
+    this.countdownSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.COUNTDOWN_KEY, {
+      volume: 0.6,
+    });
+  }
+
+  /**
    * 勝敗判定
    */
   private checkResult(): void {
-    if (this.gameState !== GameState.PLAYING) return;
+    // カードが配られていない、またはゲームがプレイ中でない場合は終了
+    if (!this.cardsDealt || this.gameState !== GameState.PLAYING) return;
 
-    const playerHandScore: number = this.players[0].calculateHandScore();
-    const cpuHandScore: number = this.players[1].calculateHandScore();
+    const playerHandScore: number = this.players[0].calculateHandScore() as number;
+    const cpuHandScore: number = this.players[1].calculateHandScore() as number;
 
-    // ゲーム再開
+    // 両者のスコアが0より大きい場合はゲームを続行
     if (playerHandScore > 0 && cpuHandScore > 0) return;
 
+    // スコアによる勝敗結果を設定
     if (playerHandScore === 0 && cpuHandScore === 0) {
-      this.result = GameResult.DRAW;
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.DRAW; // 両者のスコアが0なら引き分け
     } else if (playerHandScore === 0) {
-      this.result = GameResult.WIN;
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.WIN; // プレイヤーのスコアが0なら勝ち
     } else {
-      this.result = GameResult.LOSE;
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.LOSE; // CPUのスコアが0なら負け
     }
+
+    // ゲーム終了状態を設定（勝敗が確定したので）
+    this.gameState = GameState.END_GAME;
   }
 
   /**

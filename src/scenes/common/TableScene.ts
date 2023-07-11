@@ -5,6 +5,7 @@ import Chip from "../../models/common/chip";
 import Button from "../../models/common/button";
 import GameState from "../../constants/gameState";
 import GameResult from "../../constants/gameResult";
+import GAME from "../../models/common/game";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
@@ -41,7 +42,7 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected dealButton: Button;
 
-  protected clearButton: Button;
+  protected clearButton: Button | undefined;
 
   protected backHomeButton: Button | undefined;
 
@@ -65,6 +66,16 @@ export default abstract class TableScene extends Phaser.Scene {
 
   constructor() {
     super({ key: "game" });
+  }
+
+  protected playerWinSound: Phaser.Sound.BaseSound | undefined;
+
+  protected playerLoseSound: Phaser.Sound.BaseSound | undefined;
+
+  protected playerDrawSound: Phaser.Sound.BaseSound | undefined;
+
+  protected get getPlayer(): Player {
+    return this.players.find((player) => player.getPlayerType === "player") as Player;
   }
 
   /**
@@ -137,21 +148,27 @@ export default abstract class TableScene extends Phaser.Scene {
     let resultMessage = "";
     switch (result) {
       case GameResult.WIN:
+        this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.LOSE:
+        this.playerLoseSound?.play();
         resultMessage = "YOU LOSE...";
         break;
       case GameResult.DRAW:
+        this.playerDrawSound?.play();
         resultMessage = "DRAW";
         break;
       case GameResult.WAR_WIN:
+        this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.WAR_DRAW:
+        this.playerDrawSound?.play();
         resultMessage = "WAR DRAW";
         break;
       case GameResult.SURRENDER:
+        this.playerLoseSound?.play();
         resultMessage = "SURRENDER";
         break;
       default:
@@ -224,7 +241,14 @@ export default abstract class TableScene extends Phaser.Scene {
     // チップの生成
     let currentPosX = startPosX;
     Object.entries(chipsMap).forEach(([textureKey, value]) => {
-      const chip = new Chip(this, currentPosX, chipHeight, textureKey, value);
+      const chip = new Chip(
+        this,
+        currentPosX,
+        chipHeight,
+        textureKey,
+        value,
+        GAME.SOUNDS_KEY.CHIP_CLICK_KEY
+      );
       this.chipButtons.push(chip);
       currentPosX += chipWidth + space;
     });
@@ -246,18 +270,22 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * Dealボタン作成
    */
-  protected createDealButton(): void {
+  protected createDealButton(): void;
+  protected createDealButton(startBet: boolean): void;
+  protected createDealButton(startBet?: boolean): void {
     this.dealButton = new Button(
       this,
       this.scale.width / 2 + 150,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "DEAL"
+      "DEAL",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.dealButton.setClickHandler(() => {
       if (this.bet > 0) {
-        const player = this.players[0];
-        const displayCredit = player.getChips - this.bet;
+        const displayCredit = startBet
+          ? this.getPlayer.getChips
+          : this.getPlayer.getChips - this.bet;
         this.setCreditText(displayCredit);
 
         // UIをフェードアウトさせる
@@ -266,10 +294,10 @@ export default abstract class TableScene extends Phaser.Scene {
           chip.disVisibleText();
         });
 
-        this.dealButton.moveTo(this.dealButton.x, this.dealButton.y + 700, 200);
-        this.clearButton.moveTo(this.clearButton.x, this.clearButton.y + 700, 200);
-        this.dealButton.disVisibleText();
-        this.clearButton.disVisibleText();
+        this.dealButton?.moveTo(this.dealButton.x, this.dealButton.y + 700, 200);
+        this.clearButton?.moveTo(this.clearButton.x, this.clearButton.y + 700, 200);
+        this.dealButton?.disVisibleText();
+        this.clearButton?.disVisibleText();
 
         setTimeout(() => {
           this.gameState = GameState.PLAYING;
@@ -287,7 +315,8 @@ export default abstract class TableScene extends Phaser.Scene {
       this.scale.width / 2 - 150,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "CLEAR"
+      "CLEAR",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
 
     this.clearButton.setClickHandler(() => {
@@ -299,21 +328,24 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 所持金やbet額などの表示
    */
-  protected createCreditField() {
+  protected createCreditField(): void;
+  protected createCreditField(type: string): void;
+  protected createCreditField(type?: string): void {
     this.createPlayerCreditText();
-    this.createPlayerBetText();
+    if (type) {
+      this.createPlayerBetText(type);
+    } else {
+      this.createPlayerBetText();
+    }
   }
 
   /**
    * 所持金を表示
    */
   private createPlayerCreditText(): void {
-    this.creditText = this.add.text(
-      0,
-      0,
-      `CREDIT: $${this.players[0].getChips.toString()}`,
-      textStyle
-    );
+    this.creditText = this.add
+      .text(0, 0, `CREDIT: $${this.getPlayer.getChips.toString()}`, textStyle)
+      .setName("playerCredit");
 
     Phaser.Display.Align.In.BottomLeft(this.creditText as Text, this.gameZone as Zone, -30, -90);
   }
@@ -321,13 +353,13 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 現在のベット額を表示
    */
-  private createPlayerBetText(): void {
-    this.betText = this.add.text(
-      90,
-      this.scale.height / 2 + 400,
-      `BET: $${this.bet.toString()}`,
-      textStyle
-    );
+  private createPlayerBetText(): void;
+  private createPlayerBetText(type: string): void;
+  private createPlayerBetText(type?: string): void {
+    const bet = type === "poker" ? "BetSize" : "Bet";
+    this.betText = this.add
+      .text(90, this.scale.height / 2 + 400, `${bet}: $${this.bet.toString()}`, textStyle)
+      .setName("betSize");
 
     Phaser.Display.Align.In.BottomLeft(this.betText as Text, this.gameZone as Zone, -30, -40);
   }
@@ -335,8 +367,11 @@ export default abstract class TableScene extends Phaser.Scene {
   /**
    * 現在のベット額を画面にセット
    */
-  protected setBetText(): void {
-    this.betText?.setText(`BET: $${this.bet}`);
+  protected setBetText(): void;
+  protected setBetText(type: string): void;
+  protected setBetText(type?: string): void {
+    if (type) this.betText?.setText(`BETSize: $${this.bet}`);
+    else this.betText?.setText(`BET: $${this.bet}`);
   }
 
   /**
@@ -354,13 +389,13 @@ export default abstract class TableScene extends Phaser.Scene {
       });
     });
 
-    this.dealButton.enable();
-    this.clearButton.enable();
+    this.dealButton?.enable();
+    this.clearButton?.enable();
 
     // テキストは時間差で表示する
     this.time.delayedCall(200, () => {
-      this.dealButton.visibleText();
-      this.clearButton.visibleText();
+      this.dealButton?.visibleText();
+      this.clearButton?.visibleText();
     });
   }
 
@@ -378,8 +413,9 @@ export default abstract class TableScene extends Phaser.Scene {
     this.chipButtons.forEach((chip) => {
       chip.disable();
     });
-    this.dealButton.disable();
-    this.clearButton.disable();
+    this.dealButton?.disable();
+    this.clearButton?.disable();
+    this.dealButton?.disable();
   }
 
   /**
@@ -391,8 +427,25 @@ export default abstract class TableScene extends Phaser.Scene {
       chip.moveTo(chip.x, chip.y + 700, 200);
     });
 
-    this.dealButton.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
-    this.clearButton.moveTo(this.clearButton.x, this.clearButton.y - 700, 200);
+    this.dealButton?.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
+    this.clearButton?.moveTo(this.clearButton.x, this.clearButton.y - 700, 200);
+  }
+
+  /**
+   * 共通のサウンドを設定
+   */
+  protected createCommonSound(): void {
+    this.playerWinSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.PLAYER_WIN_KEY, {
+      volume: 0.6,
+    });
+
+    this.playerLoseSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.PLAYER_LOSE_KEY, {
+      volume: 0.6,
+    });
+
+    this.playerDrawSound = this.scene.scene.sound.add(GAME.SOUNDS_KEY.PLAYER_DRAW_KEY, {
+      volume: 0.6,
+    });
   }
 
   /**

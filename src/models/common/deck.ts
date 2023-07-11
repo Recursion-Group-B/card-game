@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import Card from "./card";
+import GAME from "./game";
 
 const SUITS = ["hearts", "diamonds", "clubs", "spades"];
 const RANKS = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
@@ -17,7 +18,19 @@ export default class Deck {
     suits.forEach((suit) => {
       ranks.forEach((rank) => {
         const textureKey = `${suit}${rank}`;
-        this.cards.push(new Card(this.scene, x, y, rank, suit, textureKey, true));
+        this.cards.push(
+          new Card(
+            this.scene,
+            x,
+            y,
+            rank,
+            suit,
+            textureKey,
+            true,
+            GAME.SOUNDS_KEY.DEAL_CARD_KEY,
+            GAME.SOUNDS_KEY.FLIP_OVER_KEY
+          )
+        );
       });
     });
   }

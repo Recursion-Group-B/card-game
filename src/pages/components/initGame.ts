@@ -70,7 +70,7 @@ export default async function initGame(gameType: string) {
       height: 920,
     },
     fps: {
-      target: 60,
+      target: 40,
       forceSetTimeOut: true,
     },
     physics: {

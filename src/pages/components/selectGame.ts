@@ -4,25 +4,31 @@ const selectGame = `
         <div id="poker" class="slider-item">
             <h3>Poker</h3>
             <button class="btn btn-link text-reset" data-game="poker">
-                <img src="public/pokerImg.png" class="img-fit">
+                <img src="/pokerImg.png" class="img-fit">
             </button>
+        </div>
+        <div id="texas" class="slider-item">
+            <h3>Texas Hold'em Poker</h3>
+            <a href="src/pages/texasholdem.html">
+                <img src="/texasImg.png" class="img-fit">
+            </a>
         </div>
         <div id="blackjack" class="slider-item">
             <h3>BlackJack</h3>
             <button class="btn btn-link text-reset" data-game="blackjack">
-                <img src="public/blackjackImg.png" class="img-fit">
+                <img src="/blackjackImg.png" class="img-fit">
             </button>
         </div>
         <div id="war" class="slider-item">
             <h3>War</h3>
             <button class="btn btn-link text-reset" data-game="war">
-                <img src="public/warImg.png" class="img-fit">
+                <img src="/warImg.png" class="img-fit">
             </button>
         </div>
         <div id="speed" class="slider-item">
             <h3>Speed</h3>
             <button class="btn btn-link text-reset" data-game="speed">
-                <img src="public/speedImg.png" class="img-fit">
+                <img src="/speedImg.png" class="img-fit">
             </button>
         </div>
     </div>
