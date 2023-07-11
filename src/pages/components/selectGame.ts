@@ -7,6 +7,12 @@ const selectGame = `
                 <img src="public/pokerImg.png" class="img-fit">
             </button>
         </div>
+        <div id="texas" class="slider-item">
+            <h3>Texas Hold'em Poker</h3>
+            <a href="src/pages/texasholdem.html">
+                <img src="public/texasImg.png" class="img-fit">
+            </a>
+        </div>
         <div id="blackjack" class="slider-item">
             <h3>BlackJack</h3>
             <button class="btn btn-link text-reset" data-game="blackjack">
