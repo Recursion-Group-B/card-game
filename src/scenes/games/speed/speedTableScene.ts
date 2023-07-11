@@ -432,6 +432,7 @@ export default class SpeedTableScene extends TableScene {
       // カードを出す
       if (dropCard && toX && toY) {
         this.moveCardHandToLead(dropCard, toX, toY);
+        this.checkResult();
       }
     }
   }
@@ -519,6 +520,9 @@ export default class SpeedTableScene extends TableScene {
     }
   }
 
+  /**
+   * ゲーム停滞時の挙動
+   */
   private checkGameStallAndDrawCard(): void {
     if (!this.canPlayCard(this.players[0]) && !this.canPlayCard(this.players[1])) {
       // カードのドラッグ不可
@@ -533,6 +537,9 @@ export default class SpeedTableScene extends TableScene {
         this.dealLeadCards(player, index, this.dropZones[dropZonesIndex]);
         dropZonesIndex += 1;
       });
+
+      this.checkResult();
+      if (this.gameState === GameState.END_GAME) return;
 
       // インターバルの後にカウントダウン開始とCPUプレイ再開
       this.time.delayedCall(2000, () => {
@@ -568,25 +575,26 @@ export default class SpeedTableScene extends TableScene {
    * 勝敗判定
    */
   private checkResult(): void {
-    // if (this.gameState !== GameState.PLAYING) return;
+    // カードが配られていない、またはゲームがプレイ中でない場合は終了
     if (!this.cardsDealt || this.gameState !== GameState.PLAYING) return;
 
     const playerHandScore: number = this.players[0].calculateHandScore();
     const cpuHandScore: number = this.players[1].calculateHandScore();
 
-    // ゲーム再開
+    // 両者のスコアが0より大きい場合はゲームを続行
     if (playerHandScore > 0 && cpuHandScore > 0) return;
 
+    // スコアによる勝敗結果を設定
     if (playerHandScore === 0 && cpuHandScore === 0) {
-      this.result = GameResult.DRAW;
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.DRAW; // 両者のスコアが0なら引き分け
     } else if (playerHandScore === 0) {
-      this.result = GameResult.WIN;
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.WIN; // プレイヤーのスコアが0なら勝ち
     } else {
-      this.result = GameResult.LOSE;
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.LOSE; // CPUのスコアが0なら負け
     }
+
+    // ゲーム終了状態を設定（勝敗が確定したので）
+    this.gameState = GameState.END_GAME;
   }
 
   /**
