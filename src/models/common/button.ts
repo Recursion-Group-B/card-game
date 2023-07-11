@@ -38,7 +38,7 @@ export default class Chip extends Phaser.GameObjects.Image {
     Phaser.Display.Align.In.Center(this.text, this);
 
     if (soundKey) {
-      this.clickSound = this.scene.sound.add(soundKey, { volume: 0.6 });
+      this.clickSound = this.scene.sound.add(soundKey, { volume: 1.0 });
     }
   }
 
