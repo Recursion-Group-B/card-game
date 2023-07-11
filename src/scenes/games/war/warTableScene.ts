@@ -255,8 +255,8 @@ export default class WarTableScene extends TableScene {
    */
   private checkResult(): void {
     if (this.gameState !== GameState.PLAYING) return;
-    const playerScore = this.players[0].calculateHandScore();
-    const dealerScore = this.players[1].calculateHandScore();
+    const playerScore = this.players[0].calculateHandScore() as number;
+    const dealerScore = this.players[1].calculateHandScore() as number;
 
     if (this.isWin(playerScore, dealerScore)) {
       this.result = GameResult.WIN;

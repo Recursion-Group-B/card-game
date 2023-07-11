@@ -578,8 +578,8 @@ export default class SpeedTableScene extends TableScene {
     // カードが配られていない、またはゲームがプレイ中でない場合は終了
     if (!this.cardsDealt || this.gameState !== GameState.PLAYING) return;
 
-    const playerHandScore: number = this.players[0].calculateHandScore();
-    const cpuHandScore: number = this.players[1].calculateHandScore();
+    const playerHandScore: number = this.players[0].calculateHandScore() as number;
+    const cpuHandScore: number = this.players[1].calculateHandScore() as number;
 
     // 両者のスコアが0より大きい場合はゲームを続行
     if (playerHandScore > 0 && cpuHandScore > 0) return;
