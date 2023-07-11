@@ -9,7 +9,6 @@ import { HandScore } from "../../../models/games/poker/type";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 
-
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
 
@@ -110,6 +109,15 @@ export default class PokerTableScene extends TableScene {
   preload() {
     this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
     this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
+
     this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
     this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
     this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
@@ -124,11 +132,10 @@ export default class PokerTableScene extends TableScene {
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.createGameZone();
-
     this.initGame();
-
     // アニメーション
     this.clickToUp();
+    this.createCommonSound();
   }
 
   update(): void {
@@ -773,7 +780,7 @@ export default class PokerTableScene extends TableScene {
   }
 
   private actionControl(): void {
-    if (this.gameState === "firstCycle" && this.getPlayer.getIsDealer as PokerPlayer) {
+    if (this.gameState === "firstCycle" && (this.getPlayer as PokerPlayer).getIsDealer) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.betBtn?.enable();

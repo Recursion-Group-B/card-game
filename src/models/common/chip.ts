@@ -16,7 +16,16 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   private originScale: number;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, textureKey: string, value: number) {
+  private clickSound: Phaser.Sound.BaseSound | undefined;
+
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    textureKey: string,
+    value: number,
+    soundKey = ""
+  ) {
     super(scene, x, y, textureKey);
     this.value = value;
     this.textStr = value < 1000 ? String(value) : "1K";
@@ -30,6 +39,10 @@ export default class Chip extends Phaser.GameObjects.Image {
 
     this.text = this.scene.add.text(0, 0, this.textStr, textStyle);
     Phaser.Display.Align.In.Center(this.text, this);
+
+    if (soundKey) {
+      this.clickSound = this.scene.sound.add(soundKey, { volume: 0.6 });
+    }
   }
 
   get getValue(): number {
@@ -57,6 +70,7 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.on(
       "pointerdown",
       () => {
+        if (this.clickSound) this.clickSound.play();
         pushHandler();
       },
       this

@@ -14,6 +14,10 @@ export default class Card extends Phaser.GameObjects.Image {
 
   private clickStatus: boolean;
 
+  private dealSound: Phaser.Sound.BaseSound | undefined;
+
+  private flipOverSound: Phaser.Sound.BaseSound | undefined;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -21,7 +25,9 @@ export default class Card extends Phaser.GameObjects.Image {
     rank: string,
     suit: string,
     textureKey: string,
-    isBackSide: boolean
+    isBackSide: boolean,
+    dealSoundKey = "",
+    flipOverSoundKey = ""
   ) {
     super(scene, x, y, "cards", "back");
     this.rank = rank;
@@ -31,6 +37,14 @@ export default class Card extends Phaser.GameObjects.Image {
     scene.add.existing(this);
     this.setScale(CARD_SCALE_BACK);
     this.clickStatus = false;
+
+    if (dealSoundKey) {
+      this.dealSound = this.scene.sound.add(dealSoundKey, { volume: 0.6 });
+    }
+
+    if (flipOverSoundKey) {
+      this.flipOverSound = this.scene.sound.add(flipOverSoundKey, { volume: 0.6 });
+    }
   }
 
   get getSuit() {
@@ -49,6 +63,10 @@ export default class Card extends Phaser.GameObjects.Image {
     return this.textureKey;
   }
 
+  get getIsBackSide(): boolean {
+    return this.isBackSide;
+  }
+
   set setIsBackSide(isBackSideVisible: boolean) {
     this.isBackSide = isBackSideVisible;
   }
@@ -57,6 +75,7 @@ export default class Card extends Phaser.GameObjects.Image {
    * 指定の位置まで移動するアニメーション
    */
   moveTo(toX: number, toY: number, delay: number): void {
+    this.dealSound?.play();
     this.scene.tweens.add({
       targets: this,
       x: toX,
@@ -70,6 +89,7 @@ export default class Card extends Phaser.GameObjects.Image {
    * カードを表面にするアニメーション
    */
   flipToFront(): void {
+    this.flipOverSound?.play();
     if (this.isBackSide) {
       this.setTexture("cards", this.textureKey);
       this.isBackSide = false;
