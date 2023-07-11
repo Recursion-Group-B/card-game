@@ -10,7 +10,7 @@ const Home = `
     </div>
     <div id="home" class="d-block page">
         <div class="container-fluid d-flex flex-column justify-content-center">
-            <img src="public/homeImg.jpeg" class="img-fit">
+            <img src="/homeImg.jpeg" class="img-fit">
             ${selectDiff}
             ${selectGame}
         </div>
