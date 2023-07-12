@@ -7,7 +7,7 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 
 export default function setAnimation() {
-  const swiper = new Swiper(".mySwiper", {
+  const swiper = new Swiper(".swiper", {
     // Optional parameters
     loop: true,
     slidesPerView: 2,

@@ -1,5 +1,5 @@
 const selectGame = `
-<div class="swiper mySwiper">
+<div class="swiper">
     <div class="swiper-wrapper">
         <div id="poker" class="swiper-slide">
             <div class="slider-item">
