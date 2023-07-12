@@ -27,7 +27,7 @@ body {
 
 .img-fit {
   max-width: 100%;
-  height: 50vh;
+  height: 40vh;
   object-fit: cover;
 }
 
@@ -40,35 +40,59 @@ body {
 }
 
 // slider-----------
-.full-width {
+.swiper {
   width: 100%;
-  flex-shrink: 0;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 
-.slider-item .img-fit {
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+  width: 300px;
   height: 300px;
-  width: auto;
+}
+
+.swiper-slide img {
+  display: block;
   object-fit: cover;
 }
 
-.deplete-animation {
-  animation: deplete 1s linear forwards;
+.slider-item{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.expand-animation {
-  animation: deplete 1s linear reverse forwards;
-}
+// .full-width {
+//   width: 100%;
+//   flex-shrink: 0;
+// }
 
-@keyframes deplete {
-  0% {
-    width: 100%;
-    opacity: 1;
-  }
-  100% {
-    width: 0%;
-    opacity: 0;
-  }
-}
+// .slider-item .img-fit {
+//   height: 300px;
+//   width: auto;
+//   object-fit: cover;
+// }
+
+// .deplete-animation {
+//   animation: deplete 1s linear forwards;
+// }
+
+// .expand-animation {
+//   animation: deplete 1s linear reverse forwards;
+// }
+
+// @keyframes deplete {
+//   0% {
+//     width: 100%;
+//     opacity: 1;
+//   }
+//   100% {
+//     width: 0%;
+//     opacity: 0;
+//   }
+// }
 
 // menu-----------
 nav {
