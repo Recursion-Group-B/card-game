@@ -473,7 +473,7 @@ export default abstract class TableScene extends Phaser.Scene {
     this.backHomeButton.setOrigin(0);
     this.backHomeButton.setClickHandler(() => {
       if (this.scene.key === "game") this.drawHomePage();
-      else if (this.scene.key === "tutorial") this.scene.start("game");
+      else if (this.scene.key === "tutorial") this.scene.switch("game");
     });
   }
 
@@ -481,7 +481,7 @@ export default abstract class TableScene extends Phaser.Scene {
     this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
     this.tutorialButton.setOrigin(1, 0);
     this.tutorialButton.setClickHandler(() => {
-      this.scene.start("tutorial");
+      this.scene.switch("tutorial");
     });
   }
 
