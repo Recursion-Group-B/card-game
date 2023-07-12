@@ -56,25 +56,28 @@ export default async function initGame(gameType: string) {
     type: Phaser.AUTO,
     width: D_WIDTH,
     height: D_HEIGHT,
-    antialias: false,
-    scene: [gameScene, tutorialScene],
-    mode: Phaser.Scale.FIT,
-    parent: "game-content",
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    min: {
-      width: 720,
-      height: 345,
+    scale: {
+      mode: Phaser.Scale.FIT,
+      parent: "game-content",
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      min: {
+        width: 720,
+        height: 345,
+      },
+      max: {
+        width: 1920,
+        height: 920,
+      },
     },
-    max: {
-      width: 1920,
-      height: 920,
+    scene: [gameScene, tutorialScene],
+    physics: {
+      arcade: {
+        debug: true,
+      },
     },
     fps: {
       target: 40,
       forceSetTimeOut: true,
-    },
-    physics: {
-      default: "arcade",
     },
   };
 
