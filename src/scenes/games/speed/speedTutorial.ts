@@ -8,7 +8,7 @@ export default class SpeedTutorial extends Tutorial {
 
   create() {
     this.createGameZone();
-    this.drawVideo("tutorialVideo");
+    this.drawVideo("tutorialVideo", 0.5);
     this.createBackButton();
   }
 }
