@@ -9,6 +9,7 @@ import { HandScore } from "../../../models/games/poker/type";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import PokerHelp from "./pokerHelp";
+import GAME from "../../../models/common/game";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -162,7 +163,6 @@ export default class PokerTableScene extends TableScene {
     // 所持金等の更新
     this.setBetText("poker");
     this.setCreditText(this.getPlayer.getChips);
-    console.log(this);
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
