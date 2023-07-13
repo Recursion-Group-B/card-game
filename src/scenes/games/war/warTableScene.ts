@@ -25,7 +25,7 @@ export default class WarTableScene extends TableScene {
   private didWar = false;
 
   constructor() {
-    super();
+    super("War");
 
     this.players = [
       new WarPlayer("Player", PlayerType.PLAYER, 1000, 0),

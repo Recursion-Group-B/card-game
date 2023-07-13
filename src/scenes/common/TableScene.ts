@@ -64,8 +64,11 @@ export default abstract class TableScene extends Phaser.Scene {
     this.initialTime = time;
   }
 
-  constructor() {
-    super({ key: "game" });
+  constructor(sceneKey: string) {
+    super(sceneKey);
+
+    // TODO 共通処理はここで行う
+    console.log("test");
   }
 
   protected playerWinSound: Phaser.Sound.BaseSound | undefined;

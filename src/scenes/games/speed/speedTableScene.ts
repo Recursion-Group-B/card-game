@@ -38,7 +38,7 @@ export default class SpeedTableScene extends TableScene {
   private countdownSound: Phaser.Sound.BaseSound | undefined;
 
   constructor() {
-    super();
+    super("Speed");
 
     this.players = [
       new SpeedPlayer("Player", PlayerType.PLAYER, 1000, 0),

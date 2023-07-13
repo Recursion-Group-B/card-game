@@ -46,7 +46,7 @@ export default class BlackJackTableScene extends TableScene {
   private gameStarted = false;
 
   constructor() {
-    super();
+    super("Blackjack");
 
     this.players = [
       new BlackJackPlayer("Player", PlayerType.PLAYER, 1000, 0),

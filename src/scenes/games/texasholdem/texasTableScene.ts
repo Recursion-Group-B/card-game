@@ -42,7 +42,7 @@ export default class TexasTableScene extends TableScene {
   private cycleState: string | undefined;
 
   constructor() {
-    super();
+    super("Texas");
     this.players = [
       new TexasPlayer("Player", "player", 10000, 0),
       new TexasPlayer("Cpu", "cpu", 10000, 0),
