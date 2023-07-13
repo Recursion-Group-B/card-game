@@ -6,7 +6,8 @@ import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import PlayerType from "../../../constants/playerType";
 import Button from "../../../models/common/button";
-import WarHelp from "./warHelp";
+import HelpContainer from "../../common/helpContainer";
+import GameRule from "../../../constants/gameRule";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -25,7 +26,7 @@ export default class WarTableScene extends TableScene {
   private didWar = false;
 
   constructor() {
-    super({});
+    super();
 
     this.players = [
       new WarPlayer("Player", PlayerType.PLAYER, 1000, 0),
@@ -66,7 +67,7 @@ export default class WarTableScene extends TableScene {
     // UI
     this.createBackHomeButton();
     this.createTutorialButton();
-    this.helpContent = new WarHelp(this);
+    this.helpContent = new HelpContainer(this, GameRule.WAR);
     this.createHelpButton(this.helpContent);
     this.createCommonSound();
   }
