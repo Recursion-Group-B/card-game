@@ -1,6 +1,6 @@
 const GAME = {
   CONFIG: {
-    DIFFICULTY: "Easy",
+    DIFFICULTY: "",
     GAME_MODE: "",
   },
   SOUNDS_KEY: {

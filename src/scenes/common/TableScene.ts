@@ -486,7 +486,7 @@ export default abstract class TableScene extends Phaser.Scene {
     this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
     this.tutorialButton.setOrigin(1, 0);
     this.tutorialButton.setClickHandler(() => {
-      this.scene.start("tutorial");
+      this.scene.switch("tutorial");
     });
   }
 
@@ -494,8 +494,15 @@ export default abstract class TableScene extends Phaser.Scene {
     this.helpButton = new Button(this, this.scale.width - 10, 10, "help", "");
     this.helpButton.setOrigin(1, 0);
     this.helpButton.setClickHandler(() => {
-      this.add.existing(content);
-      content.createContent();
+      this.time.paused = true;
+      const helpEle: HelpContainer | undefined = this.children.list
+        .filter((child) => child.name === "help")
+        .pop() as HelpContainer | undefined;
+
+      if (helpEle === undefined) {
+        this.add.existing(content);
+        content.createContent();
+      } else if (helpEle.list.length === 0) content.createContent();
     });
   }
 }

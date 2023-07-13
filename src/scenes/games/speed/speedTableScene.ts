@@ -9,7 +9,8 @@ import PlayerType from "../../../constants/playerType";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
-import SpeedHelp from "./speedHelp";
+import HelpContainer from "../../common/helpContainer";
+import GameRule from "../../../constants/gameRule";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -62,7 +63,7 @@ export default class SpeedTableScene extends TableScene {
     this.createCreditField();
     this.createBackHomeButton();
     this.createTutorialButton();
-    this.helpContent = new SpeedHelp(this);
+    this.helpContent = new HelpContainer(this, GameRule.SPEED);
     this.createHelpButton(this.helpContent);
   }
 

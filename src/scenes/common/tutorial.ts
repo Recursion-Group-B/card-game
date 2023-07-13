@@ -15,7 +15,7 @@ export default abstract class Tutorial extends Phaser.Scene {
     this.backButton = new Button(this, 10, 10, "uTurn", "");
     this.backButton.setOrigin(0);
     this.backButton.setClickHandler(() => {
-      this.scene.start("game");
+      this.scene.switch("game");
     });
     this.children.bringToTop(this.backButton as Phaser.GameObjects.Image);
   }
