@@ -60,6 +60,8 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected gameElement: HTMLElement | null = document.getElementById("game-content");
 
+  protected gameSceneKey: string;
+
   protected set setInitialTime(time: number) {
     this.initialTime = time;
   }
