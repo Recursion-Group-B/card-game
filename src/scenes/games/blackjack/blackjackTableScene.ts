@@ -54,30 +54,6 @@ export default class BlackJackTableScene extends TableScene {
     ];
   }
 
-  preload(): void {
-    this.load.atlas("cards", "/assets/images/cards.png", "/assets/images/cards.json");
-    this.load.image("table", "/assets/images/tableGreen.png");
-    this.load.image("chipWhite", "/assets/images/chipWhite.png");
-    this.load.image("chipYellow", "/assets/images/chipYellow.png");
-    this.load.image("chipBlue", "/assets/images/chipBlue.png");
-    this.load.image("chipOrange", "/assets/images/chipOrange.png");
-    this.load.image("chipRed", "/assets/images/chipRed.png");
-    this.load.image("buttonRed", "/assets/images/buttonRed.png");
-    this.load.image("uTurn", "/assets/images/uTurn.svg");
-    this.load.image("tutorial", "/assets/images/tutorial.svg");
-    this.load.image("help", "/assets/images/help.svg");
-    this.load.image("back", "/assets/images/back.svg");
-
-    this.load.audio("buttonClick", "/assets/sounds/buttonClick.mp3");
-    this.load.audio("chipClick", "/assets/sounds/chipClick.mp3");
-    this.load.audio("countdown", "/assets/sounds/countdown.mp3");
-    this.load.audio("dealCard", "/assets/sounds/dealCard.mp3");
-    this.load.audio("flipOver", "/assets/sounds/flipOver.mp3");
-    this.load.audio("playerDraw", "/assets/sounds/playerDraw.mp3");
-    this.load.audio("playerWin", "/assets/sounds/playerWin.mp3");
-    this.load.audio("playerLose", "/assets/sounds/playerLose.mp3");
-  }
-
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.gameState = GameState.BETTING;

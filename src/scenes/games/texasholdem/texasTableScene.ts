@@ -54,14 +54,6 @@ export default class TexasTableScene extends TableScene {
   }
 
   /**
-   * phaser3 画像ロード
-   */
-  preload() {
-    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
-    this.load.image("table", "/public/assets/images/tableGreen.png");
-  }
-
-  /**
    * phaser3 描画
    */
   create() {
