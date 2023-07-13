@@ -60,7 +60,7 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected gameElement: HTMLElement | null = document.getElementById("game-content");
 
-  protected gameSceneKey: string;
+  protected gameSceneKey: string | undefined;
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -477,8 +477,8 @@ export default abstract class TableScene extends Phaser.Scene {
     this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
     this.backHomeButton.setOrigin(0);
     this.backHomeButton.setClickHandler(() => {
-      if (this.scene.key === "game") this.drawHomePage();
-      else if (this.scene.key === "tutorial") this.scene.start("game");
+      if (this.scene.key !== "tutorial") this.drawHomePage();
+      else if (this.scene.key === "tutorial") this.scene.start(this.gameSceneKey);
     });
   }
 

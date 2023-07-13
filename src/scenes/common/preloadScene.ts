@@ -7,11 +7,8 @@ class PreloadScene extends Phaser.Scene {
   }
 
   preload() {
-    //this.cameras.main.setBackgroundColor(0x000020); // 背景色を灰色に設定
-    // ダミーアセットの読み込み
-    for (let i = 0; i < 1000; i += 1) {
-      this.load.image(`dummy${i}`, "/assets/images/dummy.png");
-    }
+    // 背景色を設定
+    this.cameras.main.setBackgroundColor("333333");
 
     // ゲームアセットの読み込み
     this.load.atlas("cards", "/assets/images/cards.png", "/assets/images/cards.json");
@@ -88,25 +85,10 @@ class PreloadScene extends Phaser.Scene {
 
   create() {
     const gameType = this.registry.get("gameType") as GameType;
-    let sceneKey = "";
-    if (gameType === GameType.SPEED) {
-      sceneKey = "Speed";
-    } else if (gameType === GameType.POKER) {
-      sceneKey = "Poker";
-    } else if (gameType === GameType.BLACKJACK) {
-      sceneKey = "Blackjack";
-    } else if (gameType === GameType.WAR) {
-      sceneKey = "War";
-    } else if (gameType === GameType.TEXAS) {
-      sceneKey = " Texas";
-    }
-
-    // // カメラのフェードアウト
-    // this.cameras.main.fadeOut(2000, 0, 0, 0); // 2秒間かけてフェードアウトします
 
     // フェードアウトが完了したら、コールバックでシーンを開始します
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start(sceneKey);
+      this.scene.start(gameType);
     });
   }
 }
