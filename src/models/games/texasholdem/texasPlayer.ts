@@ -103,6 +103,7 @@ export default class TexasPlayer extends Player {
     this.handScore.highCard = [];
     this.handList = undefined;
     this.setState = "notAction";
+    this.isDealer = false;
   }
 
   /**

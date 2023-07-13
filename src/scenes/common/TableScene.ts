@@ -18,6 +18,10 @@ const D_HEIGHT = 920;
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
 
+  protected pot: number[];
+
+  protected returnPot;
+
   protected players: Array<Player> = [];
 
   protected gameState: string | undefined;
@@ -76,6 +80,28 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected get getPlayer(): Player {
     return this.players.find((player) => player.getPlayerType === "player") as Player;
+  }
+
+  protected set setPot(amount: number) {
+    this.pot.push(amount);
+  }
+
+  protected get getPreBet(): number {
+    return this.pot[this.pot.length - 1];
+  }
+
+  protected get getPot(): number[] {
+    return this.pot;
+  }
+
+  protected get getTotalPot(): number {
+    return this.pot.reduce((pre, next) => pre + next, 0);
+  }
+
+  protected potReturn(): number {
+    this.returnPot = this.getTotalPot;
+    this.pot.length = 0;
+    return this.returnPot;
   }
 
   /**
@@ -404,10 +430,10 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected drawPots(): void {
     // 以前のpotsを削除
-    const potsX = 750;
-    const potsY = 450;
+    const potsX = 580;
+    const potsY = 170;
     this.children.list.forEach((element) => {
-      if (element.name === "pots") element.destroy();
+      if (element.name === "pots") element.destroy(true);
     });
 
     // 背景

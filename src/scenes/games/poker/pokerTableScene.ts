@@ -14,10 +14,6 @@ const D_WIDTH = 1320;
 const D_HEIGHT = 920;
 
 export default class PokerTableScene extends TableScene {
-  private pot: number[];
-
-  private returnPot: number;
-
   private playerPositionX = 450;
 
   private playerPositionY = 600;
@@ -82,28 +78,6 @@ export default class PokerTableScene extends TableScene {
     return this.players.map((player) => player.getHand as Card[]);
   }
 
-  set setPot(amount: number) {
-    this.pot.push(amount);
-  }
-
-  get getPreBet(): number {
-    return this.pot[this.pot.length - 1];
-  }
-
-  get getPot(): number[] {
-    return this.pot;
-  }
-
-  get getTotalPot(): number {
-    return this.pot.reduce((pre, next) => pre + next, 0);
-  }
-
-  potReturn(): number {
-    this.returnPot = this.getTotalPot;
-    this.pot.length = 0;
-    return this.returnPot;
-  }
-
   /**
    * phaser3 画像ロード
    */
@@ -148,10 +122,11 @@ export default class PokerTableScene extends TableScene {
     this.helpContent = new PokerHelp(this);
     this.createHelpButton(this.helpContent);
 
-    this.initGame();
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
+
+    this.initGame();
   }
 
   update(): void {
