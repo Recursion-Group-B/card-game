@@ -206,6 +206,7 @@ export default class TexasPlayer extends Player {
    * @returns: HandScore
    */
   calculateHandScore(): HandScore {
+    if (this.getHand === undefined) return this.handScore;
     this.makeDict();
     this.handList = this.handSort();
 

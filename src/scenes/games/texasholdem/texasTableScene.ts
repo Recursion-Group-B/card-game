@@ -115,7 +115,7 @@ export default class TexasTableScene extends TableScene {
     this.createChips();
     this.createClearButton();
     this.createDealButton(true);
-    this.createCreditField("poker");
+    this.createCreditField("texas");
   }
 
   /**
@@ -218,6 +218,8 @@ export default class TexasTableScene extends TableScene {
       this.gameZone.setInteractive();
       this.gameZone.on("pointerdown", () => {
         this.initGame();
+        this.gameZone.removeInteractive();
+        this.gameZone.removeAllListeners();
       });
     }
   }
@@ -506,19 +508,16 @@ export default class TexasTableScene extends TableScene {
    * リザルトを取得
    */
   private checkResult(): void {
-    // 場札が5枚でない場合、プレイ続行
-    if (this.dealer.getHandSize !== 5) return;
-
     // お互いの手札を比較
     const scoreList: Set<number> = new Set();
     // ディーラーハンドを取り込んで、スコアを計算
-    this.players.forEach((player) => {
-      player.addCardToHand(this.dealer.getHand as Card[]);
-      const handScore: HandScore = (player as TexasPlayer).calculateHandScore();
-      (player as TexasPlayer).setHandScore = handScore;
+    this.players.forEach((player: TexasPlayer) => {
+      if (player.getHand !== undefined) player.addCardToHand(this.dealer.getHand as Card[]);
+      const handScore: HandScore = player.calculateHandScore();
+      player.setHandScore = handScore;
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
-      console.log((player as TexasPlayer).getHandScore.highCard);
+      console.log(player.getHandScore.highCard);
     });
 
     // 同等の役の場合、カードの強い順番

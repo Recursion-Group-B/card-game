@@ -116,17 +116,21 @@ export default class PokerTableScene extends TableScene {
   create() {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.createGameZone();
+    (this.players[0] as PokerPlayer).setIsDealer = true;
 
+    // オブジェクト生成
     this.createBackHomeButton();
     this.createTutorialButton();
     this.helpContent = new PokerHelp(this);
     this.createHelpButton(this.helpContent);
+    this.createChips();
+    this.createClearButton();
+    this.createDealButton(true);
+    this.createCreditField("poker");
 
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
-
-    this.initGame();
   }
 
   update(): void {
@@ -234,6 +238,8 @@ export default class PokerTableScene extends TableScene {
       this.gameZone.setInteractive();
       this.gameZone.on("pointerdown", () => {
         this.initGame();
+        this.gameZone.removeInteractive();
+        this.gameZone.removeAllListeners();
       });
     }
   }
@@ -454,21 +460,22 @@ export default class PokerTableScene extends TableScene {
       "pointerdown",
       function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
         // カードを手放す
-        this.players.forEach((player) => {
+        this.players.forEach((player: PokerPlayer) => {
           if (player.getPlayerType === "player") {
             (player.getHand as Card[]).forEach((card) => {
               card.destroy();
             });
 
-            (player as PokerPlayer).fold();
+            player.fold();
 
             // playerのstate変更
-            (player as PokerPlayer).setState = "Done";
+            player.setState = "Done";
             // action表示
-            this.drawDoneAction(player as PokerPlayer, "fold");
+            this.drawDoneAction(player, "fold");
           }
         });
         this.gameState = "compare";
+        this.disableBtn();
       },
       this
     );
@@ -673,9 +680,7 @@ export default class PokerTableScene extends TableScene {
    * リスタートボタンを描画
    */
   private initGame(): void {
-    this.gameState = GameState.BETTING;
-
-    // カードオブジェクト削除
+    // オブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
         child instanceof Card ||
@@ -683,15 +688,14 @@ export default class PokerTableScene extends TableScene {
         child.name === "pots" ||
         child.name === "roleName" ||
         child.name === "action" ||
-        child.name === "dealer" ||
-        child.name === "playerCredit" ||
-        child.name === "betSize"
+        child.name === "dealer"
     );
     destroyList.forEach((element) => {
       element.destroy();
     });
 
     // クラス変数初期化
+    this.gameState = GameState.BETTING;
     this.result = undefined;
     this.pot = [];
     this.gameState = "firstCycle";
@@ -706,14 +710,25 @@ export default class PokerTableScene extends TableScene {
     });
 
     // ディーラー変更
+    this.players.forEach((player: PokerPlayer) =>
+      console.log(`${player.getPlayerType}: ${player.getIsDealer}`)
+    );
+    console.log("------");
     this.players.push(this.players.shift() as PokerPlayer);
     (this.players[0] as PokerPlayer).setIsDealer = true;
+    this.players.forEach((player: PokerPlayer) =>
+      console.log(`${player.getPlayerType}: ${player.getIsDealer}`)
+    );
+    console.log("----------------------");
 
     // betting
-    this.createChips();
-    this.createClearButton();
-    this.createDealButton(true);
-    this.createCreditField("poker");
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+    this.clearButton?.disVisibleText();
+    this.dealButton?.disVisibleText();
+    this.enableBetItem();
+    this.fadeInBetItem();
   }
 
   private startGame(): void {
