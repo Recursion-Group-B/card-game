@@ -10,6 +10,7 @@ import TexasHelp from "./texasHelp";
 import Button from "../../../models/common/button";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
+import Chip from "../../../models/common/chip";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -101,18 +102,20 @@ export default class TexasTableScene extends TableScene {
    * phaser3 描画
    */
   create() {
-    // init
-    this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table").setName("table");
     this.createGameZone();
+    (this.players[0] as TexasPlayer).setIsDealer = true;
 
+    // オブジェクト生成
     this.createBackHomeButton();
     this.createTutorialButton();
     this.helpContent = new TexasHelp(this);
     this.createHelpButton(this.helpContent);
-
     this.createCommonSound();
-
-    this.initGame();
+    this.createChips();
+    this.createClearButton();
+    this.createDealButton(true);
+    this.createCreditField("poker");
   }
 
   /**
@@ -165,9 +168,9 @@ export default class TexasTableScene extends TableScene {
     // 二巡目のアクション終了
     if (this.gameState === "secondCycle" && this.cycleState === "allDone") {
       // 各stateセット
-      this.players.forEach((player) => {
+      this.players.forEach((player: TexasPlayer) => {
         /* eslint-disable no-param-reassign */
-        (player as TexasPlayer).setState = "notAction";
+        player.setState = "notAction";
       });
       this.cycleState = "notAllDone";
       this.gameState = "thirdCycle";
@@ -197,7 +200,7 @@ export default class TexasTableScene extends TableScene {
     // 手札を比較し、ゲーム終了
     if (this.gameState === "compare") {
       this.gameState = "endGame";
-      this.disableBtn();
+      this.disableAction();
       this.checkResult();
     }
 
@@ -212,7 +215,8 @@ export default class TexasTableScene extends TableScene {
       });
 
       // リスタート
-      this.time.delayedCall(5000, () => {
+      this.gameZone.setInteractive();
+      this.gameZone.on("pointerdown", () => {
         this.initGame();
       });
     }
@@ -357,7 +361,7 @@ export default class TexasTableScene extends TableScene {
             this.drawDoneAction(player, "check");
           }
         });
-        this.disableBtn();
+        this.disableAction();
       },
       this
     );
@@ -396,7 +400,7 @@ export default class TexasTableScene extends TableScene {
           }
         });
         this.gameState = "compare";
-        this.disableBtn();
+        this.disableAction();
       },
       this
     );
@@ -428,7 +432,7 @@ export default class TexasTableScene extends TableScene {
             this.drawDoneAction(player, "bet");
           }
         });
-        this.disableBtn();
+        this.disableAction();
       },
       this
     );
@@ -460,7 +464,7 @@ export default class TexasTableScene extends TableScene {
             this.drawDoneAction(player, "call");
           }
         });
-        this.disableBtn();
+        this.disableAction();
       },
       this
     );
@@ -492,7 +496,7 @@ export default class TexasTableScene extends TableScene {
             this.drawDoneAction(player, "raise");
           }
         });
-        this.disableBtn();
+        this.disableAction();
       },
       this
     );
@@ -640,7 +644,6 @@ export default class TexasTableScene extends TableScene {
    * リスタート
    */
   private initGame(): void {
-    this.gameState = GameState.BETTING;
     // オブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
@@ -649,15 +652,14 @@ export default class TexasTableScene extends TableScene {
         child.name === "pots" ||
         child.name === "roleName" ||
         child.name === "action" ||
-        child.name === "dealer" ||
-        child.name === "playerCredit" ||
-        child.name === "betSize"
+        child.name === "dealer"
     );
     destroyList.forEach((element) => {
       element.destroy();
     });
 
     // クラス変数初期化
+    this.gameState = GameState.BETTING;
     this.result = undefined;
     this.pot = [];
     this.gameState = "firstCycle";
@@ -675,11 +677,15 @@ export default class TexasTableScene extends TableScene {
     this.players.push(this.players.shift() as TexasPlayer);
     (this.players[0] as TexasPlayer).setIsDealer = true;
 
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+    this.clearButton?.disVisibleText();
+    this.dealButton?.disVisibleText();
+
     // betting
-    this.createChips();
-    this.createClearButton();
-    this.createDealButton(true);
-    this.createCreditField("poker");
+    this.enableBetItem();
+    this.fadeInBetItem();
   }
 
   private startGame(): void {
@@ -720,9 +726,9 @@ export default class TexasTableScene extends TableScene {
     dealerContainer.add(dealerText);
     this.players.forEach((player: TexasPlayer) => {
       if (player.getPlayerType === "player" && player.getIsDealer) {
-        dealerContainer.setPosition(this.playerPositionX - 100, this.playerPositionY - 100);
+        dealerContainer.setPosition(this.playerPositionX - 100, this.playerPositionY - 50);
       } else if (player.getPlayerType === "cpu" && player.getIsDealer) {
-        dealerContainer.setPosition(this.cpuPositionX - 100, this.cpuPositionY - 100);
+        dealerContainer.setPosition(this.cpuPositionX - 100, this.cpuPositionY - 50);
       }
     });
   }
@@ -739,7 +745,7 @@ export default class TexasTableScene extends TableScene {
     this.raiseAction();
   }
 
-  private disableBtn(): void {
+  private disableAction(): void {
     this.checkBtn.disable();
     this.foldBtn.disable();
     this.betBtn.disable();
@@ -761,12 +767,6 @@ export default class TexasTableScene extends TableScene {
       this.foldBtn?.enable();
       this.callBtn?.enable();
       this.raiseBtn?.enable();
-    } else if (this.gameState === "changeCycle") {
-      this.checkBtn?.disable();
-      this.foldBtn?.disable();
-      this.betBtn?.disable();
-      this.callBtn?.disable();
-      this.raiseBtn?.disable();
     }
   }
 }

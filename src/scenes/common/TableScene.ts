@@ -382,7 +382,7 @@ export default abstract class TableScene extends Phaser.Scene {
   private createPlayerBetText(): void;
   private createPlayerBetText(type: string): void;
   private createPlayerBetText(type?: string): void {
-    const bet = type === "poker" ? "BetSize" : "Bet";
+    const bet = type ? "BetSize" : "Bet";
     this.betText = this.add
       .text(90, this.scale.height / 2 + 400, `${bet}: $${this.bet.toString()}`, textStyle)
       .setName("betSize");

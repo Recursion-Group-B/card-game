@@ -216,7 +216,7 @@ export default class PokerTableScene extends TableScene {
     // 手札を比較し、ゲーム終了
     if (this.gameState === "compare") {
       this.gameState = "endGame";
-      this.changeBtn?.disable();
+      this.disableBtn();
       this.checkResult();
     }
 
@@ -231,7 +231,8 @@ export default class PokerTableScene extends TableScene {
       });
 
       // リスタート
-      this.time.delayedCall(5000, () => {
+      this.gameZone.setInteractive();
+      this.gameZone.on("pointerdown", () => {
         this.initGame();
       });
     }
@@ -750,6 +751,15 @@ export default class PokerTableScene extends TableScene {
     this.callAction();
     this.raiseAction();
     this.changeAction();
+  }
+
+  private disableBtn(): void {
+    this.checkBtn.disable();
+    this.changeBtn.disable();
+    this.foldBtn.disable();
+    this.betBtn.disable();
+    this.callBtn.disable();
+    this.raiseBtn.disable();
   }
 
   private actionControl(): void {
