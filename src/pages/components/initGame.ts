@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import GameManager from "../../models/common/gameManager";
 import GameType from "../../constants/gameType";
+import PreloadScene from "../../scenes/common/preloadScene";
 
 /**
  * home画面非表示
@@ -69,7 +70,7 @@ export default async function initGame(gameType: string) {
         height: 920,
       },
     },
-    scene: [gameScene, tutorialScene],
+    scene: [PreloadScene, gameScene, tutorialScene],
     physics: {
       arcade: {
         debug: true,
@@ -82,4 +83,6 @@ export default async function initGame(gameType: string) {
   };
 
   const phaser = new Phaser.Game(config);
+
+  phaser.registry.set("gameType", gameType);
 }
