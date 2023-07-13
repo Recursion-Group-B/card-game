@@ -18,7 +18,7 @@ function hideHome() {
   }
 }
 
-export default async function initGame(gameType: string) {
+export default async function initGame(gameType: string, diff: string) {
   let gameScene;
   let tutorialScene;
 
@@ -47,7 +47,7 @@ export default async function initGame(gameType: string) {
   hideHome();
 
   // ゲームの設定
-  GameManager.setGameType(gameType as GameType);
+  GameManager.setGameType(gameType as GameType, diff);
 
   const D_WIDTH = 1320;
   const D_HEIGHT = 920;

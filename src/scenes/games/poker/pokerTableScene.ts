@@ -8,7 +8,9 @@ import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
-import PokerHelp from "./pokerHelp";
+import GAME from "../../../models/common/game";
+import HelpContainer from "../../common/helpContainer";
+import GameRule from "../../../constants/gameRule";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -144,10 +146,10 @@ export default class PokerTableScene extends TableScene {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.createGameZone();
 
+    this.helpContent = new HelpContainer(this, GameRule.POKER);
+    this.createHelpButton(this.helpContent);
     this.createBackHomeButton();
     this.createTutorialButton();
-    this.helpContent = new PokerHelp(this);
-    this.createHelpButton(this.helpContent);
 
     this.initGame();
     // アニメーション
@@ -162,7 +164,6 @@ export default class PokerTableScene extends TableScene {
     // 所持金等の更新
     this.setBetText("poker");
     this.setCreditText(this.getPlayer.getChips);
-    console.log(this);
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
