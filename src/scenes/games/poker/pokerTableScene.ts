@@ -52,7 +52,8 @@ export default class PokerTableScene extends TableScene {
   private raiseBtn: Button | undefined;
 
   constructor() {
-    super("Poker");
+    super("poker");
+    this.gameSceneKey = "poker";
 
     this.players = [
       new PokerPlayer("Player", "player", 1000, 0),
