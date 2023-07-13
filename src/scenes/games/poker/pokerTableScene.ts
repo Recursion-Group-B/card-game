@@ -18,11 +18,11 @@ export default class PokerTableScene extends TableScene {
 
   private returnPot: number;
 
-  private playerPositionX = 400;
+  private playerPositionX = 450;
 
   private playerPositionY = 600;
 
-  private cpuPositionX = 400;
+  private cpuPositionX = 450;
 
   private cpuPositionY = 300;
 
@@ -162,7 +162,6 @@ export default class PokerTableScene extends TableScene {
     // 所持金等の更新
     this.setBetText("poker");
     this.setCreditText(this.getPlayer.getChips);
-    console.log(this);
   }
 
   private cycleEvent(player: PokerPlayer, index: number): void {
@@ -303,10 +302,10 @@ export default class PokerTableScene extends TableScene {
     const dealerContainer = this.add.container().setName("dealer");
     const dealerText = this.add
       .text(0, 0, "dealer")
-      .setColor("black")
+      .setColor("white")
       .setFontSize(14)
       .setFontStyle("bold");
-    const dealerTestify = this.add.graphics().fillCircle(23, 6, 30).fillStyle(0xffffff, 1.0);
+    const dealerTestify = this.add.graphics().fillCircle(23, 6, 30).fillStyle(0x000000, 0.9);
     dealerContainer.add(dealerTestify);
     dealerContainer.add(dealerText);
     this.players.forEach((player) => {
@@ -323,15 +322,27 @@ export default class PokerTableScene extends TableScene {
    */
   private drawPots(): void {
     // 以前のpotsを削除
+    const potsX = 750;
+    const potsY = 450;
     this.children.list.forEach((element) => {
       if (element.name === "pots") element.destroy();
     });
 
+    // 背景
     this.add
-      .text(500, 185, `pots: ${this.getTotalPot}`)
-      .setFontSize(50)
+      .graphics()
+      .fillRoundedRect(potsX, potsY, 150, 40)
+      .fillStyle(0x000000, 0.9)
+      .setName("pots");
+
+    // テキスト
+    this.add
+      .text(potsX, potsY, ` pots: ${this.getTotalPot} `)
+      .setColor("white")
+      .setFontSize(24)
+      .setPadding(5)
       .setFontFamily("Arial")
-      .setOrigin(0.5)
+      .setOrigin(0, 0)
       .setName("pots");
   }
 
