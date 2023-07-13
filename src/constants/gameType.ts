@@ -3,6 +3,7 @@ enum GameType {
   POKER = "poker",
   SPEED = "speed",
   WAR = "war",
+  TEXAS = "texas",
 }
 
 export default GameType;
