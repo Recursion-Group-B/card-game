@@ -57,8 +57,32 @@ export default class TexasTableScene extends TableScene {
    * phaser3 画像ロード
    */
   preload() {
-    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
-    this.load.image("table", "/public/assets/images/tableGreen.png");
+    this.load.atlas("cards", "/assets/images/cards.png", "/assets/images/cards.json");
+    this.load.image("table", "/assets/images/tableGreen.png");
+    this.load.image("chipWhite", "/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/assets/images/buttonRed.png");
+    this.load.image("uTurn", "/assets/images/uTurn.svg");
+    this.load.image("tutorial", "/assets/images/tutorial.svg");
+    this.load.image("help", "/assets/images/help.svg");
+    this.load.image("back", "/assets/images/back.svg");
+    this.load.audio("buttonClick", "/assets/sounds/buttonClick.mp3");
+    this.load.audio("chipClick", "/assets/sounds/chipClick.mp3");
+    this.load.audio("countdown", "/assets/sounds/countdown.mp3");
+    this.load.audio("dealCard", "/assets/sounds/dealCard.mp3");
+    this.load.audio("flipOver", "/assets/sounds/flipOver.mp3");
+    this.load.audio("playerDraw", "/assets/sounds/playerDraw.mp3");
+    this.load.audio("playerWin", "/assets/sounds/playerWin.mp3");
+    this.load.audio("playerLose", "/assets/sounds/playerLose.mp3");
+    this.load.image("chipWhite", "/assets/images/chipWhite.png");
+    this.load.image("chipYellow", "/assets/images/chipYellow.png");
+    this.load.image("chipBlue", "/assets/images/chipBlue.png");
+    this.load.image("chipOrange", "/assets/images/chipOrange.png");
+    this.load.image("chipRed", "/assets/images/chipRed.png");
+    this.load.image("buttonRed", "/assets/images/buttonRed.png");
   }
 
   /**
@@ -373,23 +397,6 @@ export default class TexasTableScene extends TableScene {
       },
       this
     );
-  }
-
-  /**
-   * ポットの表示
-   */
-  private drawPots(): void {
-    // 以前のpotsを削除
-    this.children.list.forEach((element) => {
-      if (element.name === "pots") element.destroy();
-    });
-
-    this.add
-      .text(500, 185, `pots: ${this.getTotalPot}`)
-      .setFontSize(50)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setName("pots");
   }
 
   /**

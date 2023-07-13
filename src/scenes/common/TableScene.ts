@@ -400,6 +400,35 @@ export default abstract class TableScene extends Phaser.Scene {
   }
 
   /**
+   * ポットの表示
+   */
+  protected drawPots(): void {
+    // 以前のpotsを削除
+    const potsX = 750;
+    const potsY = 450;
+    this.children.list.forEach((element) => {
+      if (element.name === "pots") element.destroy();
+    });
+
+    // 背景
+    this.add
+      .graphics()
+      .fillRoundedRect(potsX, potsY, 150, 40)
+      .fillStyle(0x000000, 0.9)
+      .setName("pots");
+
+    // テキスト
+    this.add
+      .text(potsX, potsY, ` pots: ${this.getTotalPot} `)
+      .setColor("white")
+      .setFontSize(24)
+      .setPadding(5)
+      .setFontFamily("Arial")
+      .setOrigin(0, 0)
+      .setName("pots");
+  }
+
+  /**
    * 現在の所持金を画面にセット
    */
   protected setCreditText(displayCredit: number): void {

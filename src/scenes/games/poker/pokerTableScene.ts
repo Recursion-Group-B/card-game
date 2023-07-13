@@ -128,7 +128,6 @@ export default class PokerTableScene extends TableScene {
     this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
     this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
     this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
-
     this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
     this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
     this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
@@ -315,35 +314,6 @@ export default class PokerTableScene extends TableScene {
         dealerContainer.setPosition(this.cpuPositionX - 100, this.cpuPositionY - 100);
       }
     });
-  }
-
-  /**
-   * ポットの表示
-   */
-  private drawPots(): void {
-    // 以前のpotsを削除
-    const potsX = 750;
-    const potsY = 450;
-    this.children.list.forEach((element) => {
-      if (element.name === "pots") element.destroy();
-    });
-
-    // 背景
-    this.add
-      .graphics()
-      .fillRoundedRect(potsX, potsY, 150, 40)
-      .fillStyle(0x000000, 0.9)
-      .setName("pots");
-
-    // テキスト
-    this.add
-      .text(potsX, potsY, ` pots: ${this.getTotalPot} `)
-      .setColor("white")
-      .setFontSize(24)
-      .setPadding(5)
-      .setFontFamily("Arial")
-      .setOrigin(0, 0)
-      .setName("pots");
   }
 
   /**
