@@ -13,7 +13,7 @@ const content = `
  1巡のアクションで「フォールド」を選択したプレイヤーへは今回のゲームではリタイヤとされ、ベットした金額が戻されます。
 `;
 
-export default class PokerHelp extends HelpContainer {
+export default class TexasHelp extends HelpContainer {
   private text: Phaser.GameObjects.Text | undefined;
 
   private textLocation: Phaser.Types.Math.Vector2Like | undefined;

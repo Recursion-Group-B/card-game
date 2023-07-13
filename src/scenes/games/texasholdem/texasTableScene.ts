@@ -5,6 +5,8 @@ import Card from "../../../models/common/card";
 import TexasPlayer from "../../../models/games/texasholdem/texasPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
+import GAME from "../../../models/common/game";
+import TexasHelp from "./texasHelp";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -92,6 +94,14 @@ export default class TexasTableScene extends TableScene {
     // init
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.initGame();
+    this.createGameZone();
+
+    this.createBackHomeButton();
+    this.createTutorialButton();
+    this.helpContent = new TexasHelp(this);
+    this.createHelpButton(this.helpContent);
+
+    this.createCommonSound();
 
     this.players.forEach((player, index) => {
       this.time.addEvent({
@@ -625,31 +635,3 @@ export default class TexasTableScene extends TableScene {
     this.raiseAction();
   }
 }
-
-const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  width: D_WIDTH,
-  height: D_HEIGHT,
-  antialias: false,
-  scene: TexasTableScene,
-  mode: Phaser.Scale.FIT,
-  parent: "game-content",
-  autoCenter: Phaser.Scale.CENTER_BOTH,
-  min: {
-    width: 720,
-    height: 345,
-  },
-  max: {
-    width: 1920,
-    height: 920,
-  },
-  fps: {
-    target: 60,
-    forceSetTimeOut: true,
-  },
-  physics: {
-    default: "arcade",
-  },
-};
-
-const phaser = new Phaser.Game(config);

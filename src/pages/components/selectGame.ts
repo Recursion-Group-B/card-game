@@ -9,9 +9,9 @@ const selectGame = `
         </div>
         <div id="texas" class="slider-item">
             <h3>Texas Hold'em Poker</h3>
-            <a href="src/pages/texasholdem.html">
+            <button class="btn btn-link text-reset" data-game="texas">
                 <img src="/texasImg.png" class="img-fit">
-            </a>
+            </button>
         </div>
         <div id="blackjack" class="slider-item">
             <h3>BlackJack</h3>

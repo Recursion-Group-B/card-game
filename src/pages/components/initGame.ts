@@ -39,6 +39,10 @@ export default async function initGame(gameType: string) {
       gameScene = (await import("../../scenes/games/war/warTableScene")).default;
       tutorialScene = (await import("../../scenes/games/war/warTutorial")).default;
       break;
+    case "texas":
+      gameScene = (await import("../../scenes/games/texasholdem/texasTableScene")).default;
+      tutorialScene = (await import("../../scenes/games/texasholdem/texasTutorial")).default;
+      break;
     default:
       throw new Error("Invalid game type");
   }
