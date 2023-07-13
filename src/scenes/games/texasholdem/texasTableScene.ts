@@ -143,8 +143,18 @@ export default class TexasTableScene extends TableScene {
       });
     }
 
+    // レイズした場合、もう一周
+    if (this.players.some((player: TexasPlayer) => player.getState === "raise")) {
+      this.cycleState = "raise";
+      this.players.forEach((player: TexasPlayer) => {
+        /* eslint-disable no-param-reassign */
+        player.setState = "notAction";
+        this.deleteDoneAction();
+      });
+    }
+
     // 全員がアクションした
-    if (this.players.every((player) => (player as TexasPlayer).getState === "Done")) {
+    if (this.players.every((player) => (player as TexasPlayer).getState !== "notAction")) {
       this.cycleState = "allDone";
       this.deleteDoneAction();
     }
@@ -152,9 +162,8 @@ export default class TexasTableScene extends TableScene {
     // 一巡目のアクション終了
     if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
       // 各stateセット
-      this.players.forEach((player) => {
-        /* eslint-disable no-param-reassign */
-        (player as TexasPlayer).setState = "notAction";
+      this.players.forEach((player: TexasPlayer) => {
+        player.setState = "notAction";
       });
       this.cycleState = "notAllDone";
       this.gameState = "secondCycle";
@@ -332,12 +341,27 @@ export default class TexasTableScene extends TableScene {
     });
   }
 
-  // TODO call/bet/checkくらいはできるようにする。
-  private cpuAction(player: TexasPlayer, dealer?: string): void {
-    console.log("action!!!");
-    this.setPot = player.call(100);
-    this.drawPots();
-    player.setState = "Done";
+  private cpuAction(player: TexasPlayer): void {
+    if (player.getIsDealer && this.cycleState === "notAllAction") {
+      // bet
+      this.setPot = player.call(this.bet);
+      this.deleteDoneAction();
+      this.drawDoneAction(player, "bet");
+      this.drawPots();
+      player.setState = "bet";
+    } else if (
+      this.cycleState === "raise" ||
+      this.gameState === "firstCycle" ||
+      this.gameState === "secondCycle" ||
+      this.gameState === "thirdCycle"
+    ) {
+      // call
+      this.setPot = player.call(this.getPreBet);
+      this.deleteDoneAction();
+      this.drawDoneAction(player, "call");
+      this.drawPots();
+      player.setState = "call";
+    }
   }
 
   /**
@@ -494,7 +518,7 @@ export default class TexasTableScene extends TableScene {
             this.setPot = player.call(this.getPreBet * 2);
             this.drawPots();
             // playerのstate変更
-            player.setState = "Done";
+            player.setState = "raise";
             this.drawDoneAction(player, "raise");
           }
         });
