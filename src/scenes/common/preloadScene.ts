@@ -33,6 +33,7 @@ class PreloadScene extends Phaser.Scene {
     this.load.audio("playerDraw", "/assets/sounds/playerDraw.mp3");
     this.load.audio("playerWin", "/assets/sounds/playerWin.mp3");
     this.load.audio("playerLose", "/assets/sounds/playerLose.mp3");
+    this.load.video("tutorialVideo", this.getVideoUrl(), true);
 
     const centerX = this.cameras.main.width / 2;
     const centerY = this.cameras.main.height / 2;
@@ -92,6 +93,10 @@ class PreloadScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start(gameType);
     });
+  }
+
+  private getVideoUrl(): string {
+    return `/assets/movies/${this.registry.get("gameType")}Tutorial.mp4`;
   }
 }
 
