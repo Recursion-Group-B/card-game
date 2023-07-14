@@ -48,6 +48,7 @@ export default class WarTableScene extends TableScene {
     this.helpContent = new HelpContainer(this, GameRule.WAR);
     this.createHelpButton(this.helpContent);
     this.createCommonSound();
+    this.createToggleSoundButton();
   }
 
   update(): void {

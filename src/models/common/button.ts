@@ -16,6 +16,8 @@ export default class Button extends Phaser.GameObjects.Image {
 
   private clickSound: Phaser.Sound.BaseSound | undefined;
 
+  private soundEnabled = true;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -42,6 +44,10 @@ export default class Button extends Phaser.GameObjects.Image {
     }
   }
 
+  set setSoundEnabled(enabled: boolean) {
+    this.soundEnabled = enabled;
+  }
+
   private setPushAnimation(): void {
     this.on(
       "pointerdown",
@@ -63,7 +69,7 @@ export default class Button extends Phaser.GameObjects.Image {
     this.on(
       "pointerdown",
       () => {
-        if (this.clickSound) this.clickSound.play();
+        if (this.clickSound && this.soundEnabled) this.clickSound.play();
         pushHandler();
       },
       this
@@ -98,5 +104,18 @@ export default class Button extends Phaser.GameObjects.Image {
       duration: delay,
       ease: "Linear",
     });
+  }
+
+  disableClickAnimation() {
+    this.off("pointerdown");
+    this.off("pointerup");
+  }
+
+  toggleSound(isSoundOn: boolean): void {
+    if (isSoundOn) {
+      this.clickSound?.pause();
+    } else {
+      this.clickSound?.resume();
+    }
   }
 }
