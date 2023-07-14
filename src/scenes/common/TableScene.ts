@@ -283,10 +283,9 @@ export default abstract class TableScene extends Phaser.Scene {
 
     // ハンドラー設定
     this.chipButtons.forEach((chip) => {
-      const player = this.players[0];
       chip.setClickHandler(() => {
         const tempBet = this.bet + chip.getValue;
-        if (tempBet <= player.getChips) {
+        if (tempBet <= this.getPlayer.getChips) {
           this.bet = tempBet;
         }
 
@@ -318,7 +317,7 @@ export default abstract class TableScene extends Phaser.Scene {
 
         // UIをフェードアウトさせる
         this.chipButtons.forEach((chip) => {
-          chip.moveTo(chip.x, chip.y - 700, 200);
+          chip.moveToLocate(chip.x, chip.y - 700, 200);
           chip.disVisibleText();
         });
 
@@ -487,7 +486,7 @@ export default abstract class TableScene extends Phaser.Scene {
   protected fadeInBetItem(): void {
     // UIをフェードインさせる
     this.chipButtons.forEach((chip) => {
-      chip.moveTo(chip.x, chip.y + 700, 200);
+      chip.moveToLocate(chip.x, chip.y + 700, 200);
     });
 
     this.dealButton?.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
@@ -562,5 +561,26 @@ export default abstract class TableScene extends Phaser.Scene {
         content.createContent();
       } else if (helpEle.list.length === 0) content.createContent();
     });
+  }
+
+  protected payOutAnimation(amount: number): void {
+    const startLocation = (
+      this.children.list
+        .filter((child) => child.name === "playerCredit")
+        .pop() as Phaser.GameObjects.Text
+    ).getCenter();
+    const endLocation = this.children.list
+      .filter((child) => child.name === "pots")
+      .pop() as Phaser.GameObjects.Container;
+    const ante = new Chip(this, startLocation.x, startLocation.y, "chipRed", amount, "chipClick");
+    ante.setScale(0.25);
+    ante.moveToLocate(endLocation.x, endLocation.y, 1000, 0);
+    ante.getSound.play();
+  }
+
+  protected payOut(player: Player, amount: number): void {
+    this.setPot = player.call(amount);
+    this.drawPots();
+    if (player.getPlayerType === "player") this.payOutAnimation(amount);
   }
 }

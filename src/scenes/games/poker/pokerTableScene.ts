@@ -151,6 +151,7 @@ export default class PokerTableScene extends TableScene {
     // playerが何もしていない場合、アクション表示
     if (player.getPlayerType === "player" && player.getState === "notAction") {
       this.actionControl();
+      return;
     }
 
     // 前者がアクションしていないかつ自分がディーラーでない場合、何もしない。
@@ -170,7 +171,6 @@ export default class PokerTableScene extends TableScene {
     }
   }
 
-  // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
     // ベット終了
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
@@ -319,31 +319,20 @@ export default class PokerTableScene extends TableScene {
     });
   }
 
-  private payOutAnimation(amount: number): void {
-    const startLocation = (
-      this.children.list
-        .filter((child) => child.name === "playerCredit")
-        .pop() as Phaser.GameObjects.Text
-    ).getCenter();
-    const endLocation = this.children.list
-      .filter((child) => child.name === "pots")
-      .pop() as Phaser.GameObjects.Container;
-    const ante = new Chip(this, startLocation.x, startLocation.y, "chipRed", amount, "chipClick");
-    ante.setScale(0.25);
-    ante.moveTo(endLocation.x, endLocation.y, 1000, 0);
-    ante.getSound.play();
-  }
-
-  private payOut(player: PokerPlayer, amount: number): void {
-    this.setPot = player.call(amount);
-    this.drawPots();
-    if (player.getPlayerType === "player") this.payOutAnimation(amount);
-  }
-
   /**
    * 手札配布
    */
   private dealHand() {
+    const flipTime = 800;
+    let cpuTime;
+    switch (this.gameState) {
+      case "firstCycle":
+        cpuTime = 1000;
+        break;
+      default:
+        cpuTime = 0;
+    }
+
     this.players.forEach((player: PokerPlayer) => {
       player.getHand?.forEach((card, index) => {
         this.children.bringToTop(card);
@@ -351,11 +340,11 @@ export default class PokerTableScene extends TableScene {
           card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
           setTimeout(() => {
             card.flipToFront();
-          }, 800);
+          }, flipTime);
         } else if (player.getPlayerType === "cpu") {
           setTimeout(() => {
             card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
-          }, 1000);
+          }, cpuTime);
         }
       });
     });

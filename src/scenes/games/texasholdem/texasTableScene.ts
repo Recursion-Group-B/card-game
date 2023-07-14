@@ -138,9 +138,6 @@ export default class TexasTableScene extends TableScene {
       this.gameStarted = true;
       this.startGame();
       this.disableBetItem();
-      this.players.forEach((player: TexasPlayer) => {
-        console.log(player.getIsDealer);
-      });
     }
 
     // レイズした場合、もう一周
@@ -148,13 +145,28 @@ export default class TexasTableScene extends TableScene {
       this.cycleState = "raise";
       this.players.forEach((player: TexasPlayer) => {
         /* eslint-disable no-param-reassign */
-        player.setState = "notAction";
-        this.deleteDoneAction();
+        if (player.getState !== "raise") {
+          player.setState = "notAction";
+        } else if (player.getState === "raise") {
+          player.setState = "raised";
+        }
       });
+      this.deleteDoneAction();
+    }
+
+    // レイズの場合で全員アクションした
+    if (
+      this.cycleState === "raise" &&
+      this.players.every((player: TexasPlayer) => player.getState !== "notAction")
+    ) {
+      this.cycleState = "allDone";
     }
 
     // 全員がアクションした
-    if (this.players.every((player) => (player as TexasPlayer).getState !== "notAction")) {
+    if (
+      !this.players.some((player: TexasPlayer) => player.getState === "raise") &&
+      this.players.every((player: TexasPlayer) => player.getState !== "notAction")
+    ) {
       this.cycleState = "allDone";
       this.deleteDoneAction();
     }
@@ -165,7 +177,7 @@ export default class TexasTableScene extends TableScene {
       this.players.forEach((player: TexasPlayer) => {
         player.setState = "notAction";
       });
-      this.cycleState = "notAllDone";
+      this.cycleState = "notAllAction";
       this.gameState = "secondCycle";
 
       // 場札配布
@@ -181,7 +193,7 @@ export default class TexasTableScene extends TableScene {
         /* eslint-disable no-param-reassign */
         player.setState = "notAction";
       });
-      this.cycleState = "notAllDone";
+      this.cycleState = "notAllAction";
       this.gameState = "thirdCycle";
 
       // 場札配布
@@ -198,7 +210,7 @@ export default class TexasTableScene extends TableScene {
         /* eslint-disable no-param-reassign */
         (player as TexasPlayer).setState = "notAction";
       });
-      this.cycleState = "notAllDone";
+      this.cycleState = "notAllAction";
       this.gameState = "compare";
 
       // 場札配布
@@ -233,10 +245,12 @@ export default class TexasTableScene extends TableScene {
     }
   }
 
-  private cycleEvent(player: TexasPlayer, index: number): void {
-    this.actionControl();
+  private async cycleEvent(player: TexasPlayer, index: number): Promise<void> {
     // playerの場合、何もしない
-    if (player.getPlayerType === "player") return;
+    if (player.getPlayerType === "player" && player.getState === "notAction") {
+      this.actionControl();
+      return;
+    }
 
     // 前者がアクションしていないかつ自分がディーラーでない場合、何もしない。
     const prePlayer = index - 1 < 0 ? this.players.length - 1 : index - 1;
@@ -251,7 +265,7 @@ export default class TexasTableScene extends TableScene {
 
     // cpu
     if (player.getPlayerType === "cpu") {
-      this.cpuAction(player as TexasPlayer);
+      await this.cpuAction(player);
     }
   }
 
@@ -341,27 +355,31 @@ export default class TexasTableScene extends TableScene {
     });
   }
 
-  private cpuAction(player: TexasPlayer): void {
-    if (player.getIsDealer && this.cycleState === "notAllAction") {
-      // bet
-      this.setPot = player.call(this.bet);
-      this.deleteDoneAction();
-      this.drawDoneAction(player, "bet");
-      this.drawPots();
-      player.setState = "bet";
-    } else if (
-      this.cycleState === "raise" ||
-      this.gameState === "firstCycle" ||
-      this.gameState === "secondCycle" ||
-      this.gameState === "thirdCycle"
-    ) {
-      // call
-      this.setPot = player.call(this.getPreBet);
-      this.deleteDoneAction();
-      this.drawDoneAction(player, "call");
-      this.drawPots();
-      player.setState = "call";
-    }
+  private cpuAction(player: TexasPlayer): Promise<void> {
+    return new Promise(() => {
+      setTimeout(() => {
+        if (player.getIsDealer && this.cycleState === "notAllAction") {
+          // bet
+          this.payOut(player, this.bet);
+          this.deleteDoneAction();
+          this.drawDoneAction(player, "bet");
+          this.drawPots();
+          player.setState = "bet";
+        } else if (
+          this.cycleState === "raise" ||
+          this.gameState === "firstCycle" ||
+          this.gameState === "secondCycle" ||
+          this.gameState === "thirdCycle"
+        ) {
+          // call
+          this.payOut(player, this.getPreBet);
+          this.deleteDoneAction();
+          this.drawDoneAction(player, "call");
+          this.drawPots();
+          player.setState = "call";
+        }
+      }, 1000);
+    });
   }
 
   /**
@@ -450,8 +468,7 @@ export default class TexasTableScene extends TableScene {
         this.players.forEach((player: TexasPlayer) => {
           // 100betする
           if (player.getPlayerType === "player" && player.getChips >= this.bet) {
-            this.setPot = player.call(this.bet);
-            this.drawPots();
+            this.payOut(player, this.bet);
             // playerのstate変更
             player.setState = "Done";
             this.drawDoneAction(player, "bet");
@@ -482,8 +499,7 @@ export default class TexasTableScene extends TableScene {
         this.players.forEach((player: TexasPlayer) => {
           // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
-            this.setPot = player.call(this.getPreBet);
-            this.drawPots();
+            this.payOut(player, this.getPreBet);
             // playerのstate変更
             player.setState = "Done";
             this.drawDoneAction(player, "call");
@@ -514,8 +530,7 @@ export default class TexasTableScene extends TableScene {
         this.players.forEach((player: TexasPlayer) => {
           // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
-            this.setPot = player.call(this.getPreBet * 2);
-            this.drawPots();
+            this.payOut(player, this.getPreBet * 2);
             // playerのstate変更
             player.setState = "raise";
             this.drawDoneAction(player, "raise");
@@ -540,7 +555,6 @@ export default class TexasTableScene extends TableScene {
       player.setHandScore = handScore;
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
-      console.log(player.getHandScore.highCard);
     });
 
     // 同等の役の場合、カードの強い順番
@@ -721,17 +735,22 @@ export default class TexasTableScene extends TableScene {
     this.drawDealer();
     this.drawAction();
 
+    // ante支払い
+    this.players.forEach((player: TexasPlayer) => {
+      setTimeout(() => {
+        this.payOut(player, this.getAnte);
+      }, 2000);
+    });
+
     // タイマーイベント
     this.time.removeAllEvents();
     this.players.forEach((player, index) => {
-      this.time.delayedCall(index * 2000, () => {
-        this.time.addEvent({
-          delay: 3000,
-          callback: this.cycleEvent,
-          callbackScope: this,
-          args: [player, index],
-          loop: true,
-        });
+      this.time.addEvent({
+        delay: 2000,
+        callback: this.cycleEvent,
+        callbackScope: this,
+        args: [player, index],
+        loop: true,
       });
     });
   }
