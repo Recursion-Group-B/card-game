@@ -11,9 +11,7 @@ import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
 import HelpContainer from "./helpContainer";
 import { textStyle } from "../../constants/styles";
-
-const D_WIDTH = 1320;
-const D_HEIGHT = 920;
+import Size from "../../constants/size";
 
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
@@ -92,6 +90,10 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected get getPot(): number[] {
     return this.pot;
+  }
+
+  protected get getAnte(): number {
+    return this.bet * Size.ANTE;
   }
 
   protected get getTotalPot(): number {
@@ -237,7 +239,7 @@ export default abstract class TableScene extends Phaser.Scene {
    * TODO ゲームサイズなどは後々決めましょう
    */
   protected createGameZone(): void {
-    this.gameZone = this.add.zone(D_WIDTH / 2, D_HEIGHT / 2, D_WIDTH, D_HEIGHT);
+    this.gameZone = this.add.zone(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, Size.D_WIDTH, Size.D_HEIGHT);
   }
 
   get getGameZone(): Phaser.GameObjects.Zone {
@@ -439,19 +441,25 @@ export default abstract class TableScene extends Phaser.Scene {
     // 背景
     this.add
       .graphics()
-      .fillRoundedRect(potsX, potsY, 150, 40)
+      .fillRoundedRect(0, 0, 150, 40)
       .fillStyle(0x000000, 0.9)
-      .setName("pots");
+      .setName("pots_background");
 
     // テキスト
     this.add
-      .text(potsX, potsY, ` pots: ${this.getTotalPot} `)
+      .text(0, 0, ` pots: ${this.getTotalPot} `)
       .setColor("white")
       .setFontSize(24)
       .setPadding(5)
       .setFontFamily("Arial")
       .setOrigin(0, 0)
-      .setName("pots");
+      .setName("pots_text");
+
+    // コンテナ
+    const potsChildren = this.children.list.filter(
+      (child) => child.name === "pots_background" || child.name === "pots_text"
+    );
+    this.add.container(potsX, potsY, potsChildren).setName("pots");
   }
 
   /**

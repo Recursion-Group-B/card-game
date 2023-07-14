@@ -1,7 +1,7 @@
 import Size from "./size";
 
 export const helpStyle = {
-  font: "24px Arial",
+  font: "16px Arial",
   backgroundColor: "rgb(0,0,0,0.9)",
   color: "#FFFFFF",
   align: "left",
@@ -14,6 +14,7 @@ export const helpStyle = {
     width: Size.D_WIDTH / 1.2 - 40,
     useAdvancedWrap: true,
   },
+  lineSpacing: 12,
 };
 
 export const textStyle = {

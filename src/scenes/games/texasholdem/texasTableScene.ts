@@ -6,11 +6,12 @@ import TexasPlayer from "../../../models/games/texasholdem/texasPlayer";
 import TableScene from "../../common/TableScene";
 import { HandScore } from "../../../models/games/poker/type";
 import GAME from "../../../models/common/game";
-import TexasHelp from "./texasHelp";
 import Button from "../../../models/common/button";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import Chip from "../../../models/common/chip";
+import HelpContainer from "../../common/helpContainer";
+import GameRule from "../../../constants/gameRule";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -109,7 +110,7 @@ export default class TexasTableScene extends TableScene {
     // オブジェクト生成
     this.createBackHomeButton();
     this.createTutorialButton();
-    this.helpContent = new TexasHelp(this);
+    this.helpContent = new HelpContainer(this, GameRule.TEXAS);
     this.createHelpButton(this.helpContent);
     this.createCommonSound();
     this.createChips();
@@ -130,7 +131,6 @@ export default class TexasTableScene extends TableScene {
     this.setCreditText(this.getPlayer.getChips);
   }
 
-  // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
     // ベット終了
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
@@ -393,7 +393,6 @@ export default class TexasTableScene extends TableScene {
     );
   }
 
-  // TODO 現状リスタートになっている。要改善
   /**
    * foldを描画
    */
@@ -756,7 +755,6 @@ export default class TexasTableScene extends TableScene {
     });
   }
 
-  // TODO アクション出来るもののみ表示させる
   /**
    * アクション表示
    */

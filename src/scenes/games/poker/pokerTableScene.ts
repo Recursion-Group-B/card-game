@@ -12,6 +12,8 @@ import GAME from "../../../models/common/game";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
 import { resultStyle } from "../../../constants/styles";
+import Size from "../../../constants/size";
+import Chip from "../../../models/common/chip";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -133,6 +135,7 @@ export default class PokerTableScene extends TableScene {
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
+    console.log(this);
   }
 
   update(): void {
@@ -316,16 +319,39 @@ export default class PokerTableScene extends TableScene {
     });
   }
 
+  private payOutAnimation(amount: number): void {
+    const startLocation = (
+      this.children.list
+        .filter((child) => child.name === "playerCredit")
+        .pop() as Phaser.GameObjects.Text
+    ).getCenter();
+    const endLocation = this.children.list
+      .filter((child) => child.name === "pots")
+      .pop() as Phaser.GameObjects.Container;
+    const ante = new Chip(this, startLocation.x, startLocation.y, "chipRed", amount, "chipClick");
+    ante.setScale(0.25);
+    ante.moveTo(endLocation.x, endLocation.y, 1000, 0);
+    ante.getSound.play();
+  }
+
+  private payOut(player: PokerPlayer, amount: number): void {
+    this.setPot = player.call(amount);
+    this.drawPots();
+    if (player.getPlayerType === "player") this.payOutAnimation(amount);
+  }
+
   /**
    * 手札配布
    */
-  dealHand() {
-    this.players.forEach((player) => {
+  private dealHand() {
+    this.players.forEach((player: PokerPlayer) => {
       player.getHand?.forEach((card, index) => {
         this.children.bringToTop(card);
         if (player.getPlayerType === "player") {
           card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
-          setTimeout(() => card.flipToFront(), 800);
+          setTimeout(() => {
+            card.flipToFront();
+          }, 800);
         } else if (player.getPlayerType === "cpu") {
           setTimeout(() => {
             card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
@@ -451,8 +477,7 @@ export default class PokerTableScene extends TableScene {
           if (player.getPlayerType !== "player") return;
           // 100betする
           if (player.getPlayerType === "player" && player.getChips >= this.bet) {
-            this.setPot = player.call(this.bet);
-            this.drawPots();
+            this.payOut(player, this.bet);
             // playerのstate変更
             player.setState = "Done";
             // action表示
@@ -523,8 +548,7 @@ export default class PokerTableScene extends TableScene {
         this.players.forEach((player: PokerPlayer) => {
           // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
-            this.setPot = player.call(this.getPreBet);
-            this.drawPots();
+            this.payOut(player, this.getPreBet);
             // playerのstate変更
             player.setState = "Done";
             // action表示
@@ -556,8 +580,7 @@ export default class PokerTableScene extends TableScene {
         this.players.forEach((player: PokerPlayer) => {
           // 前のbetSizeでbetする
           if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
-            this.setPot = player.call(this.getPreBet * 2);
-            this.drawPots();
+            this.payOut(player, this.getPreBet * 2);
             // playerのstate変更
             player.setState = "raise";
             // action表示
@@ -728,10 +751,17 @@ export default class PokerTableScene extends TableScene {
     // オブジェクト表示
     this.deckReset(650, 450);
     this.dealCards();
-    this.dealHand();
     this.drawPots();
     this.drawDealer();
     this.drawAction();
+    this.dealHand();
+
+    // ante支払い
+    this.players.forEach((player: PokerPlayer) => {
+      setTimeout(() => {
+        this.payOut(player, this.getAnte);
+      }, 2000);
+    });
 
     // タイマーイベント
     this.time.removeAllEvents();

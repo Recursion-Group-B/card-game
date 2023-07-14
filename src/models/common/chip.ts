@@ -7,6 +7,7 @@ const textStyle = {
   strokeThickness: 2,
 };
 
+// TODO Containerを継承させる テキストと一緒に動かすため
 export default class Chip extends Phaser.GameObjects.Image {
   private value: number;
 
@@ -47,6 +48,10 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   get getValue(): number {
     return this.value;
+  }
+
+  get getSound(): Phaser.Sound.BaseSound {
+    return this.clickSound;
   }
 
   private setPushAnimation(): void {
@@ -96,13 +101,29 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.text.setVisible(true);
   }
 
-  moveTo(toX: number, toY: number, delay: number): void {
-    this.scene.tweens.add({
-      targets: this,
-      x: toX,
-      y: toY,
-      duration: delay,
-      ease: "Linear",
-    });
+  moveTo(toX: number, toY: number, delay: number): void;
+  moveTo(toX: number, toY: number, delay: number, fade: number): void;
+  moveTo(toX: number, toY: number, delay: number, fade?: number): void {
+    let tweenConfig;
+    if (fade !== undefined) {
+      tweenConfig = {
+        targets: this,
+        x: toX,
+        y: toY,
+        alpha: fade,
+        duration: delay,
+        ease: "Linear",
+      };
+    } else {
+      tweenConfig = {
+        targets: this,
+        x: toX,
+        y: toY,
+        duration: delay,
+        ease: "Linear",
+      };
+    }
+
+    this.scene.tweens.add(tweenConfig);
   }
 }
