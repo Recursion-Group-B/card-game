@@ -59,6 +59,7 @@ export default class SpeedTableScene extends TableScene {
     this.createChips();
     this.createCommonSound();
     this.createSpeedSound();
+    this.createToggleSoundButton();
     this.createDealButton();
     this.createClearButton();
     this.createCreditField();

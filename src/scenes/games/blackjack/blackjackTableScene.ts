@@ -73,6 +73,7 @@ export default class BlackJackTableScene extends TableScene {
     this.createBackHomeButton();
     this.createTutorialButton();
     this.createCommonSound();
+    this.createToggleSoundButton();
   }
 
   update(): void {

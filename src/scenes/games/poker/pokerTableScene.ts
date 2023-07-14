@@ -125,6 +125,7 @@ export default class PokerTableScene extends TableScene {
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
+    this.createToggleSoundButton();
   }
 
   update(): void {

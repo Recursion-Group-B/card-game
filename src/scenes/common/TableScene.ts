@@ -532,30 +532,12 @@ export default abstract class TableScene extends Phaser.Scene {
     this.toggleSoundButton.setClickHandler(() => {
       // オンオフ切り替え
       this.isSoundOn = !this.isSoundOn;
-      this.commonSoundToggle();
+
+      // ミュート
+      this.sound.mute = !this.isSoundOn;
 
       // ボタンのテクスチャを切り替え
       this.toggleSoundButton.setTexture(this.isSoundOn ? "soundOn" : "soundOff");
     });
-  }
-
-  /**
-   * サウンドのオンオフを切り替える
-   * 実際の切り替え処理
-   * TODO: もっと効率的な方法があれば改善したい
-   */
-  /* eslint-disable no-param-reassign */
-  private commonSoundToggle(): void {
-    this.chipButtons.forEach((chip) => {
-      chip.setSoundEnabled = this.isSoundOn;
-    });
-
-    this.dealButton.setSoundEnabled = this.isSoundOn;
-    this.clearButton.setSoundEnabled = this.isSoundOn;
-    this.backHomeButton.setSoundEnabled = this.isSoundOn;
-    this.tutorialButton.setSoundEnabled = this.isSoundOn;
-    this.helpButton.setSoundEnabled = this.isSoundOn;
-    this.backHomeButton.setSoundEnabled = this.isSoundOn;
-    this.toggleSoundButton.setSoundEnabled = this.isSoundOn;
   }
 }
