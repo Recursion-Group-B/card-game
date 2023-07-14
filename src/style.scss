@@ -85,7 +85,7 @@ nav {
   position: fixed;
   height: fit-content;
   background-color: #ffffff;
-  left: -300;
+  left: -300px;
   width: 220px;
   top: 0;
   bottom: 0;
@@ -95,7 +95,8 @@ nav {
 }
 
 .open nav {
-  right: 0;
+  left: initial;
+  right: 0px;
   opacity: 0.5;
 }
 
@@ -129,17 +130,14 @@ nav .inner ul li a:hover {
 
 .toggleBtn {
   display: block;
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  width: 30px;
-  height: 30px;
+  position: relative;
+  height: 100%;
   z-index: 3;
   cursor: pointer;
 }
 
 .toggleBtn span {
-  position: absolute;
+  position: relative;
   display: block;
   left: 0;
   width: 30px;
@@ -150,13 +148,13 @@ nav .inner ul li a:hover {
 }
 
 .toggleBtn span:nth-child(1) {
-  top: 4px;
+  top: 35%;
 }
 .toggleBtn span:nth-child(2) {
-  top: 14px;
+  top: 50%;
 }
 .toggleBtn span:nth-child(3) {
-  bottom: 4px;
+  top: 65%;
 }
 
 .open .toggleBtn span:nth-child(1){
