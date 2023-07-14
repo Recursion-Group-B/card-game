@@ -10,7 +10,7 @@ export default function setAnimation() {
   const swiper = new Swiper(".swiper", {
     // Optional parameters
     loop: true,
-    slidesPerView: 2,
+    slidesPerView: 1,
     spaceBetween: 100,
     centeredSlides: true,
     effect: "coverflow",
@@ -22,6 +22,12 @@ export default function setAnimation() {
       prevEl: ".swiper-button-prev",
     },
     modules: [EffectCoverflow, Pagination, Navigation],
+    breakpoints: {
+      // スライドの表示枚数：768px以上の場合
+      768: {
+        slidesPerView: 2,
+      },
+    },
   });
 
   /**
