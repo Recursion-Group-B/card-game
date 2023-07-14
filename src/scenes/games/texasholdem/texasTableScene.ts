@@ -749,9 +749,9 @@ export default class TexasTableScene extends TableScene {
     dealerContainer.add(dealerText);
     this.players.forEach((player: TexasPlayer) => {
       if (player.getPlayerType === "player" && player.getIsDealer) {
-        dealerContainer.setPosition(this.playerPositionX - 100, this.playerPositionY - 50);
+        dealerContainer.setPosition(this.playerPositionX - 120, this.playerPositionY - 50);
       } else if (player.getPlayerType === "cpu" && player.getIsDealer) {
-        dealerContainer.setPosition(this.cpuPositionX - 100, this.cpuPositionY - 50);
+        dealerContainer.setPosition(this.cpuPositionX - 120, this.cpuPositionY - 50);
       }
     });
   }

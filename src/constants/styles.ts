@@ -21,3 +21,20 @@ export const textStyle = {
   color: "#FFFFFF",
   strokeThickness: 2,
 };
+
+export const resultStyle = {
+  font: "20px Arial",
+  fill: "#ff0",
+  stroke: "#000000",
+  strokeThickness: 9,
+  boundsAlignH: "center",
+  boundsAlignV: "middle",
+  backgroundColor: "rgba(0,0,0,0.5)",
+  padding: {
+    top: 15,
+    bottom: 15,
+    left: 15,
+    right: 15,
+  },
+  borderRadius: 10,
+};
