@@ -7,6 +7,8 @@ export default abstract class Tutorial extends Phaser.Scene {
 
   protected gameZone: Phaser.GameObjects.Zone | undefined;
 
+  protected gameSceneKey: string | undefined;
+
   constructor() {
     super({ key: "tutorial" });
   }
@@ -15,7 +17,7 @@ export default abstract class Tutorial extends Phaser.Scene {
     this.backButton = new Button(this, 10, 10, "uTurn", "");
     this.backButton.setOrigin(0);
     this.backButton.setClickHandler(() => {
-      this.scene.switch("game");
+      this.scene.switch(this.gameSceneKey);
     });
     this.children.bringToTop(this.backButton as Phaser.GameObjects.Image);
   }

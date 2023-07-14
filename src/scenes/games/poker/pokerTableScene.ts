@@ -11,6 +11,7 @@ import GameResult from "../../../constants/gameResult";
 import GAME from "../../../models/common/game";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -54,8 +55,8 @@ export default class PokerTableScene extends TableScene {
   private raiseBtn: Button | undefined;
 
   constructor() {
-    super("poker");
-    this.gameSceneKey = "poker";
+    super(GameType.POKER);
+    this.gameSceneKey = GameType.POKER;
 
     this.players = [
       new PokerPlayer("Player", "player", 1000, 0),

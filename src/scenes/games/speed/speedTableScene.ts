@@ -11,6 +11,7 @@ import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -39,8 +40,8 @@ export default class SpeedTableScene extends TableScene {
   private countdownSound: Phaser.Sound.BaseSound | undefined;
 
   constructor() {
-    super("speed");
-    this.gameSceneKey = "speed";
+    super(GameType.SPEED);
+    this.gameSceneKey = GameType.SPEED;
 
     this.players = [
       new SpeedPlayer("Player", PlayerType.PLAYER, 1000, 0),

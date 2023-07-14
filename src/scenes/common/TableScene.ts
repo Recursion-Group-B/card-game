@@ -11,6 +11,7 @@ import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
 import HelpContainer from "./helpContainer";
 import { textStyle } from "../../constants/styles";
+import GameType from "../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -60,7 +61,7 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected gameElement: HTMLElement | null = document.getElementById("game-content");
 
-  protected gameSceneKey: string | undefined;
+  protected gameSceneKey: GameType;
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -478,7 +479,9 @@ export default abstract class TableScene extends Phaser.Scene {
     this.backHomeButton.setOrigin(0);
     this.backHomeButton.setClickHandler(() => {
       if (this.scene.key !== "tutorial") this.drawHomePage();
-      else if (this.scene.key === "tutorial") this.scene.start(this.gameSceneKey);
+      else if (this.scene.key === "tutorial") {
+        this.scene.switch(this.gameSceneKey);
+      }
     });
   }
 
@@ -486,6 +489,8 @@ export default abstract class TableScene extends Phaser.Scene {
     this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
     this.tutorialButton.setOrigin(1, 0);
     this.tutorialButton.setClickHandler(() => {
+      // 現在のシーンのキーを保存する
+      this.registry.set("gameSceneKey", this.gameSceneKey);
       this.scene.switch("tutorial");
     });
   }

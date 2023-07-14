@@ -8,6 +8,7 @@ import PlayerType from "../../../constants/playerType";
 import Button from "../../../models/common/button";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -26,8 +27,8 @@ export default class WarTableScene extends TableScene {
   private didWar = false;
 
   constructor() {
-    super("war");
-    this.gameSceneKey = "war";
+    super(GameType.WAR);
+    this.gameSceneKey = GameType.WAR;
 
     this.players = [
       new WarPlayer("Player", PlayerType.PLAYER, 1000, 0),

@@ -10,6 +10,7 @@ import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -47,8 +48,8 @@ export default class BlackJackTableScene extends TableScene {
   private gameStarted = false;
 
   constructor() {
-    super("blackjack");
-    this.gameSceneKey = "blackjack";
+    super(GameType.BLACKJACK);
+    this.gameSceneKey = GameType.BLACKJACK;
 
     this.players = [
       new BlackJackPlayer("Player", PlayerType.PLAYER, 1000, 0),
