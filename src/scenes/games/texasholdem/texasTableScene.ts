@@ -391,24 +391,21 @@ export default class TexasTableScene extends TableScene {
       (this.scale.width * 3) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "check"
+      "check",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.checkBtn.disable();
     this.checkBtn.setScale(0.3);
-    this.checkBtn.on(
-      "pointerdown",
-      function checkCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        // playerのstate変更
-        this.players.forEach((player: TexasPlayer) => {
-          if (player.getPlayerType === "player") {
-            player.setState = "Done";
-            this.drawDoneAction(player, "check");
-          }
-        });
-        this.disableAction();
-      },
-      this
-    );
+    this.checkBtn.setClickHandler(() => {
+      // playerのstate変更
+      this.players.forEach((player: TexasPlayer) => {
+        if (player.getPlayerType === "player") {
+          player.setState = "Done";
+          this.drawDoneAction(player, "check");
+        }
+      });
+      this.disableAction();
+    });
   }
 
   /**
@@ -420,33 +417,28 @@ export default class TexasTableScene extends TableScene {
       (this.scale.width * 7) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "fold"
+      "fold",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.foldBtn.disable();
     this.foldBtn.setScale(0.3);
-    this.foldBtn.on(
-      "pointerdown",
-      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        // カードを手放す
-        this.players.forEach((player: TexasPlayer) => {
-          if (player.getPlayerType === "player") {
-            (player.getHand as Card[]).forEach((card) => {
-              card.destroy();
-            });
-
-            player.fold();
-
-            // playerのstate変更
-            player.setState = "Done";
-            // action表示
-            this.drawDoneAction(player, "fold");
-          }
-        });
-        this.gameState = "compare";
-        this.disableAction();
-      },
-      this
-    );
+    this.foldBtn.setClickHandler(() => {
+      // カードを手放す
+      this.players.forEach((player: TexasPlayer) => {
+        if (player.getPlayerType === "player") {
+          (player.getHand as Card[]).forEach((card) => {
+            card.destroy();
+          });
+          player.fold();
+          // playerのstate変更
+          player.setState = "Done";
+          // action表示
+          this.drawDoneAction(player, "fold");
+        }
+      });
+      this.gameState = "compare";
+      this.disableAction();
+    });
   }
 
   /**
@@ -458,26 +450,25 @@ export default class TexasTableScene extends TableScene {
       (this.scale.width * 5) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "bet"
+      "bet",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.betBtn.disable();
     this.betBtn.setScale(0.3);
-    this.betBtn.on(
-      "pointerdown",
-      function betToPot(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player: TexasPlayer) => {
-          // 100betする
-          if (player.getPlayerType === "player" && player.getChips >= this.bet) {
+    this.betBtn.setClickHandler(() => {
+      this.players.forEach((player: TexasPlayer) => {
+        // 100betする
+        if (player.getPlayerType === "player" && player.getChips >= this.bet) {
+          setTimeout(() => {
             this.payOut(player, this.bet);
-            // playerのstate変更
-            player.setState = "Done";
-            this.drawDoneAction(player, "bet");
-          }
-        });
-        this.disableAction();
-      },
-      this
-    );
+          }, 500);
+          // playerのstate変更
+          player.setState = "Done";
+          this.drawDoneAction(player, "bet");
+        }
+      });
+      this.disableAction();
+    });
   }
 
   /**
@@ -489,26 +480,25 @@ export default class TexasTableScene extends TableScene {
       (this.scale.width * 9) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "call"
+      "call",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.callBtn.disable();
     this.callBtn.setScale(0.3);
-    this.callBtn.on(
-      "pointerdown",
-      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player: TexasPlayer) => {
-          // 前のbetSizeでbetする
-          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
+    this.callBtn.setClickHandler(() => {
+      this.players.forEach((player: TexasPlayer) => {
+        // 前のbetSizeでbetする
+        if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
+          setTimeout(() => {
             this.payOut(player, this.getPreBet);
-            // playerのstate変更
-            player.setState = "Done";
-            this.drawDoneAction(player, "call");
-          }
-        });
-        this.disableAction();
-      },
-      this
-    );
+          }, 500);
+          // playerのstate変更
+          player.setState = "Done";
+          this.drawDoneAction(player, "call");
+        }
+      });
+      this.disableAction();
+    });
   }
 
   /**
@@ -520,26 +510,25 @@ export default class TexasTableScene extends TableScene {
       (this.scale.width * 11) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "raise"
+      "raise",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.raiseBtn.disable();
     this.raiseBtn.setScale(0.3);
-    this.raiseBtn.on(
-      "pointerdown",
-      function releaseCard(this: TexasTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player: TexasPlayer) => {
-          // 前のbetSizeでbetする
-          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
+    this.raiseBtn.setClickHandler(() => {
+      this.players.forEach((player: TexasPlayer) => {
+        // 前のbetSizeでbetする
+        if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
+          setTimeout(() => {
             this.payOut(player, this.getPreBet * 2);
-            // playerのstate変更
-            player.setState = "raise";
-            this.drawDoneAction(player, "raise");
-          }
-        });
-        this.disableAction();
-      },
-      this
-    );
+          }, 500);
+          // playerのstate変更
+          player.setState = "raise";
+          this.drawDoneAction(player, "raise");
+        }
+      });
+      this.disableAction();
+    });
   }
 
   /**
