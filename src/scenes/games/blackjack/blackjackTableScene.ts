@@ -102,33 +102,35 @@ export default class BlackJackTableScene extends TableScene {
       this.makeDeck();
       this.dealCards();
       this.dealHand();
-      // 各機能の実装
-      this.stand();
-      this.hit();
-      this.double(); // 課題 : hitの2回目から表示させない
-      this.surrender(); // 課題 : hitの2回目から表示させない
       this.playerDisplayTotal();
       this.gameStarted = true;
     }
 
+    if (this.gameState === GameState.PLAYING) {
+      // 各機能の実装
+      this.stand();
+      this.hit();
+      this.double();
+      this.surrender();
+    }
+
     // ゲームが終わった際の条件
     if (this.gameState === GameState.END_GAME) {
+      // 現状のデータを初期化させる
+      this.addPlayerPositionX = 0;
+      this.addCpuPositionX = 0;
+      this.playerTotalhand = 0;
+      this.cpuTotalhand = 0;
+      // ベット額の更新
+      this.bet = 0;
+      this.setBetText();
+      // フラグを更新
+      this.gameStarted = false;
+      this.gameState = GameState.BETTING;
+
       this.time.delayedCall(5000, () => {
-        // 課題 : 関数でまとめる
-        // 現状のデータを初期化させる
-        this.addPlayerPositionX = 0;
-        this.addCpuPositionX = 0;
-        this.playerTotalhand = 0;
-        this.cpuTotalhand = 0;
-        // ベット額の更新
-        this.bet = 0;
-        this.setBetText();
-        // ベット系を表示させる？
+
         this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-        // フラグを更新する
-        this.gameStarted = false;
-        this.gameState = GameState.BETTING;
-        // ベット系
         this.createGameZone();
         this.createChips();
         this.createDealButton();
@@ -331,7 +333,6 @@ export default class BlackJackTableScene extends TableScene {
         "pointerdown",
         function drawCard(this: BlackJackTableScene, pointer: Phaser.Input.Pointer) {
           this.players.forEach((player) => {
-            // playerだけに絞りたい
             if (player.getPlayerType === "player") {
               player.setHand = (this.deck as Deck).draw(1) as Card[];
               // カードを配る配置を変えたい
@@ -345,6 +346,7 @@ export default class BlackJackTableScene extends TableScene {
 
                   // 一枚引いてカードの表示を変える
                   this.setPlayerDisplayTotal();
+                  this.playerDisplayTotal();
               });
             }
           });
@@ -364,13 +366,11 @@ export default class BlackJackTableScene extends TableScene {
               .setName("roleName");
             // CPUの手札も表に表示する
             this.players[1].getHand?.forEach((card) => {
-              card.flipToFront(); // 表に表示する速度を変更したい
+              card.flipToFront();
             });
-            // 新規追加
+
             this.cpuDisplayTotal();
-            // CREDIT金額を更新
             this.players[0].setChips = this.players[0].getChips - this.bet;
-            // 課題 : ベットをする画面に遷移させる
             this.gameState = GameState.END_GAME;
           }
         },
@@ -395,10 +395,33 @@ export default class BlackJackTableScene extends TableScene {
     this.doubleBtn.once(
       "pointerdown",
       function actionDouble(this: BlackJackTableScene) {
-        // 課題 : standとコード同じだから共通化する
+        // 課題 : stand・hitのコード同じだから共通化する
         // ベット額の更新
         this.bet = this.bet * 2;
         this.setBetText();
+
+        // １枚引く
+        this.players.forEach((player) => {
+          if (player.getPlayerType === "player") {
+            player.setHand = (this.deck as Deck).draw(1) as Card[];
+            // カードを配る配置を変えたい
+            player.getHand?.forEach((card) => {
+                card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
+                setTimeout(() => card.flipToFront(), 800);
+                card.setInteractive();
+                // ここから追加 ※ 後ほど共通化する
+                this.addPlayerPositionX += 85;
+                this.playerTotalhand += card.getRankNumber("blackjack")
+
+                // 一枚引いてカードの表示を変える
+                this.setPlayerDisplayTotal();
+                this.playerDisplayTotal();
+            });
+          }
+        });
+
+        // 課題 : 21を超えたらBust
+
         // ① CPUの手札を全てオープン、Totalを表示
         this.players[1].getHand?.forEach((card) => {
           card.flipToFront(); // 表に表示する速度を変更したい
