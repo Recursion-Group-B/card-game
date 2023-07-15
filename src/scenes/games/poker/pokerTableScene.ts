@@ -449,7 +449,7 @@ export default class PokerTableScene extends TableScene {
         // 100betする
         if (player.getPlayerType === "player" && player.getChips >= this.bet) {
           setTimeout(() => {
-            this.payOut(player, this.bet);
+            this.payOutToPots(player, this.bet);
           }, 500);
           // playerのstate変更
           player.setState = "Done";
@@ -514,7 +514,7 @@ export default class PokerTableScene extends TableScene {
         // 前のbetSizeでbetする
         if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
           setTimeout(() => {
-            this.payOut(player, this.getPreBet);
+            this.payOutToPots(player, this.getPreBet);
           }, 500);
           // playerのstate変更
           player.setState = "Done";
@@ -545,7 +545,7 @@ export default class PokerTableScene extends TableScene {
         // 前のbetSizeでbetする
         if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
           setTimeout(() => {
-            this.payOut(player, this.getPreBet * 2);
+            this.payOutToPots(player, this.getPreBet * 2);
           }, 500);
           // playerのstate変更
           player.setState = "raise";
@@ -723,7 +723,7 @@ export default class PokerTableScene extends TableScene {
     // ante支払い
     this.players.forEach((player: PokerPlayer) => {
       setTimeout(() => {
-        this.payOut(player, this.getAnte);
+        this.payOutToPots(player, this.getAnte);
       }, 2000);
     });
 

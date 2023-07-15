@@ -596,7 +596,7 @@ export default abstract class TableScene extends Phaser.Scene {
     ante.getSound.play();
   }
 
-  protected payOut(player: Player, amount: number): void {
+  protected payOutToPots(player: Player, amount: number): void {
     this.setPot = player.call(amount);
     this.drawPots();
     if (player.getPlayerType === "player") this.payOutAnimation(amount);

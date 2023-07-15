@@ -328,7 +328,7 @@ export default class TexasTableScene extends TableScene {
       setTimeout(() => {
         if (player.getIsDealer && this.cycleState === "notAllAction") {
           // bet
-          this.payOut(player, this.bet);
+          this.payOutToPots(player, this.bet);
           this.deleteDoneAction();
           this.drawDoneAction(player, "bet");
           this.drawPots();
@@ -340,7 +340,7 @@ export default class TexasTableScene extends TableScene {
           this.gameState === "thirdCycle"
         ) {
           // call
-          this.payOut(player, this.getPreBet);
+          this.payOutToPots(player, this.getPreBet);
           this.deleteDoneAction();
           this.drawDoneAction(player, "call");
           this.drawPots();
@@ -428,7 +428,7 @@ export default class TexasTableScene extends TableScene {
         // 100betする
         if (player.getPlayerType === "player" && player.getChips >= this.bet) {
           setTimeout(() => {
-            this.payOut(player, this.bet);
+            this.payOutToPots(player, this.bet);
           }, 500);
           // playerのstate変更
           player.setState = "Done";
@@ -458,7 +458,7 @@ export default class TexasTableScene extends TableScene {
         // 前のbetSizeでbetする
         if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
           setTimeout(() => {
-            this.payOut(player, this.getPreBet);
+            this.payOutToPots(player, this.getPreBet);
           }, 500);
           // playerのstate変更
           player.setState = "Done";
@@ -488,7 +488,7 @@ export default class TexasTableScene extends TableScene {
         // 前のbetSizeでbetする
         if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
           setTimeout(() => {
-            this.payOut(player, this.getPreBet * 2);
+            this.payOutToPots(player, this.getPreBet * 2);
           }, 500);
           // playerのstate変更
           player.setState = "raise";
@@ -695,7 +695,7 @@ export default class TexasTableScene extends TableScene {
     // ante支払い
     this.players.forEach((player: TexasPlayer) => {
       setTimeout(() => {
-        this.payOut(player, this.getAnte);
+        this.payOutToPots(player, this.getAnte);
       }, 2000);
     });
 
