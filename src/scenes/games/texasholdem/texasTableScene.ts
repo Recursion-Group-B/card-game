@@ -55,7 +55,7 @@ export default class TexasTableScene extends TableScene {
   private gameStarted: boolean;
 
   constructor() {
-    super("Texas");
+    super("texas");
     this.players = [
       new TexasPlayer("Player", "player", 1000, 0),
       new TexasPlayer("Cpu", "cpu", 1000, 0),
