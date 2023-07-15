@@ -12,9 +12,9 @@ export default class HelpContainer extends Phaser.GameObjects.Container {
 
   private textLocation: Phaser.Types.Math.Vector2Like | undefined;
 
-  private content: string;
+  private content: string | string[];
 
-  constructor(table: TableScene, content: string) {
+  constructor(table: TableScene, content: string | string[]) {
     super(table);
     this.table = table;
     this.content = content;

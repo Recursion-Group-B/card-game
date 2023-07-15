@@ -20,6 +20,12 @@ function hideHome() {
   }
 }
 
+function drawGame(): void {
+  const gameElement = document.getElementById("game-content");
+  gameElement.classList.remove("d-none");
+  gameElement.classList.add("d-block");
+}
+
 export default async function initGame(gameType: string, diff: string) {
   let gameScene;
 
@@ -36,12 +42,18 @@ export default async function initGame(gameType: string, diff: string) {
     case "war":
       gameScene = (await import("../../scenes/games/war/warTableScene")).default;
       break;
+    case "texas":
+      gameScene = (await import("../../scenes/games/texasholdem/texasTableScene")).default;
+      break;
     default:
       throw new Error("Invalid game type");
   }
 
   // Homeを非表示
   hideHome();
+
+  // game-contentを表示
+  drawGame();
 
   // ゲームの設定
   GameManager.setGameType(gameType as GameType, diff);

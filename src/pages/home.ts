@@ -5,7 +5,7 @@ import { signup, login } from "./components/login";
 import myPage from "./components/myPage";
 
 const Home = `
-    <div id="header" class="d-flex justify-content-between ps-2 pe-3">
+    <div id="header" class="d-flex justify-content-between px-3">
         ${headers}
     </div>
     <div id="home" class="d-block page">
@@ -24,7 +24,7 @@ const Home = `
     <div id="myPage" class="d-none page">
         ${myPage}
     </div>
-    <div id="game-content">
+    <div id="game-content" class="d-none page">
     </div>
 `;
 

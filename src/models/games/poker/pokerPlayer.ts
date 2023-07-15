@@ -66,17 +66,6 @@ export default class PokerPlayer extends Player {
   }
 
   /**
-   * プレイヤーアクション（ベット/コール/レイズ）: this.chipsからamountを引く
-   * @param amount : number
-   * @returns : number
-   */
-  call(amount: number): number {
-    const currentChips: number = this.getChips - amount;
-    this.setChips = currentChips;
-    return amount;
-  }
-
-  /**
    * プレイヤーアクション（フォールド）: this.handを空にする
    */
   fold(): void {

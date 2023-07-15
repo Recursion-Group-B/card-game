@@ -16,6 +16,9 @@ export default class GameManager {
       case GameType.WAR:
         Game.CONFIG.GAME_MODE = GameType.WAR;
         break;
+      case GameType.TEXAS:
+        Game.CONFIG.GAME_MODE = GameType.TEXAS;
+        break;
       default:
         // ゲームは適宜追加
         break;
