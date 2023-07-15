@@ -106,16 +106,18 @@ export default class BlackJackTableScene extends TableScene {
       this.makeDeck();
       this.dealCards();
       this.dealHand();
+      // 各機能の実装
+      this.stand();
+      // this.hit();
+      this.double();
+      this.surrender();
       this.playerDisplayTotal();
       this.gameStarted = true;
     }
 
+    // ゲーム中で繰り返し実施する機能
     if (this.gameState === GameState.PLAYING) {
-      // 各機能の実装
-      this.stand();
       this.hit();
-      this.double();
-      this.surrender();
     }
 
     // ゲームが終わった際の条件
@@ -134,12 +136,21 @@ export default class BlackJackTableScene extends TableScene {
 
       this.time.delayedCall(5000, () => {
 
+        // 今後共通化する
         this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
         this.createGameZone();
         this.createChips();
         this.createDealButton();
         this.createClearButton();
         this.createCreditField();
+
+        // UI
+        this.helpContent = new HelpContainer(this, GameRule.BLACKJACK);
+        this.createHelpButton(this.helpContent);
+        this.createBackHomeButton();
+        this.createTutorialButton();
+        this.createCommonSound();
+        this.createToggleSoundButton();
       });
     }
   }
@@ -198,7 +209,9 @@ export default class BlackJackTableScene extends TableScene {
    * プレーヤーのTotalを表示する
    */
   playerDisplayTotal(): void {
-    // プレイヤー
+    // 空にする
+    this.playerScoreTexts = [];
+
      const playerTotal = this.add
      .text(this.playerPositionX + 120, this.playerPositionY - 95, `${this.playerTotalhand}`, {
        fontFamily: "Arial Black",
@@ -247,7 +260,7 @@ export default class BlackJackTableScene extends TableScene {
   stand(): void {
     this.standBtn = new Button(
       this,
-      350,
+      300,
       700,
       "buttonRed",
       "stand"
@@ -279,12 +292,7 @@ export default class BlackJackTableScene extends TableScene {
         this.cpuDisplayTotal(); // 最後のトータルだけ表示 ※ 課題 : CPUのトータルをDrawごとにカウントしたい
         if(this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
           // 勝利の表示
-          this.add
-          .text(this.playerPositionX, this.playerPositionY - 180, `WIN`, {
-            fontFamily: "Arial Black",
-            fontSize: 50,
-          })
-          .setName("roleName");
+          this.displayResult("WIN",0);
 
           // CREDITの更新
           this.players[0].setChips = this.players[0].getChips + this.bet;
@@ -292,26 +300,16 @@ export default class BlackJackTableScene extends TableScene {
         }
         else if(this.playerTotalhand == this.cpuTotalhand) {
           // 引き分けの表示
-          this.add
-          .text(this.playerPositionX, this.playerPositionY - 180, `DRAW`, {
-            fontFamily: "Arial Black",
-            fontSize: 50,
-          })
-          .setName("roleName");
+          this.displayResult("DRAW",0);
         }
         else {
           // 負けの表示
-          this.add
-          .text(this.playerPositionX, this.playerPositionY - 180, `LOSS`, {
-            fontFamily: "Arial Black",
-            fontSize: 50,
-          })
-          .setName("roleName");
+          this.displayResult("LOSE",0);
           // CREDITの更新
           this.players[0].setChips = this.players[0].getChips - this.bet;
         }
 
-        // 追加した、ゲームが終わったらGameStateを変更する
+        // ゲームが終わったらGameStateを変更する
         this.gameState = GameState.END_GAME;
       },
       this
@@ -325,7 +323,7 @@ export default class BlackJackTableScene extends TableScene {
 
     this.hitBtn = new Button(
       this,
-      550,
+      525,
       700,
       "buttonRed",
       "hit"
@@ -344,7 +342,7 @@ export default class BlackJackTableScene extends TableScene {
                   card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
                   setTimeout(() => card.flipToFront(), 800);
                   card.setInteractive();
-                  // ここから追加 ※ 後ほど共通化する
+                  // 今後共通化する
                   this.addPlayerPositionX += 85;
                   this.playerTotalhand += card.getRankNumber("blackjack")
 
@@ -362,12 +360,7 @@ export default class BlackJackTableScene extends TableScene {
           // 21を超えたらBust
           if(this.playerTotalhand > 21) {
             // BUSTを表示 ※ 21を超えたら強制的に負け
-            this.add
-              .text(this.playerPositionX, this.playerPositionY - 180, `BUST`, {
-                fontFamily: "Arial Black",
-                fontSize: 50,
-              })
-              .setName("roleName");
+            this.displayResult("BUST",0);
             // CPUの手札も表に表示する
             this.players[1].getHand?.forEach((card) => {
               card.flipToFront();
@@ -384,6 +377,7 @@ export default class BlackJackTableScene extends TableScene {
 
   /**
    * プレイヤーアクション（double）を描画
+   * 課題 : 処理を共通化できていない
    */
   double(): void {
 
@@ -448,12 +442,7 @@ export default class BlackJackTableScene extends TableScene {
         this.cpuDisplayTotal(); // 最後のトータルだけ表示 ※ 課題 : CPUのトータルをDrawごとにカウントしたい
         if(this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
           // 勝利の表示
-          this.add
-          .text(this.playerPositionX, this.playerPositionY - 180, `WIN`, {
-            fontFamily: "Arial Black",
-            fontSize: 50,
-          })
-          .setName("roleName");
+          this.displayResult("WIN",0);
 
           // CREDITの更新
           this.players[0].setChips = this.players[0].getChips + this.bet;
@@ -461,21 +450,11 @@ export default class BlackJackTableScene extends TableScene {
         }
         else if(this.playerTotalhand == this.cpuTotalhand) {
           // 引き分けの表示
-          this.add
-          .text(this.playerPositionX, this.playerPositionY - 180, `DRAW`, {
-            fontFamily: "Arial Black",
-            fontSize: 50,
-          })
-          .setName("roleName");
+          this.displayResult("DRAW",0);
         }
         else {
           // 負けの表示
-          this.add
-          .text(this.playerPositionX, this.playerPositionY - 180, `LOSS`, {
-            fontFamily: "Arial Black",
-            fontSize: 50,
-          })
-          .setName("roleName");
+          this.displayResult("LOSE",0);
           // CREDITの更新
           this.players[0].setChips = this.players[0].getChips - this.bet;
         }
@@ -494,7 +473,7 @@ export default class BlackJackTableScene extends TableScene {
 
     this.surrenderBtn = new Button(
       this,
-      950,
+      975,
       700,
       "buttonRed",
       "surrender"
@@ -504,13 +483,8 @@ export default class BlackJackTableScene extends TableScene {
     this.surrenderBtn.once(
       "pointerdown",
       function displaySurrender(this: BlackJackTableScene) {
-        // 「Surrender」を表示
-        this.add
-        .text(this.playerPositionX, this.playerPositionY - 180, `Surrender`, {
-          fontFamily: "Arial Black",
-          fontSize: 50,
-        })
-        .setName("roleName");
+        // 負けの表示
+        this.displayResult("LOSE",0);
 
         // CREDITの更新
         this.players[0].setChips = this.players[0].getChips - this.bet / 2;
