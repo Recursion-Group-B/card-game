@@ -12,6 +12,7 @@ import GameResult from "../../../constants/gameResult";
 import Chip from "../../../models/common/chip";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -55,11 +56,12 @@ export default class TexasTableScene extends TableScene {
   private gameStarted: boolean;
 
   constructor() {
-    super("texas");
+    super(GameType.TEXAS);
     this.players = [
       new TexasPlayer("Player", "player", 1000, 0),
       new TexasPlayer("Cpu", "cpu", 1000, 0),
     ];
+    this.gameSceneKey = GameType.TEXAS;
     this.dealer = new TexasPlayer("Dealer", "dealer", 0, 0);
     this.pot = [0];
     this.returnPot = 0;
@@ -85,6 +87,7 @@ export default class TexasTableScene extends TableScene {
     this.createClearButton();
     this.createDealButton(true);
     this.createCreditField("texas");
+    this.createToggleSoundButton();
   }
 
   /**
