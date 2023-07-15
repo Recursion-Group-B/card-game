@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import Button from "../../models/common/button";
 import Size from "../../constants/size";
 
-export default abstract class Tutorial extends Phaser.Scene {
+export default class Tutorial extends Phaser.Scene {
   protected backButton: Button | undefined;
 
   protected gameZone: Phaser.GameObjects.Zone | undefined;
@@ -11,6 +11,13 @@ export default abstract class Tutorial extends Phaser.Scene {
 
   constructor() {
     super({ key: "tutorial" });
+  }
+
+  create() {
+    this.gameSceneKey = this.registry.get("gameSceneKey");
+    this.createGameZone();
+    this.drawVideo("tutorialVideo", 0.5);
+    this.createBackButton();
   }
 
   protected createBackButton(): void {

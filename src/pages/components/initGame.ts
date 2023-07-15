@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import GameManager from "../../models/common/gameManager";
 import GameType from "../../constants/gameType";
 import PreloadScene from "../../scenes/common/preloadScene";
+import Tutorial from "../../scenes/common/tutorial";
 
 /**
  * home画面非表示
@@ -21,24 +22,19 @@ function hideHome() {
 
 export default async function initGame(gameType: string, diff: string) {
   let gameScene;
-  let tutorialScene;
 
   switch (gameType) {
     case "speed":
       gameScene = (await import("../../scenes/games/speed/speedTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/speed/speedTutorial")).default;
       break;
     case "poker":
       gameScene = (await import("../../scenes/games/poker/pokerTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/poker/pokerTutorial")).default;
       break;
     case "blackjack":
       gameScene = (await import("../../scenes/games/blackjack/blackjackTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/blackjack/blackjackTutorial")).default;
       break;
     case "war":
       gameScene = (await import("../../scenes/games/war/warTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/war/warTutorial")).default;
       break;
     default:
       throw new Error("Invalid game type");
@@ -70,7 +66,7 @@ export default async function initGame(gameType: string, diff: string) {
         height: 920,
       },
     },
-    scene: [PreloadScene, gameScene, tutorialScene],
+    scene: [PreloadScene, gameScene, Tutorial],
     physics: {
       arcade: {
         debug: true,
