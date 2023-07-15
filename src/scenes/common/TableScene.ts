@@ -207,6 +207,10 @@ export default abstract class TableScene extends Phaser.Scene {
         if (this.isSoundOn) this.playerLoseSound?.play();
         resultMessage = "SURRENDER";
         break;
+      case GameResult.BUST:
+        if (this.isSoundOn) this.playerLoseSound?.play();
+        resultMessage = "BUST";
+        break;
       default:
         resultMessage = "GAME OVER";
     }
