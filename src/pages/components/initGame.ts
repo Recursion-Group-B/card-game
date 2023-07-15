@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import GameManager from "../../models/common/gameManager";
 import GameType from "../../constants/gameType";
+import PreloadScene from "../../scenes/common/preloadScene";
+import Tutorial from "../../scenes/common/tutorial";
 
 /**
  * home画面非表示
@@ -18,30 +20,30 @@ function hideHome() {
   }
 }
 
+function drawGame(): void {
+  const gameElement = document.getElementById("game-content");
+  gameElement.classList.remove("d-none");
+  gameElement.classList.add("d-block");
+}
+
 export default async function initGame(gameType: string, diff: string) {
   let gameScene;
-  let tutorialScene;
 
   switch (gameType) {
     case "speed":
       gameScene = (await import("../../scenes/games/speed/speedTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/speed/speedTutorial")).default;
       break;
     case "poker":
       gameScene = (await import("../../scenes/games/poker/pokerTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/poker/pokerTutorial")).default;
       break;
     case "blackjack":
       gameScene = (await import("../../scenes/games/blackjack/blackjackTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/blackjack/blackjackTutorial")).default;
       break;
     case "war":
       gameScene = (await import("../../scenes/games/war/warTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/war/warTutorial")).default;
       break;
     case "texas":
       gameScene = (await import("../../scenes/games/texasholdem/texasTableScene")).default;
-      tutorialScene = (await import("../../scenes/games/texasholdem/texasTutorial")).default;
       break;
     default:
       throw new Error("Invalid game type");
@@ -49,6 +51,9 @@ export default async function initGame(gameType: string, diff: string) {
 
   // Homeを非表示
   hideHome();
+
+  // game-contentを表示
+  drawGame();
 
   // ゲームの設定
   GameManager.setGameType(gameType as GameType, diff);
@@ -60,27 +65,32 @@ export default async function initGame(gameType: string, diff: string) {
     type: Phaser.AUTO,
     width: D_WIDTH,
     height: D_HEIGHT,
-    antialias: false,
-    scene: [gameScene, tutorialScene],
-    mode: Phaser.Scale.FIT,
-    parent: "game-content",
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    min: {
-      width: 720,
-      height: 345,
+    scale: {
+      mode: Phaser.Scale.FIT,
+      parent: "game-content",
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      min: {
+        width: 720,
+        height: 345,
+      },
+      max: {
+        width: 1920,
+        height: 920,
+      },
     },
-    max: {
-      width: 1920,
-      height: 920,
+    scene: [PreloadScene, gameScene, Tutorial],
+    physics: {
+      arcade: {
+        debug: true,
+      },
     },
     fps: {
       target: 40,
       forceSetTimeOut: true,
     },
-    physics: {
-      default: "arcade",
-    },
   };
 
   const phaser = new Phaser.Game(config);
+
+  phaser.registry.set("gameType", gameType);
 }

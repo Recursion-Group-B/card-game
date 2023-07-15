@@ -24,7 +24,7 @@ const Home = `
     <div id="myPage" class="d-none page">
         ${myPage}
     </div>
-    <div id="game-content">
+    <div id="game-content" class="d-none page">
     </div>
 `;
 

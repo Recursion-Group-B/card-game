@@ -13,10 +13,7 @@ import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
 import { resultStyle } from "../../../constants/styles";
 import Size from "../../../constants/size";
-import Chip from "../../../models/common/chip";
-
-const D_WIDTH = 1320;
-const D_HEIGHT = 920;
+import GameType from "../../../constants/gameType";
 
 export default class PokerTableScene extends TableScene {
   private playerPositionX = 450;
@@ -53,7 +50,9 @@ export default class PokerTableScene extends TableScene {
   private raiseBtn: Button | undefined;
 
   constructor() {
-    super();
+    super(GameType.POKER);
+    this.gameSceneKey = GameType.POKER;
+
     this.players = [
       new PokerPlayer("Player", "player", 1000, 0),
       new PokerPlayer("Cpu", "cpu", 1000, 0),
@@ -83,43 +82,33 @@ export default class PokerTableScene extends TableScene {
     return this.players.map((player) => player.getHand as Card[]);
   }
 
-  /**
-   * phaser3 画像ロード
-   */
-  preload() {
-    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
-    this.load.image("table", "/public/assets/images/tableGreen.png");
-    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
-    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
-    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
-    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
-    this.load.image("chipRed", "/public/assets/images/chipRed.png");
-    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
-    this.load.image("uTurn", "/public/assets/images/uTurn.svg");
-    this.load.image("tutorial", "/public/assets/images/tutorial.svg");
-    this.load.image("help", "/public/assets/images/help.svg");
-    this.load.image("back", "/public/assets/images/back.svg");
-    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
-    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
-    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
-    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
-    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
-    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
-    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
-    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
-    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
-    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
-    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
-    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
-    this.load.image("chipRed", "/public/assets/images/chipRed.png");
-    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
+  set setPot(amount: number) {
+    this.pot.push(amount);
+  }
+
+  get getPreBet(): number {
+    return this.pot[this.pot.length - 1];
+  }
+
+  get getPot(): number[] {
+    return this.pot;
+  }
+
+  get getTotalPot(): number {
+    return this.pot.reduce((pre, next) => pre + next, 0);
+  }
+
+  potReturn(): number {
+    this.returnPot = this.getTotalPot;
+    this.pot.length = 0;
+    return this.returnPot;
   }
 
   /**
    * phaser3 描画
    */
   create() {
-    this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.add.image(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, "table");
     this.createGameZone();
     (this.players[0] as PokerPlayer).setIsDealer = true;
 
@@ -135,7 +124,7 @@ export default class PokerTableScene extends TableScene {
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
-    console.log(this);
+    this.createToggleSoundButton();
   }
 
   update(): void {
