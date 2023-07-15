@@ -99,4 +99,17 @@ export default class Button extends Phaser.GameObjects.Image {
       ease: "Linear",
     });
   }
+
+  disableClickAnimation() {
+    this.off("pointerdown");
+    this.off("pointerup");
+  }
+
+  toggleSound(isSoundOn: boolean): void {
+    if (isSoundOn) {
+      this.clickSound?.pause();
+    } else {
+      this.clickSound?.resume();
+    }
+  }
 }

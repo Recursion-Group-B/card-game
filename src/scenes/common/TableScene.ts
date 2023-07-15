@@ -11,6 +11,8 @@ import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
 import HelpContainer from "./helpContainer";
 import { textStyle } from "../../constants/styles";
+import GameType from "../../constants/gameType";
+import Card from "../../models/common/card";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -50,7 +52,7 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected helpButton: Button | undefined;
 
-  protected backButton: Button | undefined;
+  protected toggleSoundButton: Button | undefined;
 
   protected helpContent: HelpContainer | undefined;
 
@@ -60,19 +62,26 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected gameElement: HTMLElement | null = document.getElementById("game-content");
 
-  protected set setInitialTime(time: number) {
-    this.initialTime = time;
-  }
-
-  constructor() {
-    super({ key: "game" });
-  }
+  protected gameSceneKey: GameType;
 
   protected playerWinSound: Phaser.Sound.BaseSound | undefined;
 
   protected playerLoseSound: Phaser.Sound.BaseSound | undefined;
 
   protected playerDrawSound: Phaser.Sound.BaseSound | undefined;
+
+  protected isSoundOn = true;
+
+  protected set setInitialTime(time: number) {
+    this.initialTime = time;
+  }
+
+  constructor(sceneKey: string) {
+    super(sceneKey);
+
+    // TODO 共通処理はここで行う
+    console.log("test");
+  }
 
   protected get getPlayer(): Player {
     return this.players.find((player) => player.getPlayerType === "player") as Player;
@@ -148,27 +157,27 @@ export default abstract class TableScene extends Phaser.Scene {
     let resultMessage = "";
     switch (result) {
       case GameResult.WIN:
-        this.playerWinSound?.play();
+        if (this.isSoundOn) this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.LOSE:
-        this.playerLoseSound?.play();
+        if (this.isSoundOn) this.playerLoseSound?.play();
         resultMessage = "YOU LOSE...";
         break;
       case GameResult.DRAW:
-        this.playerDrawSound?.play();
+        if (this.isSoundOn) this.playerDrawSound?.play();
         resultMessage = "DRAW";
         break;
       case GameResult.WAR_WIN:
-        this.playerWinSound?.play();
+        if (this.isSoundOn) this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.WAR_DRAW:
-        this.playerDrawSound?.play();
+        if (this.isSoundOn) this.playerDrawSound?.play();
         resultMessage = "WAR DRAW";
         break;
       case GameResult.SURRENDER:
-        this.playerLoseSound?.play();
+        if (this.isSoundOn) this.playerLoseSound?.play();
         resultMessage = "SURRENDER";
         break;
       default:
@@ -472,8 +481,10 @@ export default abstract class TableScene extends Phaser.Scene {
     this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
     this.backHomeButton.setOrigin(0);
     this.backHomeButton.setClickHandler(() => {
-      if (this.scene.key === "game") this.drawHomePage();
-      else if (this.scene.key === "tutorial") this.scene.switch("game");
+      if (this.scene.key !== "tutorial") this.drawHomePage();
+      else if (this.scene.key === "tutorial") {
+        this.scene.switch(this.gameSceneKey);
+      }
     });
   }
 
@@ -481,6 +492,8 @@ export default abstract class TableScene extends Phaser.Scene {
     this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
     this.tutorialButton.setOrigin(1, 0);
     this.tutorialButton.setClickHandler(() => {
+      // 現在のシーンのキーを保存する
+      this.registry.set("gameSceneKey", this.gameSceneKey);
       this.scene.switch("tutorial");
     });
   }
@@ -498,6 +511,33 @@ export default abstract class TableScene extends Phaser.Scene {
         this.add.existing(content);
         content.createContent();
       } else if (helpEle.list.length === 0) content.createContent();
+    });
+  }
+
+  /**
+   * サウンドのオンオフの切り替え
+   */
+  protected createToggleSoundButton(): void {
+    this.toggleSoundButton = new Button(
+      this,
+      this.scale.width - 40,
+      this.scale.height - 40,
+      "soundOn",
+      "",
+      ""
+    );
+    this.toggleSoundButton.setScale(0.5);
+    this.toggleSoundButton.disableClickAnimation();
+
+    this.toggleSoundButton.setClickHandler(() => {
+      // オンオフ切り替え
+      this.isSoundOn = !this.isSoundOn;
+
+      // ミュート
+      this.sound.mute = !this.isSoundOn;
+
+      // ボタンのテクスチャを切り替え
+      this.toggleSoundButton.setTexture(this.isSoundOn ? "soundOn" : "soundOff");
     });
   }
 }

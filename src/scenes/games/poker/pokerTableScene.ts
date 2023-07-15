@@ -11,6 +11,7 @@ import GameResult from "../../../constants/gameResult";
 import GAME from "../../../models/common/game";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -54,7 +55,9 @@ export default class PokerTableScene extends TableScene {
   private raiseBtn: Button | undefined;
 
   constructor() {
-    super();
+    super(GameType.POKER);
+    this.gameSceneKey = GameType.POKER;
+
     this.players = [
       new PokerPlayer("Player", "player", 1000, 0),
       new PokerPlayer("Cpu", "cpu", 1000, 0),
@@ -107,39 +110,6 @@ export default class PokerTableScene extends TableScene {
   }
 
   /**
-   * phaser3 画像ロード
-   */
-  preload() {
-    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
-    this.load.image("table", "/public/assets/images/tableGreen.png");
-    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
-    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
-    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
-    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
-    this.load.image("chipRed", "/public/assets/images/chipRed.png");
-    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
-    this.load.image("uTurn", "/public/assets/images/uTurn.svg");
-    this.load.image("tutorial", "/public/assets/images/tutorial.svg");
-    this.load.image("help", "/public/assets/images/help.svg");
-    this.load.image("back", "/public/assets/images/back.svg");
-    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
-    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
-    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
-    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
-    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
-    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
-    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
-    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
-
-    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
-    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
-    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
-    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
-    this.load.image("chipRed", "/public/assets/images/chipRed.png");
-    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
-  }
-
-  /**
    * phaser3 描画
    */
   create() {
@@ -155,6 +125,7 @@ export default class PokerTableScene extends TableScene {
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
+    this.createToggleSoundButton();
   }
 
   update(): void {

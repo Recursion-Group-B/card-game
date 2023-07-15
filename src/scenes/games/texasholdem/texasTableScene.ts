@@ -42,7 +42,7 @@ export default class TexasTableScene extends TableScene {
   private cycleState: string | undefined;
 
   constructor() {
-    super();
+    super("Texas");
     this.players = [
       new TexasPlayer("Player", "player", 10000, 0),
       new TexasPlayer("Cpu", "cpu", 10000, 0),
@@ -51,14 +51,6 @@ export default class TexasTableScene extends TableScene {
     this.pot = [0];
     this.returnPot = 0;
     this.gameState = "firstCycle";
-  }
-
-  /**
-   * phaser3 画像ロード
-   */
-  preload() {
-    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
-    this.load.image("table", "/public/assets/images/tableGreen.png");
   }
 
   /**

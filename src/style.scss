@@ -31,11 +31,11 @@ body {
   object-fit: cover;
 }
 
-#header h1{
+#header h1 {
   cursor: pointer;
 }
 
-#forgot{
+#forgot {
   cursor: pointer;
 }
 
@@ -159,13 +159,13 @@ nav .inner ul li a:hover {
   bottom: 4px;
 }
 
-.open .toggleBtn span:nth-child(1){
+.open .toggleBtn span:nth-child(1) {
   transform: translateY(10px) rotate(-315deg);
 }
-.open .toggleBtn span:nth-child(2){
+.open .toggleBtn span:nth-child(2) {
   opacity: 0;
 }
-.open .toggleBtn span:nth-child(3){
+.open .toggleBtn span:nth-child(3) {
   transform: translateY(-10px) rotate(315deg);
 }
 
@@ -183,4 +183,9 @@ nav .inner ul li a:hover {
   position: fixed;
   opacity: 0.5;
   cursor: pointer;
+}
+
+#game-content {
+  width: 100vw;
+  height: 100vh;
 }
