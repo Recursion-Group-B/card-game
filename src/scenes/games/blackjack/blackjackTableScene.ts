@@ -353,7 +353,7 @@ export default class BlackJackTableScene extends TableScene {
             }
           });
 
-          // double, surrenderのボタンを非表示にしたい
+          // double, surrender
           this.doubleBtn?.disable();
           this.surrenderBtn?.disable();
 
@@ -417,8 +417,6 @@ export default class BlackJackTableScene extends TableScene {
             });
           }
         });
-
-        // 課題 : 21を超えたらBust
 
         // ① CPUの手札を全てオープン、Totalを表示
         this.players[1].getHand?.forEach((card) => {
