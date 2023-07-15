@@ -10,10 +10,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         home: resolve(__dirname, "index.html"),
-        blackjack: resolve(__dirname, "src/pages/blackjack.html"),
-        poker: resolve(__dirname, "src/pages/poker.html"),
-        speed: resolve(__dirname, "src/pages/speed.html"),
-        war: resolve(__dirname, "src/pages/war.html"),
       },
       output: {
         entryFileNames: `assets/[name]/bundle.js`,
