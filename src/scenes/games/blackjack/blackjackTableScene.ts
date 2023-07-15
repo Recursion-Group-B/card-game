@@ -9,7 +9,9 @@ import PlayerType from "../../../constants/playerType";
 import Zone = Phaser.GameObjects.Zone;
 import GameObject = Phaser.GameObjects.GameObject;
 import TimeEvent = Phaser.Time.TimerEvent;
-import BlackJackHelp from "./blackjackHelp";
+import HelpContainer from "../../common/helpContainer";
+import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -44,7 +46,8 @@ export default class BlackJackTableScene extends TableScene {
   private gameStarted = false;
 
   constructor() {
-    super();
+    super(GameType.BLACKJACK);
+    this.gameSceneKey = GameType.BLACKJACK;
 
     this.players = [
       new BlackJackPlayer("Player", PlayerType.PLAYER, 1000, 0),
@@ -88,11 +91,12 @@ export default class BlackJackTableScene extends TableScene {
     this.createCreditField();
 
     // UI
+    this.helpContent = new HelpContainer(this, GameRule.BLACKJACK);
+    this.createHelpButton(this.helpContent);
     this.createBackHomeButton();
     this.createTutorialButton();
-    this.helpContent = new BlackJackHelp(this);
-    this.createHelpButton(this.helpContent);
     this.createCommonSound();
+    this.createToggleSoundButton();
   }
 
   update(): void {
