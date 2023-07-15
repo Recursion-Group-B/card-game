@@ -71,7 +71,6 @@ export default class TexasTableScene extends TableScene {
    * phaser3 描画
    */
   create() {
-    console.log(this);
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table").setName("table");
     this.createGameZone();
     (this.players[0] as TexasPlayer).setIsDealer = true;
