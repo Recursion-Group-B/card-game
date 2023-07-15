@@ -9,8 +9,8 @@ const Home = `
         ${headers}
     </div>
     <div id="home" class="d-block page">
-        <div class="container-fluid d-flex flex-column justify-content-center">
-            <img src="public/homeImg.jpeg" class="img-fit">
+        <div class="container-fuild d-flex flex-column justify-content-center mx-3">
+            <img src="/homeImg.jpeg" class="img-fit">
             ${selectDiff}
             ${selectGame}
         </div>

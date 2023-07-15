@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import GameManager from "../../models/common/gameManager";
 import GameType from "../../constants/gameType";
+import PreloadScene from "../../scenes/common/preloadScene";
+import Tutorial from "../../scenes/common/tutorial";
 
 /**
  * home画面非表示
@@ -18,7 +20,7 @@ function hideHome() {
   }
 }
 
-export default async function initGame(gameType: string) {
+export default async function initGame(gameType: string, diff: string) {
   let gameScene;
 
   switch (gameType) {
@@ -42,7 +44,7 @@ export default async function initGame(gameType: string) {
   hideHome();
 
   // ゲームの設定
-  GameManager.setGameType(gameType as GameType);
+  GameManager.setGameType(gameType as GameType, diff);
 
   const D_WIDTH = 1320;
   const D_HEIGHT = 920;
@@ -51,27 +53,32 @@ export default async function initGame(gameType: string) {
     type: Phaser.AUTO,
     width: D_WIDTH,
     height: D_HEIGHT,
-    antialias: false,
-    scene: gameScene,
-    mode: Phaser.Scale.FIT,
-    parent: "game-content",
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    min: {
-      width: 720,
-      height: 345,
+    scale: {
+      mode: Phaser.Scale.FIT,
+      parent: "game-content",
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      min: {
+        width: 720,
+        height: 345,
+      },
+      max: {
+        width: 1920,
+        height: 920,
+      },
     },
-    max: {
-      width: 1920,
-      height: 920,
+    scene: [PreloadScene, gameScene, Tutorial],
+    physics: {
+      arcade: {
+        debug: true,
+      },
     },
     fps: {
       target: 40,
       forceSetTimeOut: true,
     },
-    physics: {
-      default: "arcade",
-    },
   };
 
   const phaser = new Phaser.Game(config);
+
+  phaser.registry.set("gameType", gameType);
 }

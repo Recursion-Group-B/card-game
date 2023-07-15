@@ -1,9 +1,10 @@
 const selectDiff = `
-    <div class="slides d-flex justify-content-around py-3">
-        <h3> Easy </h3>
-        <h3> Medium </h3>
-        <h3> Hard </h3>
-    </div>
+    <select id="diff" class="form-select-lg my-3 bg-secondary">
+        <option selected disabled>--- Select Difficulty ---</option>
+        <option>Easy</option>
+        <option disabled>Medium</option>
+        <option disabled>Hard</option>
+    </select>
 `;
 
 export default selectDiff;
