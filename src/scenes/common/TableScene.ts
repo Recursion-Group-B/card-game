@@ -9,18 +9,17 @@ import GAME from "../../models/common/game";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
 import GameObject = Phaser.GameObjects.GameObject;
-
-const D_WIDTH = 1320;
-const D_HEIGHT = 920;
-
-const textStyle = {
-  font: "40px Arial",
-  color: "#FFFFFF",
-  strokeThickness: 2,
-};
+import HelpContainer from "./helpContainer";
+import { textStyle } from "../../constants/styles";
+import GameType from "../../constants/gameType";
+import Size from "../../constants/size";
 
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
+
+  protected pot: number[];
+
+  protected returnPot;
 
   protected players: Array<Player> = [];
 
@@ -44,13 +43,27 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected chipButtons: Array<Chip> = [];
 
-  protected dealButton: Button | undefined;
+  protected dealButton: Button;
 
   protected clearButton: Button | undefined;
 
-  protected set setInitialTime(time: number) {
-    this.initialTime = time;
-  }
+  protected backHomeButton: Button | undefined;
+
+  protected tutorialButton: Button | undefined;
+
+  protected helpButton: Button | undefined;
+
+  protected toggleSoundButton: Button | undefined;
+
+  protected helpContent: HelpContainer | undefined;
+
+  protected homeElement: HTMLElement | null = document.getElementById("home");
+
+  protected headerElement: HTMLElement | null = document.getElementById("header");
+
+  protected gameElement: HTMLElement | null = document.getElementById("game-content");
+
+  protected gameSceneKey: GameType;
 
   protected playerWinSound: Phaser.Sound.BaseSound | undefined;
 
@@ -58,8 +71,47 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected playerDrawSound: Phaser.Sound.BaseSound | undefined;
 
+  protected isSoundOn = true;
+
+  protected set setInitialTime(time: number) {
+    this.initialTime = time;
+  }
+
+  constructor(sceneKey: string) {
+    super(sceneKey);
+
+    // TODO 共通処理はここで行う
+    console.log("test");
+  }
+
   protected get getPlayer(): Player {
     return this.players.find((player) => player.getPlayerType === "player") as Player;
+  }
+
+  protected set setPot(amount: number) {
+    this.pot.push(amount);
+  }
+
+  protected get getPreBet(): number {
+    return this.pot[this.pot.length - 1];
+  }
+
+  protected get getPot(): number[] {
+    return this.pot;
+  }
+
+  protected get getAnte(): number {
+    return this.bet * Size.ANTE;
+  }
+
+  protected get getTotalPot(): number {
+    return this.pot.reduce((pre, next) => pre + next, 0);
+  }
+
+  protected potReturn(): number {
+    this.returnPot = this.getTotalPot;
+    this.pot.length = 0;
+    return this.returnPot;
   }
 
   /**
@@ -132,28 +184,32 @@ export default abstract class TableScene extends Phaser.Scene {
     let resultMessage = "";
     switch (result) {
       case GameResult.WIN:
-        this.playerWinSound?.play();
+        if (this.isSoundOn) this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.LOSE:
-        this.playerLoseSound?.play();
+        if (this.isSoundOn) this.playerLoseSound?.play();
         resultMessage = "YOU LOSE...";
         break;
       case GameResult.DRAW:
-        this.playerDrawSound?.play();
+        if (this.isSoundOn) this.playerDrawSound?.play();
         resultMessage = "DRAW";
         break;
       case GameResult.WAR_WIN:
-        this.playerWinSound?.play();
+        if (this.isSoundOn) this.playerWinSound?.play();
         resultMessage = "YOU WIN!!";
         break;
       case GameResult.WAR_DRAW:
-        this.playerDrawSound?.play();
+        if (this.isSoundOn) this.playerDrawSound?.play();
         resultMessage = "WAR DRAW";
         break;
       case GameResult.SURRENDER:
-        this.playerLoseSound?.play();
+        if (this.isSoundOn) this.playerLoseSound?.play();
         resultMessage = "SURRENDER";
+        break;
+      case GameResult.BUST:
+        if (this.isSoundOn) this.playerLoseSound?.play();
+        resultMessage = "BUST";
         break;
       default:
         resultMessage = "GAME OVER";
@@ -195,7 +251,11 @@ export default abstract class TableScene extends Phaser.Scene {
    * TODO ゲームサイズなどは後々決めましょう
    */
   protected createGameZone(): void {
-    this.gameZone = this.add.zone(D_WIDTH / 2, D_HEIGHT / 2, D_WIDTH, D_HEIGHT);
+    this.gameZone = this.add.zone(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, Size.D_WIDTH, Size.D_HEIGHT);
+  }
+
+  get getGameZone(): Phaser.GameObjects.Zone {
+    return this.gameZone as Phaser.GameObjects.Zone;
   }
 
   /**
@@ -235,10 +295,9 @@ export default abstract class TableScene extends Phaser.Scene {
 
     // ハンドラー設定
     this.chipButtons.forEach((chip) => {
-      const player = this.players[0];
       chip.setClickHandler(() => {
         const tempBet = this.bet + chip.getValue;
-        if (tempBet <= player.getChips) {
+        if (tempBet <= this.getPlayer.getChips) {
           this.bet = tempBet;
         }
 
@@ -270,7 +329,7 @@ export default abstract class TableScene extends Phaser.Scene {
 
         // UIをフェードアウトさせる
         this.chipButtons.forEach((chip) => {
-          chip.moveTo(chip.x, chip.y - 700, 200);
+          chip.moveToLocate(chip.x, chip.y - 700, 200);
           chip.disVisibleText();
         });
 
@@ -336,7 +395,7 @@ export default abstract class TableScene extends Phaser.Scene {
   private createPlayerBetText(): void;
   private createPlayerBetText(type: string): void;
   private createPlayerBetText(type?: string): void {
-    const bet = type === "poker" ? "BetSize" : "Bet";
+    const bet = type ? "BetSize" : "Bet";
     this.betText = this.add
       .text(90, this.scale.height / 2 + 400, `${bet}: $${this.bet.toString()}`, textStyle)
       .setName("betSize");
@@ -380,6 +439,41 @@ export default abstract class TableScene extends Phaser.Scene {
   }
 
   /**
+   * ポットの表示
+   */
+  protected drawPots(): void {
+    // 以前のpotsを削除
+    const potsX = 580;
+    const potsY = 170;
+    this.children.list.forEach((element) => {
+      if (element.name === "pots") element.destroy(true);
+    });
+
+    // 背景
+    this.add
+      .graphics()
+      .fillRoundedRect(0, 0, 150, 40)
+      .fillStyle(0x000000, 0.9)
+      .setName("pots_background");
+
+    // テキスト
+    this.add
+      .text(0, 0, ` pots: ${this.getTotalPot} `)
+      .setColor("white")
+      .setFontSize(24)
+      .setPadding(5)
+      .setFontFamily("Arial")
+      .setOrigin(0, 0)
+      .setName("pots_text");
+
+    // コンテナ
+    const potsChildren = this.children.list.filter(
+      (child) => child.name === "pots_background" || child.name === "pots_text"
+    );
+    this.add.container(potsX, potsY, potsChildren).setName("pots");
+  }
+
+  /**
    * 現在の所持金を画面にセット
    */
   protected setCreditText(displayCredit: number): void {
@@ -404,7 +498,7 @@ export default abstract class TableScene extends Phaser.Scene {
   protected fadeInBetItem(): void {
     // UIをフェードインさせる
     this.chipButtons.forEach((chip) => {
-      chip.moveTo(chip.x, chip.y + 700, 200);
+      chip.moveToLocate(chip.x, chip.y + 700, 200);
     });
 
     this.dealButton?.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
@@ -433,5 +527,105 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected tableInit(): void {
     this.bet = 0;
+  }
+
+  private drawHomePage(): void {
+    // game-content
+    (this.gameElement as HTMLElement).innerHTML = "";
+    this.gameElement.classList.remove("d-block");
+    this.gameElement.classList.add("d-none");
+
+    // home
+    this.homeElement?.classList.remove("d-none");
+    this.homeElement?.classList.add("d-block");
+
+    // header
+    this.headerElement?.classList.remove("d-none");
+    this.headerElement?.classList.add("d-block");
+  }
+
+  protected createBackHomeButton(): void {
+    this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
+    this.backHomeButton.setOrigin(0);
+    this.backHomeButton.setClickHandler(() => {
+      if (this.scene.key !== "tutorial") this.drawHomePage();
+      else if (this.scene.key === "tutorial") {
+        this.scene.switch(this.gameSceneKey);
+      }
+    });
+  }
+
+  protected createTutorialButton(): void {
+    this.tutorialButton = new Button(this, this.scale.width - 80, 10, "tutorial", "");
+    this.tutorialButton.setOrigin(1, 0);
+    this.tutorialButton.setClickHandler(() => {
+      // 現在のシーンのキーを保存する
+      this.registry.set("gameSceneKey", this.gameSceneKey);
+      this.scene.switch("tutorial");
+    });
+  }
+
+  protected createHelpButton(content: HelpContainer): void {
+    this.helpButton = new Button(this, this.scale.width - 10, 10, "help", "");
+    this.helpButton.setOrigin(1, 0);
+    this.helpButton.setClickHandler(() => {
+      this.time.paused = true;
+      const helpEle: HelpContainer | undefined = this.children.list
+        .filter((child) => child.name === "help")
+        .pop() as HelpContainer | undefined;
+
+      if (helpEle === undefined) {
+        this.add.existing(content);
+        content.createContent();
+      } else if (helpEle.list.length === 0) content.createContent();
+    });
+  }
+
+  protected payOutAnimation(amount: number): void {
+    const startLocation = (
+      this.children.list
+        .filter((child) => child.name === "playerCredit")
+        .pop() as Phaser.GameObjects.Text
+    ).getCenter();
+    const endLocation = this.children.list
+      .filter((child) => child.name === "pots")
+      .pop() as Phaser.GameObjects.Container;
+    const ante = new Chip(this, startLocation.x, startLocation.y, "chipRed", amount, "chipClick");
+    ante.setScale(0.25);
+    ante.moveToLocate(endLocation.x, endLocation.y, 1000, 0);
+    ante.getSound.play();
+  }
+
+  protected payOutToPots(player: Player, amount: number): void {
+    this.setPot = player.call(amount);
+    this.drawPots();
+    if (player.getPlayerType === "player") this.payOutAnimation(amount);
+  }
+
+  /**
+   * サウンドのオンオフの切り替え
+   */
+  protected createToggleSoundButton(): void {
+    this.toggleSoundButton = new Button(
+      this,
+      this.scale.width - 40,
+      this.scale.height - 40,
+      "soundOn",
+      "",
+      ""
+    );
+    this.toggleSoundButton.setScale(0.5);
+    this.toggleSoundButton.disableClickAnimation();
+
+    this.toggleSoundButton.setClickHandler(() => {
+      // オンオフ切り替え
+      this.isSoundOn = !this.isSoundOn;
+
+      // ミュート
+      this.sound.mute = !this.isSoundOn;
+
+      // ボタンのテクスチャを切り替え
+      this.toggleSoundButton.setTexture(this.isSoundOn ? "soundOn" : "soundOff");
+    });
   }
 }

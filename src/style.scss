@@ -27,47 +27,56 @@ body {
 
 .img-fit {
   max-width: 100%;
-  height: 50vh;
+  height: 35vh;
   object-fit: cover;
 }
 
-#header h1{
+#header h1 {
   cursor: pointer;
 }
 
-#forgot{
+#forgot {
   cursor: pointer;
 }
 
 // slider-----------
-.full-width {
+.swiper {
   width: 100%;
-  flex-shrink: 0;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 
-.slider-item .img-fit {
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+  width: 300px;
   height: 300px;
-  width: auto;
+}
+
+.swiper-slide img {
+  display: block;
   object-fit: cover;
 }
 
-.deplete-animation {
-  animation: deplete 1s linear forwards;
+.slider-item{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.expand-animation {
-  animation: deplete 1s linear reverse forwards;
+.swiper-container{
+  position: relative;
+  width: 90%;
+  margin: 0 auto;
 }
-
-@keyframes deplete {
-  0% {
-    width: 100%;
-    opacity: 1;
-  }
-  100% {
-    width: 0%;
-    opacity: 0;
-  }
+.swiper-container .swiper-button-prev{
+  left: -65px;
+}
+.swiper-container .swiper-button-next{
+  right: -65px;
+}
+.swiper-container .swiper-pagination{
+  bottom: -30px!important;
 }
 
 // menu-----------
@@ -76,7 +85,7 @@ nav {
   position: fixed;
   height: fit-content;
   background-color: #ffffff;
-  left: -300;
+  left: -300px;
   width: 220px;
   top: 0;
   bottom: 0;
@@ -86,7 +95,8 @@ nav {
 }
 
 .open nav {
-  right: 0;
+  left: initial;
+  right: 0px;
   opacity: 0.5;
 }
 
@@ -120,17 +130,14 @@ nav .inner ul li a:hover {
 
 .toggleBtn {
   display: block;
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  width: 30px;
-  height: 30px;
+  position: relative;
+  height: 100%;
   z-index: 3;
   cursor: pointer;
 }
 
 .toggleBtn span {
-  position: absolute;
+  position: relative;
   display: block;
   left: 0;
   width: 30px;
@@ -141,22 +148,22 @@ nav .inner ul li a:hover {
 }
 
 .toggleBtn span:nth-child(1) {
-  top: 4px;
+  top: 35%;
 }
 .toggleBtn span:nth-child(2) {
-  top: 14px;
+  top: 50%;
 }
 .toggleBtn span:nth-child(3) {
-  bottom: 4px;
+  top: 65%;
 }
 
-.open .toggleBtn span:nth-child(1){
+.open .toggleBtn span:nth-child(1) {
   transform: translateY(10px) rotate(-315deg);
 }
-.open .toggleBtn span:nth-child(2){
+.open .toggleBtn span:nth-child(2) {
   opacity: 0;
 }
-.open .toggleBtn span:nth-child(3){
+.open .toggleBtn span:nth-child(3) {
   transform: translateY(-10px) rotate(315deg);
 }
 
@@ -174,4 +181,9 @@ nav .inner ul li a:hover {
   position: fixed;
   opacity: 0.5;
   cursor: pointer;
+}
+
+#game-content {
+  width: 100vw;
+  height: 100vh;
 }

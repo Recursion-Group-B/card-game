@@ -5,12 +5,12 @@ import { signup, login } from "./components/login";
 import myPage from "./components/myPage";
 
 const Home = `
-    <div id="header" class="d-flex justify-content-between ps-2 pe-3">
+    <div id="header" class="d-flex justify-content-between px-3">
         ${headers}
     </div>
     <div id="home" class="d-block page">
-        <div class="container-fluid d-flex flex-column justify-content-center">
-            <img src="public/homeImg.jpeg" class="img-fit">
+        <div class="container-fuild d-flex flex-column justify-content-center mx-3">
+            <img src="/homeImg.jpeg" class="img-fit">
             ${selectDiff}
             ${selectGame}
         </div>
@@ -24,7 +24,7 @@ const Home = `
     <div id="myPage" class="d-none page">
         ${myPage}
     </div>
-    <div id="game-content">
+    <div id="game-content" class="d-none page">
     </div>
 `;
 

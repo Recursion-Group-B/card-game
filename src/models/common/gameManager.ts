@@ -2,7 +2,7 @@ import GameType from "../../constants/gameType";
 import Game from "./game";
 
 export default class GameManager {
-  static setGameType(gameName: GameType) {
+  static setGameType(gameName: GameType, diff: string) {
     switch (gameName) {
       case GameType.BLACKJACK:
         Game.CONFIG.GAME_MODE = GameType.BLACKJACK;
@@ -16,9 +16,13 @@ export default class GameManager {
       case GameType.WAR:
         Game.CONFIG.GAME_MODE = GameType.WAR;
         break;
+      case GameType.TEXAS:
+        Game.CONFIG.GAME_MODE = GameType.TEXAS;
+        break;
       default:
         // ゲームは適宜追加
         break;
     }
+    Game.CONFIG.DIFFICULTY = diff;
   }
 }

@@ -6,6 +6,9 @@ import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
 import PlayerType from "../../../constants/playerType";
 import Button from "../../../models/common/button";
+import HelpContainer from "../../common/helpContainer";
+import GameRule from "../../../constants/gameRule";
+import GameType from "../../../constants/gameType";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -24,7 +27,8 @@ export default class WarTableScene extends TableScene {
   private didWar = false;
 
   constructor() {
-    super({});
+    super(GameType.WAR);
+    this.gameSceneKey = GameType.WAR;
 
     this.players = [
       new WarPlayer("Player", PlayerType.PLAYER, 1000, 0),
@@ -32,32 +36,19 @@ export default class WarTableScene extends TableScene {
     ];
   }
 
-  preload(): void {
-    this.load.atlas("cards", "/public/assets/images/cards.png", "/public/assets/images/cards.json");
-    this.load.image("table", "/public/assets/images/tableGreen.png");
-    this.load.image("chipWhite", "/public/assets/images/chipWhite.png");
-    this.load.image("chipYellow", "/public/assets/images/chipYellow.png");
-    this.load.image("chipBlue", "/public/assets/images/chipBlue.png");
-    this.load.image("chipOrange", "/public/assets/images/chipOrange.png");
-    this.load.image("chipRed", "/public/assets/images/chipRed.png");
-    this.load.image("buttonRed", "/public/assets/images/buttonRed.png");
-
-    this.load.audio("buttonClick", "/public/assets/sounds/buttonClick.mp3");
-    this.load.audio("chipClick", "/public/assets/sounds/chipClick.mp3");
-    this.load.audio("countdown", "/public/assets/sounds/countdown.mp3");
-    this.load.audio("dealCard", "/public/assets/sounds/dealCard.mp3");
-    this.load.audio("flipOver", "/public/assets/sounds/flipOver.mp3");
-    this.load.audio("playerDraw", "/public/assets/sounds/playerDraw.mp3");
-    this.load.audio("playerWin", "/public/assets/sounds/playerWin.mp3");
-    this.load.audio("playerLose", "/public/assets/sounds/playerLose.mp3");
-  }
-
   create(): void {
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
     this.gameState = GameState.BETTING;
     this.createGameZone();
     this.createBetItem();
+
+    // UI
+    this.createBackHomeButton();
+    this.createTutorialButton();
+    this.helpContent = new HelpContainer(this, GameRule.WAR);
+    this.createHelpButton(this.helpContent);
     this.createCommonSound();
+    this.createToggleSoundButton();
   }
 
   update(): void {
