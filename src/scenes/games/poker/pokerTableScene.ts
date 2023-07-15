@@ -11,21 +11,16 @@ import GameResult from "../../../constants/gameResult";
 import GAME from "../../../models/common/game";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
+import { resultStyle } from "../../../constants/styles";
+import Size from "../../../constants/size";
 import GameType from "../../../constants/gameType";
 
-const D_WIDTH = 1320;
-const D_HEIGHT = 920;
-
 export default class PokerTableScene extends TableScene {
-  private pot: number[];
-
-  private returnPot: number;
-
-  private playerPositionX = 400;
+  private playerPositionX = 450;
 
   private playerPositionY = 600;
 
-  private cpuPositionX = 400;
+  private cpuPositionX = 450;
 
   private cpuPositionY = 300;
 
@@ -113,15 +108,19 @@ export default class PokerTableScene extends TableScene {
    * phaser3 描画
    */
   create() {
-    this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
+    this.add.image(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, "table");
     this.createGameZone();
+    (this.players[0] as PokerPlayer).setIsDealer = true;
 
     this.helpContent = new HelpContainer(this, GameRule.POKER);
     this.createHelpButton(this.helpContent);
     this.createBackHomeButton();
     this.createTutorialButton();
+    this.createChips();
+    this.createClearButton();
+    this.createDealButton(true);
+    this.createCreditField("poker");
 
-    this.initGame();
     // アニメーション
     this.clickToUp();
     this.createCommonSound();
@@ -137,10 +136,12 @@ export default class PokerTableScene extends TableScene {
     this.setCreditText(this.getPlayer.getChips);
   }
 
-  private cycleEvent(player: PokerPlayer, index: number): void {
-    this.actionControl();
-    // playerの場合、何もしない
-    if (player.getPlayerType === "player") return;
+  private async cycleEvent(player: PokerPlayer, index: number): Promise<void> {
+    // playerが何もしていない場合、アクション表示
+    if (player.getPlayerType === "player" && player.getState === "notAction") {
+      this.actionControl();
+      return;
+    }
 
     // 前者がアクションしていないかつ自分がディーラーでない場合、何もしない。
     const prePlayer = index - 1 < 0 ? this.players.length - 1 : index - 1;
@@ -155,11 +156,10 @@ export default class PokerTableScene extends TableScene {
 
     // cpu
     if (player.getPlayerType === "cpu") {
-      this.cpuAction(player as PokerPlayer);
+      await this.cpuAction(player);
     }
   }
 
-  // TODO サイクル切り替えをbetが揃うまでにする。
   private cycleControl(): void {
     // ベット終了
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
@@ -169,13 +169,26 @@ export default class PokerTableScene extends TableScene {
       this.disableBetItem();
     }
     // レイズした場合、もう一周
-    if (this.players.some((player) => (player as PokerPlayer).getState === "raise")) {
+    if (this.players.some((player: PokerPlayer) => player.getState === "raise")) {
       this.cycleState = "raise";
-      this.players.forEach((player) => {
-        (player as PokerPlayer).setState = "notAction";
-        this.deleteDoneAction();
+      this.players.forEach((player: PokerPlayer) => {
+        if (player.getState !== "raise") {
+          player.setState = "notAction";
+        } else if (player.getState === "raise") {
+          player.setState = "raised";
+        }
       });
+      this.deleteDoneAction();
     }
+
+    // レイズの場合で全員アクションした
+    if (
+      this.cycleState === "raise" &&
+      this.players.every((player: PokerPlayer) => player.getState !== "notAction")
+    ) {
+      this.cycleState = "allDone";
+    }
+
     // 全員がアクションした
     if (
       this.players.every((player) => (player as PokerPlayer).getState !== "notAction") &&
@@ -199,6 +212,7 @@ export default class PokerTableScene extends TableScene {
       });
       this.cycleState = "notAllDone";
       this.gameState = "changeCycle";
+      this.deleteDoneAction();
     }
 
     // change
@@ -215,7 +229,8 @@ export default class PokerTableScene extends TableScene {
     // 手札を比較し、ゲーム終了
     if (this.gameState === "compare") {
       this.gameState = "endGame";
-      this.changeBtn?.disable();
+      this.deleteDoneAction();
+      this.disableBtn();
       this.checkResult();
     }
 
@@ -230,95 +245,95 @@ export default class PokerTableScene extends TableScene {
       });
 
       // リスタート
-      this.time.delayedCall(5000, () => {
+      this.gameZone.setInteractive();
+      this.gameZone.on("pointerdown", () => {
         this.initGame();
+        this.gameZone.removeInteractive();
+        this.gameZone.removeAllListeners();
       });
     }
   }
 
-  private cpuAction(player: PokerPlayer): void {
-    if (player.getIsDealer && this.cycleState === "notAllAction") {
-      // bet
-      this.setPot = player.call(this.bet);
-      this.deleteDoneAction();
-      this.drawDoneAction(player, "bet");
-      this.drawPots();
-      player.setState = "bet";
-    } else if (this.cycleState === "raise" || this.gameState === "firstCycle") {
-      // call
-      this.setPot = player.call(this.getPreBet);
-      this.deleteDoneAction();
-      this.drawDoneAction(player, "call");
-      this.drawPots();
-      player.setState = "call";
-    } else if (this.gameState === "changeCycle") {
-      const changeList: Set<Card> = new Set();
-      const changeAmount = Phaser.Math.RND.integerInRange(0, 5);
-      for (let i = 0; i < changeAmount; i += 1) {
-        changeList.add((player.getHand as Card[])[Phaser.Math.RND.integerInRange(0, 4)]);
-      }
-      if (changeList.size) {
-        player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
-
-        // phaser描画
-        changeList.forEach((card) => card.destroy());
-        this.dealHand();
-      }
-
-      // state更新
-      player.setState = "Done";
-      this.drawDoneAction(player, "change");
-    }
+  private cpuAction(player: PokerPlayer): Promise<PokerPlayer> {
+    return new Promise(() => {
+      setTimeout(() => {
+        if (player.getIsDealer && this.cycleState === "notAllAction") {
+          // bet
+          this.setPot = player.call(this.bet);
+          this.drawDoneAction(player, "bet");
+          this.drawPots();
+          player.setState = "bet";
+        } else if (this.cycleState === "raise" || this.gameState === "firstCycle") {
+          // call
+          this.setPot = player.call(this.getPreBet);
+          this.drawDoneAction(player, "call");
+          this.drawPots();
+          player.setState = "call";
+        } else if (this.gameState === "changeCycle") {
+          const changeList: Set<Card> = new Set();
+          const changeAmount = Phaser.Math.RND.integerInRange(0, 5);
+          for (let i = 0; i < changeAmount; i += 1) {
+            changeList.add((player.getHand as Card[])[Phaser.Math.RND.integerInRange(0, 4)]);
+          }
+          if (changeList.size) {
+            player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
+            // phaser描画
+            changeList.forEach((card) => card.destroy());
+            this.dealHand();
+          }
+          // state更新
+          player.setState = "Done";
+          this.drawDoneAction(player, "change");
+        }
+      }, 1000);
+    });
   }
 
   private drawDealer(): void {
     const dealerContainer = this.add.container().setName("dealer");
     const dealerText = this.add
       .text(0, 0, "dealer")
-      .setColor("black")
+      .setColor("white")
       .setFontSize(14)
       .setFontStyle("bold");
-    const dealerTestify = this.add.graphics().fillCircle(23, 6, 30).fillStyle(0xffffff, 1.0);
+    const dealerTestify = this.add.graphics().fillCircle(23, 6, 30).fillStyle(0x000000, 0.9);
     dealerContainer.add(dealerTestify);
     dealerContainer.add(dealerText);
     this.players.forEach((player) => {
       if (player.getPlayerType === "player" && (player as PokerPlayer).getIsDealer) {
-        dealerContainer.setPosition(this.playerPositionX - 100, this.playerPositionY - 100);
+        dealerContainer.setPosition(this.playerPositionX - 120, this.playerPositionY - 50);
       } else if (player.getPlayerType === "cpu" && (player as PokerPlayer).getIsDealer) {
-        dealerContainer.setPosition(this.cpuPositionX - 100, this.cpuPositionY - 100);
+        dealerContainer.setPosition(this.cpuPositionX - 120, this.cpuPositionY - 50);
       }
     });
   }
 
   /**
-   * ポットの表示
-   */
-  private drawPots(): void {
-    // 以前のpotsを削除
-    this.children.list.forEach((element) => {
-      if (element.name === "pots") element.destroy();
-    });
-
-    this.add
-      .text(500, 185, `pots: ${this.getTotalPot}`)
-      .setFontSize(50)
-      .setFontFamily("Arial")
-      .setOrigin(0.5)
-      .setName("pots");
-  }
-
-  /**
    * 手札配布
    */
-  dealHand() {
-    this.players.forEach((player) => {
+  private dealHand() {
+    const flipTime = 800;
+    let cpuTime;
+    switch (this.gameState) {
+      case "firstCycle":
+        cpuTime = 1000;
+        break;
+      default:
+        cpuTime = 0;
+    }
+
+    this.players.forEach((player: PokerPlayer) => {
       player.getHand?.forEach((card, index) => {
         this.children.bringToTop(card);
         if (player.getPlayerType === "player") {
           card.moveTo(this.playerPositionX + index * this.cardSize.x, this.playerPositionY, 500);
-          setTimeout(() => card.flipToFront(), 800);
+          setTimeout(() => {
+            card.flipToFront();
+          }, flipTime);
         } else if (player.getPlayerType === "cpu") {
-          card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
+          setTimeout(() => {
+            card.moveTo(this.cpuPositionX + index * this.cardSize.x, this.cpuPositionY, 500);
+          }, cpuTime);
         }
       });
     });
@@ -355,38 +370,36 @@ export default class PokerTableScene extends TableScene {
       this.scale.width / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "change"
+      "change",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.changeBtn.disable();
     this.changeBtn.setScale(0.3);
-    this.changeBtn.once(
-      "pointerdown",
-      function changeCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          if (player.getPlayerType !== "player") return;
-          // data
-          const changeList = (player.getHand as Card[]).filter(
-            (child) => (child as Card).getClickStatus === true
-          ) as Card[];
-          if (changeList.length)
-            (player as PokerPlayer).change(
-              changeList,
-              (this.deck as Deck).draw(changeList.length) as Card[]
-            );
+    this.changeBtn.setClickHandler(() => {
+      this.players.forEach((player) => {
+        if (player.getPlayerType !== "player") return;
+        // data
+        const changeList = (player.getHand as Card[]).filter(
+          (child) => (child as Card).getClickStatus === true
+        ) as Card[];
+        if (changeList.length)
+          (player as PokerPlayer).change(
+            changeList,
+            (this.deck as Deck).draw(changeList.length) as Card[]
+          );
 
-          // phaser描画
-          changeList.forEach((card) => card.destroy());
-          this.dealHand();
+        // phaser描画
+        changeList.forEach((card) => card.destroy());
+        this.dealHand();
 
-          // state更新
-          (player as PokerPlayer).setState = "Done";
+        // state更新
+        (player as PokerPlayer).setState = "Done";
 
-          // action表示
-          this.drawDoneAction(player as PokerPlayer, "change");
-        });
-      },
-      this
-    );
+        // action表示
+        this.drawDoneAction(player as PokerPlayer, "change");
+        this.disableBtn();
+      });
+    });
   }
 
   /**
@@ -398,24 +411,22 @@ export default class PokerTableScene extends TableScene {
       (this.scale.width * 3) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "check"
+      "check",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.checkBtn.disable();
     this.checkBtn.setScale(0.3);
-    this.checkBtn.once(
-      "pointerdown",
-      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          if (player.getPlayerType === "player") {
-            // playerのstate変更
-            (player as PokerPlayer).setState = "Done";
-            // action表示
-            this.drawDoneAction(player as PokerPlayer, "check");
-          }
-        });
-      },
-      this
-    );
+    this.checkBtn.setClickHandler(() => {
+      this.players.forEach((player) => {
+        if (player.getPlayerType === "player") {
+          // playerのstate変更
+          (player as PokerPlayer).setState = "Done";
+          // action表示
+          this.drawDoneAction(player as PokerPlayer, "check");
+          this.disableBtn();
+        }
+      });
+    });
   }
 
   /**
@@ -427,28 +438,27 @@ export default class PokerTableScene extends TableScene {
       (this.scale.width * 5) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "bet"
+      "bet",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.betBtn.disable();
     this.betBtn.setScale(0.3);
-    this.betBtn.once(
-      "pointerdown",
-      function betToPot(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          if (player.getPlayerType !== "player") return;
-          // 100betする
-          if (player.getPlayerType === "player" && player.getChips >= this.bet) {
-            this.setPot = (player as PokerPlayer).call(this.bet);
-            this.drawPots();
-            // playerのstate変更
-            (player as PokerPlayer).setState = "Done";
-            // action表示
-            this.drawDoneAction(player as PokerPlayer, "bet");
-          }
-        });
-      },
-      this
-    );
+    this.betBtn.setClickHandler(() => {
+      this.players.forEach((player: PokerPlayer) => {
+        if (player.getPlayerType !== "player") return;
+        // 100betする
+        if (player.getPlayerType === "player" && player.getChips >= this.bet) {
+          setTimeout(() => {
+            this.payOut(player, this.bet);
+          }, 500);
+          // playerのstate変更
+          player.setState = "Done";
+          // action表示
+          this.drawDoneAction(player, "bet");
+          this.disableBtn();
+        }
+      });
+    });
   }
 
   // TODO 現状リスタートになっている。要改善
@@ -461,32 +471,28 @@ export default class PokerTableScene extends TableScene {
       (this.scale.width * 7) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "fold"
+      "fold",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.foldBtn.disable();
     this.foldBtn.setScale(0.3);
-    this.foldBtn.once(
-      "pointerdown",
-      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        // カードを手放す
-        this.players.forEach((player) => {
-          if (player.getPlayerType === "player") {
-            (player.getHand as Card[]).forEach((card) => {
-              card.destroy();
-            });
-
-            (player as PokerPlayer).fold();
-
-            // playerのstate変更
-            (player as PokerPlayer).setState = "Done";
-            // action表示
-            this.drawDoneAction(player as PokerPlayer, "fold");
-          }
-        });
-        this.gameState = "compare";
-      },
-      this
-    );
+    this.foldBtn.setClickHandler(() => {
+      // カードを手放す
+      this.players.forEach((player: PokerPlayer) => {
+        if (player.getPlayerType === "player") {
+          (player.getHand as Card[]).forEach((card) => {
+            card.destroy();
+          });
+          player.fold();
+          // playerのstate変更
+          player.setState = "Done";
+          // action表示
+          this.drawDoneAction(player, "fold");
+        }
+      });
+      this.gameState = "compare";
+      this.disableBtn();
+    });
   }
 
   /**
@@ -498,27 +504,26 @@ export default class PokerTableScene extends TableScene {
       (this.scale.width * 9) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "call"
+      "call",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.callBtn.disable();
     this.callBtn.setScale(0.3);
-    this.callBtn.once(
-      "pointerdown",
-      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          // 前のbetSizeでbetする
-          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
-            this.setPot = (player as PokerPlayer).call(this.getPreBet);
-            this.drawPots();
-            // playerのstate変更
-            (player as PokerPlayer).setState = "Done";
-            // action表示
-            this.drawDoneAction(player as PokerPlayer, "call");
-          }
-        });
-      },
-      this
-    );
+    this.callBtn.setClickHandler(() => {
+      this.players.forEach((player: PokerPlayer) => {
+        // 前のbetSizeでbetする
+        if (player.getPlayerType === "player" && player.getChips >= this.getPreBet) {
+          setTimeout(() => {
+            this.payOut(player, this.getPreBet);
+          }, 500);
+          // playerのstate変更
+          player.setState = "Done";
+          // action表示
+          this.drawDoneAction(player, "call");
+          this.disableBtn();
+        }
+      });
+    });
   }
 
   /**
@@ -530,27 +535,26 @@ export default class PokerTableScene extends TableScene {
       (this.scale.width * 11) / 12,
       this.scale.height / 2 + 250,
       "buttonRed",
-      "raise"
+      "raise",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
     );
     this.raiseBtn.disable();
     this.raiseBtn.setScale(0.3);
-    this.raiseBtn.once(
-      "pointerdown",
-      function releaseCard(this: PokerTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          // 前のbetSizeでbetする
-          if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
-            this.setPot = (player as PokerPlayer).call(this.getPreBet * 2);
-            this.drawPots();
-            // playerのstate変更
-            (player as PokerPlayer).setState = "raise";
-            // action表示
-            this.drawDoneAction(player as PokerPlayer, "raise");
-          }
-        });
-      },
-      this
-    );
+    this.raiseBtn.setClickHandler(() => {
+      this.players.forEach((player: PokerPlayer) => {
+        // 前のbetSizeでbetする
+        if (player.getPlayerType === "player" && player.getChips >= this.getPreBet * 2) {
+          setTimeout(() => {
+            this.payOut(player, this.getPreBet * 2);
+          }, 500);
+          // playerのstate変更
+          player.setState = "raise";
+          // action表示
+          this.drawDoneAction(player, "raise");
+          this.disableBtn();
+        }
+      });
+    });
   }
 
   /**
@@ -559,8 +563,8 @@ export default class PokerTableScene extends TableScene {
   private checkResult(): void {
     const scoreList: Set<number> = new Set();
 
-    this.players.forEach((player) => {
-      const handScore: HandScore = (player as PokerPlayer).calculateHandScore();
+    this.players.forEach((player: PokerPlayer) => {
+      const handScore: HandScore = player.calculateHandScore();
       console.log(`${player.getName} role: ${handScore.role}`);
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
@@ -638,59 +642,33 @@ export default class PokerTableScene extends TableScene {
   }
 
   private deleteDoneAction(): void {
-    this.children.list.forEach((child) => {
-      if (child.name === "action") child.destroy();
-    });
+    setTimeout(() => {
+      this.children.list.forEach((child) => {
+        if (child.name === "action") child.destroy();
+      });
+    }, 300);
   }
 
   private drawDoneAction(player: PokerPlayer, actionType: string): void {
-    const resultColor = "#ff0";
-    const backgroundColor = "rgba(0,0,0,0.5)";
-    const resultStyle = {
-      font: "20px Arial",
-      fill: resultColor,
-      stroke: "#000000",
-      strokeThickness: 9,
-      boundsAlignH: "center",
-      boundsAlignV: "middle",
-      backgroundColor,
-      padding: {
-        top: 15,
-        bottom: 15,
-        left: 15,
-        right: 15,
-      },
-      borderRadius: 10,
-    };
-
+    let positionX;
+    let positionY;
     if (player.getPlayerType === "player") {
-      const action = this.add.text(
-        this.playerPositionX + 180,
-        this.playerPositionY - 20,
-        actionType,
-        resultStyle
-      );
-      action.setName("action");
-      this.children.bringToTop(action);
+      positionX = this.playerPositionX + 180;
+      positionY = this.playerPositionY - 20;
     } else {
-      const action = this.add.text(
-        this.cpuPositionX + 180,
-        this.cpuPositionY - 20,
-        actionType,
-        resultStyle
-      );
-      action.setName("action");
-      this.children.bringToTop(action);
+      positionX = this.cpuPositionX + 180;
+      positionY = this.cpuPositionY - 20;
     }
+    const action = this.add.text(positionX, positionY, actionType, resultStyle);
+    action.setName("action");
+    this.children.bringToTop(action);
   }
 
   /**
    * リスタートボタンを描画
    */
   private initGame(): void {
-    this.gameState = GameState.BETTING;
-
-    // カードオブジェクト削除
+    // オブジェクト削除
     const destroyList = this.children.list.filter(
       (child) =>
         child instanceof Card ||
@@ -698,15 +676,14 @@ export default class PokerTableScene extends TableScene {
         child.name === "pots" ||
         child.name === "roleName" ||
         child.name === "action" ||
-        child.name === "dealer" ||
-        child.name === "playerCredit" ||
-        child.name === "betSize"
+        child.name === "dealer"
     );
     destroyList.forEach((element) => {
       element.destroy();
     });
 
     // クラス変数初期化
+    this.gameState = GameState.BETTING;
     this.result = undefined;
     this.pot = [];
     this.gameState = "firstCycle";
@@ -725,32 +702,40 @@ export default class PokerTableScene extends TableScene {
     (this.players[0] as PokerPlayer).setIsDealer = true;
 
     // betting
-    this.createChips();
-    this.createClearButton();
-    this.createDealButton(true);
-    this.createCreditField("poker");
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+    this.clearButton?.disVisibleText();
+    this.dealButton?.disVisibleText();
+    this.enableBetItem();
+    this.fadeInBetItem();
   }
 
   private startGame(): void {
     // オブジェクト表示
     this.deckReset(650, 450);
     this.dealCards();
-    this.dealHand();
     this.drawPots();
     this.drawDealer();
     this.drawAction();
+    this.dealHand();
+
+    // ante支払い
+    this.players.forEach((player: PokerPlayer) => {
+      setTimeout(() => {
+        this.payOut(player, this.getAnte);
+      }, 2000);
+    });
 
     // タイマーイベント
     this.time.removeAllEvents();
     this.players.forEach((player, index) => {
-      this.time.delayedCall(index * 2000, () => {
-        this.time.addEvent({
-          delay: 3000,
-          callback: this.cycleEvent,
-          callbackScope: this,
-          args: [player, index],
-          loop: true,
-        });
+      this.time.addEvent({
+        delay: 2000,
+        callback: this.cycleEvent,
+        callbackScope: this,
+        args: [player, index],
+        loop: true,
       });
     });
   }
@@ -766,6 +751,15 @@ export default class PokerTableScene extends TableScene {
     this.callAction();
     this.raiseAction();
     this.changeAction();
+  }
+
+  private disableBtn(): void {
+    this.checkBtn.disable();
+    this.changeBtn.disable();
+    this.foldBtn.disable();
+    this.betBtn.disable();
+    this.callBtn.disable();
+    this.raiseBtn.disable();
   }
 
   private actionControl(): void {

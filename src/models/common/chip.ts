@@ -7,7 +7,8 @@ const textStyle = {
   strokeThickness: 2,
 };
 
-export default class Chip extends Phaser.GameObjects.Image {
+// TODO Containerを継承させる テキストと一緒に動かすため
+export default class Chip extends Phaser.GameObjects.Container {
   private value: number;
 
   private textStr: string | undefined;
@@ -18,6 +19,10 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   private clickSound: Phaser.Sound.BaseSound | undefined;
 
+  private textureKey: string;
+
+  private chip: Phaser.GameObjects.Image;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -26,19 +31,22 @@ export default class Chip extends Phaser.GameObjects.Image {
     value: number,
     soundKey = ""
   ) {
-    super(scene, x, y, textureKey);
+    super(scene, x, y);
     this.value = value;
     this.textStr = value < 1000 ? String(value) : "1K";
     this.originScale = 0.9;
+    this.textureKey = textureKey;
 
-    scene.add.existing(this);
+    // children
+    this.chip = this.scene.add.image(0, 0, this.textureKey);
+    this.text = this.scene.add.text(0, 0, this.textStr, textStyle).setOrigin(0.5);
 
+    this.setSize(125, 125);
     this.setInteractive();
+    this.add([this.chip, this.text]);
     this.setScale(this.originScale);
     this.setPushAnimation();
-
-    this.text = this.scene.add.text(0, 0, this.textStr, textStyle);
-    Phaser.Display.Align.In.Center(this.text, this);
+    scene.add.existing(this);
 
     if (soundKey) {
       this.clickSound = this.scene.sound.add(soundKey, { volume: 0.6 });
@@ -47,6 +55,10 @@ export default class Chip extends Phaser.GameObjects.Image {
 
   get getValue(): number {
     return this.value;
+  }
+
+  get getSound(): Phaser.Sound.BaseSound {
+    return this.clickSound;
   }
 
   private setPushAnimation(): void {
@@ -72,6 +84,7 @@ export default class Chip extends Phaser.GameObjects.Image {
       () => {
         if (this.clickSound) this.clickSound.play();
         pushHandler();
+        console.log(this);
       },
       this
     );
@@ -96,13 +109,29 @@ export default class Chip extends Phaser.GameObjects.Image {
     this.text.setVisible(true);
   }
 
-  moveTo(toX: number, toY: number, delay: number): void {
-    this.scene.tweens.add({
-      targets: this,
-      x: toX,
-      y: toY,
-      duration: delay,
-      ease: "Linear",
-    });
+  moveToLocate(toX: number, toY: number, delay: number): void;
+  moveToLocate(toX: number, toY: number, delay: number, fade: number): void;
+  moveToLocate(toX: number, toY: number, delay: number, fade?: number): void {
+    let tweenConfig;
+    if (fade !== undefined) {
+      tweenConfig = {
+        targets: this,
+        x: toX,
+        y: toY,
+        alpha: fade,
+        duration: delay,
+        ease: "Linear",
+      };
+    } else {
+      tweenConfig = {
+        targets: this,
+        x: toX,
+        y: toY,
+        duration: delay,
+        ease: "Linear",
+      };
+    }
+
+    this.scene.tweens.add(tweenConfig);
   }
 }
