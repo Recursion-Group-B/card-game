@@ -55,7 +55,7 @@ export default class TexasTableScene extends TableScene {
   private gameStarted: boolean;
 
   constructor() {
-    super("Texas");
+    super("texas");
     this.players = [
       new TexasPlayer("Player", "player", 1000, 0),
       new TexasPlayer("Cpu", "cpu", 1000, 0),
@@ -71,6 +71,7 @@ export default class TexasTableScene extends TableScene {
    * phaser3 描画
    */
   create() {
+    console.log(this);
     this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table").setName("table");
     this.createGameZone();
     (this.players[0] as TexasPlayer).setIsDealer = true;
