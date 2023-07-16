@@ -9,7 +9,7 @@ https://github.com/Recursion-Group-B/card-game/assets/69625901/4edbec17-049e-4eb
 
 ## 遊び方
 1. ホーム画面で難易度を選択します（現在Easyのみ対応）
-2. 遊びたいゲームを選択しましょう
+2. 遊びたいゲームを選択
 3. チップをベットしてゲームプレイ
 
 ## ゲームリスト
@@ -21,4 +21,22 @@ https://github.com/Recursion-Group-B/card-game/assets/69625901/4edbec17-049e-4eb
 
 **注：** 各ゲームの遊び方は右上のアイコンから確認できます
 
+# Install
+```
+git clone https://github.com/Recursion-Group-B/card-game.git
+npm install
+npm run dev
+```
 
+# Documents
+[wiki](https://github.com/Recursion-Group-B/card-game/wiki)  
+[要件定義](https://github.com/Recursion-Group-B/card-game/wiki/%E8%A6%81%E4%BB%B6%E5%AE%9A%E7%BE%A9)  
+[規約](https://github.com/Recursion-Group-B/card-game/wiki/%E8%A6%8F%E7%B4%84)  
+[設計](https://github.com/Recursion-Group-B/card-game/wiki/%E8%A8%AD%E8%A8%88)  
+[議事録](https://github.com/Recursion-Group-B/card-game/wiki/%E8%AD%B0%E4%BA%8B%E9%8C%B2)
+
+
+# Contributors
+- [@seiichikick0404](https://github.com/seiichikick0404)
+- [@motsu8](https://github.com/motsu8)
+- [@Tomoya1](https://github.com/Tomoya1)
