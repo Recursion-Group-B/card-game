@@ -37,6 +37,6 @@ npm run dev
 
 
 # Contributors
-- [@seiichikick0404](https://github.com/seiichikick0404)
-- [@motsu8](https://github.com/motsu8)
-- [@Tomoya1](https://github.com/Tomoya1)
+<a href="https://github.com/Recursion-Group-B/card-game/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=recursion-group-b/card-games" />
+</a>
