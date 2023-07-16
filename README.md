@@ -35,8 +35,7 @@ npm run dev
 [設計](https://github.com/Recursion-Group-B/card-game/wiki/%E8%A8%AD%E8%A8%88)  
 [議事録](https://github.com/Recursion-Group-B/card-game/wiki/%E8%AD%B0%E4%BA%8B%E9%8C%B2)
 
-
 # Contributors
 <a href="https://github.com/Recursion-Group-B/card-game/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=recursion-group-b/card-games" />
+  <img src="https://contrib.rocks/image?repo=recursion-group-b/card-game" />
 </a>
