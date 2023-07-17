@@ -548,8 +548,10 @@ export default abstract class TableScene extends Phaser.Scene {
     this.backHomeButton = new Button(this, 10, 10, "uTurn", "");
     this.backHomeButton.setOrigin(0);
     this.backHomeButton.setClickHandler(() => {
-      if (this.scene.key !== "tutorial") this.drawHomePage();
-      else if (this.scene.key === "tutorial") {
+      if (this.scene.key !== "tutorial") {
+        this.drawHomePage();
+        this.scene.remove(this.scene.key);
+      } else if (this.scene.key === "tutorial") {
         this.scene.switch(this.gameSceneKey);
       }
     });
