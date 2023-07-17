@@ -366,8 +366,8 @@ export default class SpeedTableScene extends TableScene {
     this.dropZones.forEach((cardDropZone: Zone, index: number) => {
       if (dropZone === cardDropZone) {
         const isConsecutiveRank = SpeedTableScene.isConsecutiveCard(
-          Number(this.dropZoneCards[index].getRankNumber("speed")),
-          card.getRankNumber("speed")
+          Number(this.dropZoneCards[index].getRankNumber(GameType.SPEED)),
+          card.getRankNumber(GameType.SPEED)
         );
 
         if (isConsecutiveRank) {
@@ -437,8 +437,8 @@ export default class SpeedTableScene extends TableScene {
     return hand.some((card) =>
       this.dropZoneCards.some((dropCard) =>
         SpeedTableScene.isConsecutiveCard(
-          card.getRankNumber("speed"),
-          dropCard.getRankNumber("speed")
+          card.getRankNumber(GameType.SPEED),
+          dropCard.getRankNumber(GameType.SPEED)
         )
       )
     );
@@ -457,8 +457,8 @@ export default class SpeedTableScene extends TableScene {
         for (let dropZoneIndex = 0; dropZoneIndex < this.dropZoneCards.length; dropZoneIndex += 1) {
           if (
             SpeedTableScene.isConsecutiveCard(
-              currCard.getRankNumber("speed"),
-              this.dropZoneCards[dropZoneIndex].getRankNumber("speed")
+              currCard.getRankNumber(GameType.SPEED),
+              this.dropZoneCards[dropZoneIndex].getRankNumber(GameType.SPEED)
             )
           ) {
             player.removeCardFromHand(currCard);

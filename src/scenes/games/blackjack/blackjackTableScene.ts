@@ -170,7 +170,7 @@ export default class BlackJackTableScene extends TableScene {
           card.setInteractive();
           // ここから追加した
           this.addPlayerPositionX += 85;
-          this.playerTotalhand += card.getRankNumber("blackjack");
+          this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
         } else if (player.getPlayerType === "cpu") {
           // ブラックジャックはCPUの一枚目を表面にする
           if (index === 0) {
@@ -178,11 +178,11 @@ export default class BlackJackTableScene extends TableScene {
             setTimeout(() => card.flipToFront(), 800);
             card.setInteractive();
             this.addCpuPositionX += 85;
-            this.cpuTotalhand += card.getRankNumber("blackjack");
+            this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
           } else {
             card.moveTo(this.cpuPositionX + this.addCpuPositionX, this.cpuPositionY, 500);
             this.addCpuPositionX += 85;
-            this.cpuTotalhand += card.getRankNumber("blackjack");
+            this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
           }
         }
       });
@@ -262,7 +262,7 @@ export default class BlackJackTableScene extends TableScene {
             card.setInteractive();
             // ここから追加 ※ あとで共通化する
             this.addCpuPositionX += 85;
-            this.cpuTotalhand += card.getRankNumber("blackjack");
+            this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
           });
         }
         // ③ CPUとPlayerで勝敗を比較する
@@ -316,7 +316,7 @@ export default class BlackJackTableScene extends TableScene {
               card.setInteractive();
               // 今後共通化する
               this.addPlayerPositionX += 85;
-              this.playerTotalhand += card.getRankNumber("blackjack");
+              this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
 
               // 一枚引いてカードの表示を変える
               this.setPlayerDisplayTotal();
@@ -378,7 +378,7 @@ export default class BlackJackTableScene extends TableScene {
               card.setInteractive();
               // ここから追加 ※ 後ほど共通化する
               this.addPlayerPositionX += 85;
-              this.playerTotalhand += card.getRankNumber("blackjack");
+              this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
 
               // 一枚引いてカードの表示を変える
               this.setPlayerDisplayTotal();
@@ -401,7 +401,7 @@ export default class BlackJackTableScene extends TableScene {
             card.setInteractive();
             // ここから追加 ※ あとで共通化する
             this.addCpuPositionX += 85;
-            this.cpuTotalhand += card.getRankNumber("blackjack");
+            this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
           });
         }
         // ③ CPUとPlayerで勝敗を比較する

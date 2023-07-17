@@ -378,8 +378,8 @@ export default abstract class TableScene extends Phaser.Scene {
    * 所持金やbet額などの表示
    */
   protected createCreditField(): void;
-  protected createCreditField(type: string): void;
-  protected createCreditField(type?: string): void {
+  protected createCreditField(type: GameType): void;
+  protected createCreditField(type?: GameType): void {
     this.createPlayerCreditText();
     if (type) {
       this.createPlayerBetText(type);
@@ -417,8 +417,8 @@ export default abstract class TableScene extends Phaser.Scene {
    * 現在のベット額を画面にセット
    */
   protected setBetText(): void;
-  protected setBetText(type: string): void;
-  protected setBetText(type?: string): void {
+  protected setBetText(type: GameType): void;
+  protected setBetText(type?: GameType): void {
     if (type) this.betText?.setText(`BETSize: $${this.bet}`);
     else this.betText?.setText(`BET: $${this.bet}`);
   }

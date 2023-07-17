@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import GameType from "../../constants/gameType";
 
 const CARD_SCALE_FRONT = 0.6;
 const CARD_SCALE_BACK = 0.6;
@@ -163,7 +164,7 @@ export default class Card extends Phaser.GameObjects.Image {
   /**
    * gameType毎にカードのrankを返す
    */
-  getRankNumber(gameType: string): number {
+  getRankNumber(gameType: GameType): number {
     let rankToNum;
     switch (gameType) {
       case "blackjack":
