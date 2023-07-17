@@ -610,8 +610,8 @@ export default abstract class TableScene extends Phaser.Scene {
   protected createToggleSoundButton(): void {
     this.toggleSoundButton = new Button(
       this,
-      this.scale.width - 40,
-      this.scale.height - 40,
+      this.scale.width - 50,
+      this.scale.height - 70,
       "soundOn",
       "",
       ""
