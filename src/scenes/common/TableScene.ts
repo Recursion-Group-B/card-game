@@ -248,8 +248,18 @@ export default abstract class TableScene extends Phaser.Scene {
   }
 
   /**
-   * TODO ゲームサイズなどは後々決めましょう
+   * ハイスコアを記録
+   * TODO: DBを使う際はここでDBかローカルか判定し分岐させる
    */
+  protected static saveHighScore(resultAmount: number, gameType: GameType): void {
+    if (resultAmount <= 0) return;
+
+    const highScore = localStorage.getItem(gameType);
+    if (!highScore || resultAmount > Number(highScore)) {
+      localStorage.setItem(gameType, String(resultAmount));
+    }
+  }
+
   protected createGameZone(): void {
     this.gameZone = this.add.zone(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, Size.D_WIDTH, Size.D_HEIGHT);
   }

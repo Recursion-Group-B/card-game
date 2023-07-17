@@ -83,6 +83,7 @@ export default class SpeedTableScene extends TableScene {
       if (this.result) {
         this.payOut();
         this.displayResult(this.result, 0);
+        TableScene.saveHighScore(this.players[0].getChips, GameType.SPEED);
 
         this.cpuPlayTimeEvent?.remove();
         this.stallCheckTimeEvent?.remove();
@@ -94,9 +95,6 @@ export default class SpeedTableScene extends TableScene {
         this.gameZone?.on("pointerdown", () => {
           this.startBet();
         });
-
-        // TODO result画面のBGM設定
-        // TODO スコアの更新
       }
     }
   }
