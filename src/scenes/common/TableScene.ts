@@ -39,6 +39,10 @@ export default abstract class TableScene extends Phaser.Scene {
 
   protected resultText: Text | undefined;
 
+  protected betGuideText: Text | undefined;
+
+  protected highScoreText: Text | undefined;
+
   protected initialTime = 2;
 
   protected chipButtons: Array<Chip> = [];
@@ -251,12 +255,13 @@ export default abstract class TableScene extends Phaser.Scene {
    * ハイスコアを記録
    * TODO: DBを使う際はここでDBかローカルか判定し分岐させる
    */
-  protected static saveHighScore(resultAmount: number, gameType: GameType): void {
+  protected saveHighScore(resultAmount: number, gameType: GameType): void {
     if (resultAmount <= 0) return;
 
     const highScore = localStorage.getItem(gameType);
     if (!highScore || resultAmount > Number(highScore)) {
       localStorage.setItem(gameType, String(resultAmount));
+      this.setHighScoreText(resultAmount);
     }
   }
 
@@ -348,6 +353,22 @@ export default abstract class TableScene extends Phaser.Scene {
         this.dealButton?.disVisibleText();
         this.clearButton?.disVisibleText();
 
+        this.tweens.add({
+          targets: this.betGuideText,
+          x: this.betGuideText.x,
+          y: this.betGuideText.y - 700,
+          duration: 200,
+          ease: "Linear",
+        });
+
+        this.tweens.add({
+          targets: this.highScoreText,
+          x: this.highScoreText.x,
+          y: this.highScoreText.y - 700,
+          duration: 200,
+          ease: "Linear",
+        });
+
         setTimeout(() => {
           this.gameState = GameState.PLAYING;
         }, 1000);
@@ -381,6 +402,8 @@ export default abstract class TableScene extends Phaser.Scene {
   protected createCreditField(type: GameType): void;
   protected createCreditField(type?: GameType): void {
     this.createPlayerCreditText();
+    this.createHighScoreText();
+    this.createBetGuideText();
     if (type) {
       this.createPlayerBetText(type);
     } else {
@@ -393,10 +416,48 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   private createPlayerCreditText(): void {
     this.creditText = this.add
-      .text(0, 0, `CREDIT: $${this.getPlayer.getChips.toString()}`, textStyle)
+      .text(0, 0, `Credit: $${this.getPlayer.getChips.toString()}`, textStyle)
       .setName("playerCredit");
 
     Phaser.Display.Align.In.BottomLeft(this.creditText as Text, this.gameZone as Zone, -30, -90);
+  }
+
+  /**
+   * ガイドテキスト
+   */
+  private createBetGuideText(): void {
+    const betGuideTextStyle = {
+      font: "60px Papyrus",
+      color: "#FFFFFF",
+      strokeThickness: 2,
+    };
+    this.betGuideText = this.add
+      .text(0, 0, `Place Your Bet`, betGuideTextStyle)
+      .setName("betGuideText");
+
+    Phaser.Display.Align.In.Center(this.betGuideText as Text, this.gameZone as Zone, 0, -140);
+  }
+
+  /**
+   * ハイスコア表示
+   */
+  private createHighScoreText(): void {
+    const highScoreTextStyle = {
+      font: "40px Papyrus",
+      color: "#FFFFFF",
+      strokeThickness: 2,
+    };
+
+    const highScore =
+      localStorage.getItem(this.gameSceneKey) === null
+        ? 0
+        : localStorage.getItem(this.gameSceneKey);
+
+    this.highScoreText = this.add
+      .text(0, 0, `Your Best Record $${highScore}`, highScoreTextStyle)
+      .setName("betGuideText");
+
+    Phaser.Display.Align.In.Center(this.highScoreText as Text, this.gameZone as Zone, 0, -250);
   }
 
   /**
@@ -424,6 +485,20 @@ export default abstract class TableScene extends Phaser.Scene {
   }
 
   /**
+   * 現在のハイスコアテキストを画面にセット
+   */
+  private setHighScoreText(resultAmount: number): void {
+    this.highScoreText.setText(`Your Best Record $${resultAmount.toString()}`);
+  }
+
+  /**
+   * デバッグ用です
+   */
+  private static resetHighScore(): void {
+    localStorage.clear();
+  }
+
+  /**
    * betフェーズに使うUIを表示する
    */
   protected enableBetItem() {
@@ -440,6 +515,8 @@ export default abstract class TableScene extends Phaser.Scene {
 
     this.dealButton?.enable();
     this.clearButton?.enable();
+    this.betGuideText.setVisible(true);
+    this.highScoreText.setVisible(true);
 
     // テキストは時間差で表示する
     this.time.delayedCall(200, () => {
@@ -487,7 +564,7 @@ export default abstract class TableScene extends Phaser.Scene {
    * 現在の所持金を画面にセット
    */
   protected setCreditText(displayCredit: number): void {
-    this.creditText?.setText(`CREDIT: $${displayCredit}`);
+    this.creditText?.setText(`Credit: $${displayCredit}`);
   }
 
   /**
@@ -500,6 +577,8 @@ export default abstract class TableScene extends Phaser.Scene {
     this.dealButton?.disable();
     this.clearButton?.disable();
     this.dealButton?.disable();
+    this.betGuideText.setVisible(false);
+    this.highScoreText.setVisible(false);
   }
 
   /**
@@ -513,6 +592,22 @@ export default abstract class TableScene extends Phaser.Scene {
 
     this.dealButton?.moveTo(this.dealButton.x, this.dealButton.y - 700, 200);
     this.clearButton?.moveTo(this.clearButton.x, this.clearButton.y - 700, 200);
+
+    this.tweens.add({
+      targets: this.betGuideText,
+      x: this.betGuideText.x,
+      y: this.betGuideText.y + 700,
+      duration: 200,
+      ease: "Linear",
+    });
+
+    this.tweens.add({
+      targets: this.highScoreText,
+      x: this.highScoreText.x,
+      y: this.highScoreText.y + 700,
+      duration: 200,
+      ease: "Linear",
+    });
   }
 
   /**
