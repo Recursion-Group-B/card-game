@@ -242,6 +242,7 @@ export default class PokerTableScene extends TableScene {
       this.time.delayedCall(2000, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
+        this.saveHighScore(this.getPlayer.getChips, GameType.POKER);
       });
 
       // リスタート

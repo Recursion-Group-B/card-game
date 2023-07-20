@@ -61,12 +61,11 @@ export default class WarTableScene extends TableScene {
     if (this.gameState === GameState.END_GAME && !this.displayedResult) {
       // ゲームresult画面
       if (this.result) {
-        // TODO result画面のBGM設定
-        // TODO ハイスコア更新
-
         this.payOut();
 
         this.displayResult(this.result, 0);
+
+        this.saveHighScore(this.players[0].getChips, GameType.WAR);
 
         this.displayedResult = true;
       }

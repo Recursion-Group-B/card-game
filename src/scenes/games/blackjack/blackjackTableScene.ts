@@ -120,6 +120,9 @@ export default class BlackJackTableScene extends TableScene {
       this.gameStarted = false;
       this.gameState = GameState.BETTING;
 
+      // ハイスコア更新
+      this.saveHighScore(this.getPlayer.getChips, GameType.BLACKJACK);
+
       this.time.delayedCall(5000, () => {
         // 今後共通化する
         this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");

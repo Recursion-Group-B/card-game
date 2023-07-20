@@ -83,7 +83,7 @@ export default class SpeedTableScene extends TableScene {
       if (this.result) {
         this.payOut();
         this.displayResult(this.result, 0);
-        TableScene.saveHighScore(this.players[0].getChips, GameType.SPEED);
+        this.saveHighScore(this.players[0].getChips, GameType.SPEED);
 
         this.cpuPlayTimeEvent?.remove();
         this.stallCheckTimeEvent?.remove();
