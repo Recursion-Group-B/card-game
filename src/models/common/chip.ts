@@ -84,7 +84,6 @@ export default class Chip extends Phaser.GameObjects.Container {
       () => {
         if (this.clickSound) this.clickSound.play();
         pushHandler();
-        console.log(this);
       },
       this
     );

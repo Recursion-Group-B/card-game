@@ -83,6 +83,7 @@ export default class SpeedTableScene extends TableScene {
       if (this.result) {
         this.payOut();
         this.displayResult(this.result, 0);
+        this.saveHighScore(this.players[0].getChips, GameType.SPEED);
 
         this.cpuPlayTimeEvent?.remove();
         this.stallCheckTimeEvent?.remove();
@@ -94,9 +95,6 @@ export default class SpeedTableScene extends TableScene {
         this.gameZone?.on("pointerdown", () => {
           this.startBet();
         });
-
-        // TODO result画面のBGM設定
-        // TODO スコアの更新
       }
     }
   }
@@ -368,8 +366,8 @@ export default class SpeedTableScene extends TableScene {
     this.dropZones.forEach((cardDropZone: Zone, index: number) => {
       if (dropZone === cardDropZone) {
         const isConsecutiveRank = SpeedTableScene.isConsecutiveCard(
-          Number(this.dropZoneCards[index].getRankNumber("speed")),
-          card.getRankNumber("speed")
+          Number(this.dropZoneCards[index].getRankNumber(GameType.SPEED)),
+          card.getRankNumber(GameType.SPEED)
         );
 
         if (isConsecutiveRank) {
@@ -439,8 +437,8 @@ export default class SpeedTableScene extends TableScene {
     return hand.some((card) =>
       this.dropZoneCards.some((dropCard) =>
         SpeedTableScene.isConsecutiveCard(
-          card.getRankNumber("speed"),
-          dropCard.getRankNumber("speed")
+          card.getRankNumber(GameType.SPEED),
+          dropCard.getRankNumber(GameType.SPEED)
         )
       )
     );
@@ -459,8 +457,8 @@ export default class SpeedTableScene extends TableScene {
         for (let dropZoneIndex = 0; dropZoneIndex < this.dropZoneCards.length; dropZoneIndex += 1) {
           if (
             SpeedTableScene.isConsecutiveCard(
-              currCard.getRankNumber("speed"),
-              this.dropZoneCards[dropZoneIndex].getRankNumber("speed")
+              currCard.getRankNumber(GameType.SPEED),
+              this.dropZoneCards[dropZoneIndex].getRankNumber(GameType.SPEED)
             )
           ) {
             player.removeCardFromHand(currCard);
