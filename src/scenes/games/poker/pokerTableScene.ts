@@ -1,5 +1,5 @@
 import "../../../style.scss";
-import Phaser from "phaser";
+import Phaser, { Game } from "phaser";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
 import Button from "../../../models/common/button";
@@ -119,7 +119,7 @@ export default class PokerTableScene extends TableScene {
     this.createChips();
     this.createClearButton();
     this.createDealButton(true);
-    this.createCreditField("poker");
+    this.createCreditField(GameType.POKER);
 
     // アニメーション
     this.clickToUp();
@@ -132,7 +132,7 @@ export default class PokerTableScene extends TableScene {
     this.cycleControl();
 
     // 所持金等の更新
-    this.setBetText("poker");
+    this.setBetText(GameType.POKER);
     this.setCreditText(this.getPlayer.getChips);
   }
 
@@ -242,6 +242,7 @@ export default class PokerTableScene extends TableScene {
       this.time.delayedCall(2000, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
+        this.saveHighScore(this.getPlayer.getChips, GameType.POKER);
       });
 
       // リスタート

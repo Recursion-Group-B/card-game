@@ -1,6 +1,7 @@
 import Player from "../../common/player";
 import Card from "../../common/card";
 import { SuitDict, RankDict, HandScore } from "./type";
+import GameType from "../../../constants/gameType";
 
 export default class TexasPlayer extends Player {
   private suitDict: SuitDict;
@@ -106,7 +107,7 @@ export default class TexasPlayer extends Player {
       } else this.suitDict.set(card.getSuit, 1);
 
       // rank
-      const rank = card.getRankNumber("poker");
+      const rank = card.getRankNumber(GameType.POKER);
       if (this.rankDict.has(rank)) {
         this.rankDict.set(rank, (this.rankDict.get(rank) as number) + 1);
       } else this.rankDict.set(rank, 1);

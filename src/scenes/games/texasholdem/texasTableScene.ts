@@ -86,7 +86,7 @@ export default class TexasTableScene extends TableScene {
     this.createChips();
     this.createClearButton();
     this.createDealButton(true);
-    this.createCreditField("texas");
+    this.createCreditField(GameType.TEXAS);
     this.createToggleSoundButton();
   }
 
@@ -98,7 +98,7 @@ export default class TexasTableScene extends TableScene {
     this.cycleControl();
 
     // 所持金等の更新
-    this.setBetText("texas");
+    this.setBetText(GameType.TEXAS);
     this.setCreditText(this.getPlayer.getChips);
   }
 
@@ -204,6 +204,7 @@ export default class TexasTableScene extends TableScene {
       this.time.delayedCall(2000, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
+        this.saveHighScore(this.getPlayer.getChips, GameType.TEXAS);
       });
 
       // リスタート
