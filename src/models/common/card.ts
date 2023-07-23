@@ -122,6 +122,16 @@ export default class Card extends Phaser.GameObjects.Image {
     this.scene.input.setDraggable(this);
   }
 
+  setClickHandler(pushHandler: () => void): void {
+    this.on(
+      "pointerdown",
+      () => {
+        pushHandler();
+      },
+      this
+    );
+  }
+
   /**
    * ドラッグ時のイベント設定
    */
