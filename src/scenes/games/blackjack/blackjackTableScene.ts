@@ -83,6 +83,7 @@ export default class BlackJackTableScene extends TableScene {
     this.createTutorialButton();
     this.createCommonSound();
     this.createToggleSoundButton();
+    this.createActionButton();
   }
 
   update(): void {
@@ -92,19 +93,11 @@ export default class BlackJackTableScene extends TableScene {
       this.makeDeck();
       this.dealCards();
       this.dealHand();
-      // 各機能の実装
-      this.stand();
-      // this.hit();
-      this.double();
-      this.surrender();
       this.playerDisplayTotal();
       this.gameStarted = true;
     }
 
-    // ゲーム中で繰り返し実施する機能
-    if (this.gameState === GameState.PLAYING) {
-      this.hit();
-    }
+    this.drawActionButtonControl();
 
     // ゲームが終わった際の条件
     if (this.gameState === GameState.END_GAME) {
@@ -247,6 +240,7 @@ export default class BlackJackTableScene extends TableScene {
   stand(): void {
     this.standBtn = new Button(this, 300, 700, "buttonRed", "stand");
     this.standBtn.setScale(0.3);
+    this.standBtn.disable();
 
     this.standBtn.once(
       "pointerdown",
@@ -300,54 +294,46 @@ export default class BlackJackTableScene extends TableScene {
   hit(): void {
     this.hitBtn = new Button(this, 525, 700, "buttonRed", "hit");
     this.hitBtn.setScale(0.3);
+    this.hitBtn.disable();
 
     // イベント 一枚引く
-    this.hitBtn.once(
-      "pointerdown",
-      function drawCard(this: BlackJackTableScene, pointer: Phaser.Input.Pointer) {
-        this.players.forEach((player) => {
-          if (player.getPlayerType === "player") {
-            player.setHand = (this.deck as Deck).draw(1) as Card[];
-            // カードを配る配置を変えたい
-            player.getHand?.forEach((card) => {
-              card.moveTo(
-                this.playerPositionX + this.addPlayerPositionX,
-                this.playerPositionY,
-                500
-              );
-              setTimeout(() => card.flipToFront(), 800);
-              card.setInteractive();
-              // 今後共通化する
-              this.addPlayerPositionX += 85;
-              this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
+    this.hitBtn.setClickHandler(() => {
+      this.players.forEach((player) => {
+        if (player.getPlayerType === "player") {
+          player.setHand = (this.deck as Deck).draw(1) as Card[];
+          // カードを配る配置を変えたい
+          player.getHand?.forEach((card) => {
+            card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
+            setTimeout(() => card.flipToFront(), 800);
+            card.setInteractive();
+            // 今後共通化する
+            this.addPlayerPositionX += 85;
+            this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
 
-              // 一枚引いてカードの表示を変える
-              this.setPlayerDisplayTotal();
-              this.playerDisplayTotal();
-            });
-          }
+            // 一枚引いてカードの表示を変える
+            this.setPlayerDisplayTotal();
+            this.playerDisplayTotal();
+          });
+        }
+      });
+
+      // double, surrender
+      this.gameState = GameState.HIT;
+
+      // 21を超えたらBust
+      if (this.playerTotalhand > 21) {
+        // BUSTを表示 ※ 21を超えたら強制的に負け
+        this.displayResult("BUST", 0);
+        // CPUの手札も表に表示する
+        this.players[1].getHand?.forEach((card) => {
+          card.flipToFront();
         });
 
-        // double, surrender
-        this.doubleBtn?.disable();
-        this.surrenderBtn?.disable();
-
-        // 21を超えたらBust
-        if (this.playerTotalhand > 21) {
-          // BUSTを表示 ※ 21を超えたら強制的に負け
-          this.displayResult("BUST", 0);
-          // CPUの手札も表に表示する
-          this.players[1].getHand?.forEach((card) => {
-            card.flipToFront();
-          });
-
-          this.cpuDisplayTotal();
-          this.players[0].setChips = this.players[0].getChips - this.bet;
-          this.gameState = GameState.END_GAME;
-        }
-      },
-      this
-    );
+        this.cpuDisplayTotal();
+        this.players[0].setChips = this.players[0].getChips - this.bet;
+        this.gameState = GameState.END_GAME;
+      }
+    });
   }
 
   /**
@@ -357,6 +343,7 @@ export default class BlackJackTableScene extends TableScene {
   double(): void {
     this.doubleBtn = new Button(this, 750, 700, "buttonRed", "double");
     this.doubleBtn.setScale(0.3);
+    this.doubleBtn.disable();
 
     this.doubleBtn.once(
       "pointerdown",
@@ -439,6 +426,7 @@ export default class BlackJackTableScene extends TableScene {
   surrender(): void {
     this.surrenderBtn = new Button(this, 975, 700, "buttonRed", "surrender");
     this.surrenderBtn.setScale(0.3);
+    this.surrenderBtn.disable();
 
     this.surrenderBtn.once(
       "pointerdown",
@@ -454,5 +442,35 @@ export default class BlackJackTableScene extends TableScene {
       },
       this
     );
+  }
+
+  /**
+   * アクションボタンを描画
+   */
+  private createActionButton(): void {
+    this.hit();
+    this.surrender();
+    this.double();
+    this.stand();
+  }
+
+  /**
+   * アクションボタンの描画コントロール
+   */
+  private drawActionButtonControl(): void {
+    if (this.gameState === GameState.PLAYING) {
+      this.hitBtn.enable();
+      this.standBtn.enable();
+      this.surrenderBtn.enable();
+      this.doubleBtn.enable();
+    } else if (this.gameState === GameState.HIT) {
+      this.doubleBtn?.disable();
+      this.surrenderBtn?.disable();
+    } else if (this.gameState === GameState.END_GAME) {
+      this.hitBtn.disable();
+      this.standBtn.disable();
+      this.surrenderBtn.disable();
+      this.doubleBtn.disable();
+    }
   }
 }
