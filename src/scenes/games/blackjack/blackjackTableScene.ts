@@ -47,6 +47,10 @@ export default class BlackJackTableScene extends TableScene {
 
   private surrenderBtn: Button | undefined;
 
+  private oneBtn: Button | undefined;
+
+  private elevenBtn: Button | undefined;
+
   // ここまで追加
   private cardSize = {
     x: 85,
@@ -89,6 +93,7 @@ export default class BlackJackTableScene extends TableScene {
   update(): void {
     this.drawActionButtonControl();
     this.setCreditText(this.getPlayer.getChips);
+    console.log(this.gameState);
 
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
@@ -137,12 +142,7 @@ export default class BlackJackTableScene extends TableScene {
 
     // オブジェクト削除
     const destroyList = this.children.list.filter(
-      (child) =>
-        child instanceof Card ||
-        child.name === "resultText" ||
-        child.name === "pots" ||
-        child.name === "action" ||
-        child.name === "dealer"
+      (child) => child instanceof Card || child.name === "resultText"
     );
     destroyList.forEach((element) => {
       element.destroy();
@@ -190,8 +190,12 @@ export default class BlackJackTableScene extends TableScene {
       player.getHand?.forEach((card, index) => {
         if (player.getPlayerType === "player") {
           card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
-          this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
           setTimeout(() => {
+            if (card.getRank === "Ace") {
+              this.createAceValueButton(card);
+            } else {
+              this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
+            }
             this.setPlayerDisplayTotal();
             card.flipToFront();
           }, 800);
@@ -330,25 +334,33 @@ export default class BlackJackTableScene extends TableScene {
     this.hitBtn.setClickHandler(() => {
       this.players.forEach((player) => {
         if (player.getPlayerType === "player") {
-          player.setHand = (this.deck as Deck).draw(1) as Card[];
+          const drawCard = this.deck.draw();
+          this.getPlayer.addCardToHand(drawCard);
           // カードを配る配置を変えたい
-          player.getHand?.forEach((card) => {
-            card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
-            setTimeout(() => card.flipToFront(), 800);
-            card.setInteractive();
-            // 今後共通化する
-            this.addPlayerPositionX += 85;
-            this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
+          drawCard.moveTo(
+            this.playerPositionX + this.addPlayerPositionX,
+            this.playerPositionY,
+            500
+          );
+          setTimeout(() => drawCard.flipToFront(), 800);
+          drawCard.setInteractive();
+          // 今後共通化する
+          this.addPlayerPositionX += 85;
 
-            // 一枚引いてカードの表示を変える
-            this.setPlayerDisplayTotal();
-          });
+          if (drawCard.getRank === "Ace") {
+            setTimeout(() => {
+              this.createAceValueButton(drawCard);
+            }, 600);
+          } else {
+            this.gameState = GameState.HIT;
+            this.playerTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+          }
+
+          // 一枚引いてカードの表示を変える
+          this.setPlayerDisplayTotal();
         }
         this.hitBtn.disable();
       });
-
-      // double, surrender
-      this.gameState = GameState.HIT;
 
       // 21を超えたらBust
       if (this.playerTotalhand > 21) {
@@ -479,15 +491,54 @@ export default class BlackJackTableScene extends TableScene {
       this.standBtn.enable();
       this.surrenderBtn.enable();
       this.doubleBtn.enable();
-    } else if (this.gameState === GameState.HIT) {
-      this.hitBtn.enable();
-      this.doubleBtn.disable();
-      this.surrenderBtn.disable();
-    } else if (this.gameState === GameState.END_GAME) {
+    } else if (
+      this.gameState === GameState.END_GAME ||
+      this.gameState === GameState.SELECT_ACE_VALUE
+    ) {
       this.hitBtn.disable();
       this.standBtn.disable();
       this.surrenderBtn.disable();
       this.doubleBtn.disable();
+    } else if (this.gameState === GameState.HIT) {
+      this.standBtn.enable();
+      this.hitBtn.enable();
+      this.doubleBtn.disable();
+      this.surrenderBtn.disable();
     }
+  }
+
+  /**
+   * Aの大きさを選択するボタンを生成
+   */
+  private createAceValueButton(card: Card): void {
+    this.gameState = GameState.SELECT_ACE_VALUE;
+    card.moveTo(card.getX, card.getY - 10, 100);
+
+    this.oneBtn = new Button(this, card.getX - 100, card.getY + 100, "buttonRed", "1");
+    this.oneBtn.setScale(0.3);
+    this.oneBtn.setName("aceValue");
+    this.oneBtn.setClickHandler(() => {
+      this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK_ACE);
+      card.moveTo(card.getX, card.getY + 10, 100);
+      this.setPlayerDisplayTotal();
+      this.removeAceValueButton();
+      this.gameState = GameState.HIT;
+    });
+
+    this.elevenBtn = new Button(this, card.getX + 100, card.getY + 100, "buttonRed", "11");
+    this.elevenBtn.setScale(0.3);
+    this.elevenBtn.setName("aceValue");
+    this.elevenBtn.setClickHandler(() => {
+      this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
+      this.setPlayerDisplayTotal();
+      card.moveTo(card.getX, card.getY + 10, 100);
+      this.removeAceValueButton();
+      this.gameState = GameState.HIT;
+    });
+  }
+
+  private removeAceValueButton(): void {
+    this.oneBtn.removeAll();
+    this.elevenBtn.removeAll();
   }
 }
