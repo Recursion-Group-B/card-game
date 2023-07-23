@@ -92,6 +92,10 @@ export default abstract class TableScene extends Phaser.Scene {
     return this.players.find((player) => player.getPlayerType === "player") as Player;
   }
 
+  protected get getCpu(): Player {
+    return this.players.find((player) => player.getPlayerType === "cpu") as Player;
+  }
+
   protected set setPot(amount: number) {
     this.pot.push(amount);
   }

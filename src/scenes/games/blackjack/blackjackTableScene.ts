@@ -108,6 +108,11 @@ export default class BlackJackTableScene extends TableScene {
       this.drawScore();
     }
 
+    if (this.gameState === GameState.COMPARE) {
+      this.compareHands();
+      this.gameState = GameState.END_GAME;
+    }
+
     // ゲームが終わった際の条件
     if (this.gameState === GameState.END_GAME) {
       // ハイスコア更新
@@ -272,6 +277,73 @@ export default class BlackJackTableScene extends TableScene {
   }
 
   /**
+   * CPUとの手札を比較する
+   */
+  private compareHands(): void {
+    if (this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
+      // 勝利の表示
+      this.displayResult("WIN", 0);
+
+      // CREDITの更新
+      this.players[0].setChips = this.players[0].getChips + this.bet;
+    } else if (this.playerTotalhand === this.cpuTotalhand) {
+      // 引き分けの表示
+      this.displayResult("DRAW", 0);
+    } else {
+      // 負けの表示
+      this.displayResult("LOSE", 0);
+      // CREDITの更新
+      this.players[0].setChips = this.players[0].getChips - this.bet;
+    }
+  }
+
+  private drawCard(playerType: PlayerType): void {
+    let player;
+    let positionX;
+    let positionY;
+    let addPositionX;
+
+    switch (playerType) {
+      case PlayerType.CPU:
+        player = this.getCpu;
+        positionX = this.cpuPositionX;
+        positionY = this.cpuPositionY;
+        addPositionX = this.addCpuPositionX;
+        break;
+      case PlayerType.PLAYER:
+        positionX = this.playerPositionX;
+        positionY = this.playerPositionY;
+        player = this.getPlayer;
+        addPositionX = this.addPlayerPositionX;
+        break;
+      default:
+        player = PlayerType.DEALER;
+        break;
+    }
+
+    const drawCard = this.deck.draw();
+    player.addCardToHand(drawCard);
+    drawCard.moveTo(positionX + addPositionX, positionY, 500);
+    setTimeout(() => drawCard.flipToFront(), 800);
+    drawCard.setInteractive();
+    // ここから追加 ※ あとで共通化する
+    addPositionX += 85;
+
+    if (playerType === PlayerType.CPU)
+      this.cpuTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+    else if (playerType === PlayerType.PLAYER) {
+      if (drawCard.getRank === "Ace") {
+        setTimeout(() => {
+          this.createAceValueButton(drawCard);
+        }, 600);
+      } else {
+        this.gameState = GameState.HIT;
+        this.playerTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+      }
+    }
+  }
+
+  /**
    * プレイヤーアクション（stand）を描画
    */
   stand(): void {
@@ -288,37 +360,10 @@ export default class BlackJackTableScene extends TableScene {
       // ② 17以上になるまでHitを行う
       while (this.cpuTotalhand < 17) {
         // カードを一枚ドロー
-        console.log(this.cpuTotalhand);
-        const drawCard = this.deck.draw();
-        this.players[1].addCardToHand(drawCard);
-        drawCard.moveTo(this.cpuPositionX + this.addCpuPositionX, this.cpuPositionY, 500);
-        setTimeout(() => drawCard.flipToFront(), 800);
-        drawCard.setInteractive();
-        // ここから追加 ※ あとで共通化する
-        this.addCpuPositionX += 85;
-        this.cpuTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+        this.drawCard(PlayerType.CPU);
       }
       this.setCpuDisplayTotal();
-      // ③ CPUとPlayerで勝敗を比較する
-      // ④ Player視点で勝ち負けの表示を行う
-      if (this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
-        // 勝利の表示
-        this.displayResult("WIN", 0);
-
-        // CREDITの更新
-        this.players[0].setChips = this.players[0].getChips + this.bet;
-      } else if (this.playerTotalhand === this.cpuTotalhand) {
-        // 引き分けの表示
-        this.displayResult("DRAW", 0);
-      } else {
-        // 負けの表示
-        this.displayResult("LOSE", 0);
-        // CREDITの更新
-        this.players[0].setChips = this.players[0].getChips - this.bet;
-      }
-
-      // ゲームが終わったらGameStateを変更する
-      this.gameState = GameState.END_GAME;
+      this.gameState = GameState.COMPARE;
     });
   }
 
@@ -332,35 +377,10 @@ export default class BlackJackTableScene extends TableScene {
 
     // イベント 一枚引く
     this.hitBtn.setClickHandler(() => {
-      this.players.forEach((player) => {
-        if (player.getPlayerType === "player") {
-          const drawCard = this.deck.draw();
-          this.getPlayer.addCardToHand(drawCard);
-          // カードを配る配置を変えたい
-          drawCard.moveTo(
-            this.playerPositionX + this.addPlayerPositionX,
-            this.playerPositionY,
-            500
-          );
-          setTimeout(() => drawCard.flipToFront(), 800);
-          drawCard.setInteractive();
-          // 今後共通化する
-          this.addPlayerPositionX += 85;
-
-          if (drawCard.getRank === "Ace") {
-            setTimeout(() => {
-              this.createAceValueButton(drawCard);
-            }, 600);
-          } else {
-            this.gameState = GameState.HIT;
-            this.playerTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
-          }
-
-          // 一枚引いてカードの表示を変える
-          this.setPlayerDisplayTotal();
-        }
-        this.hitBtn.disable();
-      });
+      // 一枚引いてカードの表示を変える
+      this.drawCard(PlayerType.PLAYER);
+      this.setPlayerDisplayTotal();
+      this.hitBtn.disable();
 
       // 21を超えたらBust
       if (this.playerTotalhand > 21) {
@@ -393,62 +413,21 @@ export default class BlackJackTableScene extends TableScene {
       this.setBetText();
 
       // １枚引く
-      this.players.forEach((player) => {
-        if (player.getPlayerType === "player") {
-          player.setHand = (this.deck as Deck).draw(1) as Card[];
-          // カードを配る配置を変えたい
-          player.getHand?.forEach((card) => {
-            card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
-            setTimeout(() => card.flipToFront(), 800);
-            card.setInteractive();
-            // ここから追加 ※ 後ほど共通化する
-            this.addPlayerPositionX += 85;
-            this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
-
-            // 一枚引いてカードの表示を変える
-            this.setPlayerDisplayTotal();
-          });
-        }
-      });
+      this.drawCard(PlayerType.PLAYER);
 
       // ① CPUの手札を全てオープン、Totalを表示
       this.players[1].getHand?.forEach((card) => {
         card.flipToFront(); // 表に表示する速度を変更したい
       });
 
-      // ② 17以上になるまでHitを行う
+      // ② CPU : 17以上になるまでHitを行う
       while (this.cpuTotalhand < 17) {
-        this.players[1].setHand = (this.deck as Deck).draw(1) as Card[];
-        this.players[1].getHand?.forEach((card) => {
-          card.moveTo(this.cpuPositionX + this.addCpuPositionX, this.cpuPositionY, 500);
-          setTimeout(() => card.flipToFront(), 800);
-          card.setInteractive();
-          // ここから追加 ※ あとで共通化する
-          this.addCpuPositionX += 85;
-          this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
-        });
+        this.drawCard(PlayerType.CPU);
       }
+
+      this.setPlayerDisplayTotal();
       this.setCpuDisplayTotal();
-      // ③ CPUとPlayerで勝敗を比較する
-      // ④ Player視点で勝ち負けの表示を行う
-      if (this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
-        // 勝利の表示
-        this.displayResult("WIN", 0);
-
-        // CREDITの更新
-        this.players[0].setChips = this.players[0].getChips + this.bet;
-      } else if (this.playerTotalhand === this.cpuTotalhand) {
-        // 引き分けの表示
-        this.displayResult("DRAW", 0);
-      } else {
-        // 負けの表示
-        this.displayResult("LOSE", 0);
-        // CREDITの更新
-        this.players[0].setChips = this.players[0].getChips - this.bet;
-      }
-
-      // 追加した、ゲームが終わったらGameStateを変更する
-      this.gameState = GameState.END_GAME;
+      this.gameState = GameState.COMPARE;
     });
   }
 
