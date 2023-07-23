@@ -87,6 +87,8 @@ export default class BlackJackTableScene extends TableScene {
   }
 
   update(): void {
+    this.drawActionButtonControl();
+
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
       // 手札の配布までの処理
@@ -97,43 +99,62 @@ export default class BlackJackTableScene extends TableScene {
       this.gameStarted = true;
     }
 
-    this.drawActionButtonControl();
-
     // ゲームが終わった際の条件
     if (this.gameState === GameState.END_GAME) {
-      // 現状のデータを初期化させる
-      this.addPlayerPositionX = 0;
-      this.addCpuPositionX = 0;
-      this.playerTotalhand = 0;
-      this.cpuTotalhand = 0;
-      // ベット額の更新
-      this.bet = 0;
-      this.setBetText();
-      // フラグを更新
-      this.gameStarted = false;
-      this.gameState = GameState.BETTING;
-
       // ハイスコア更新
       this.saveHighScore(this.getPlayer.getChips, GameType.BLACKJACK);
 
-      this.time.delayedCall(5000, () => {
-        // 今後共通化する
-        this.add.image(D_WIDTH / 2, D_HEIGHT / 2, "table");
-        this.createGameZone();
-        this.createChips();
-        this.createDealButton();
-        this.createClearButton();
-        this.createCreditField();
-
-        // UI
-        this.helpContent = new HelpContainer(this, GameRule.BLACKJACK);
-        this.createHelpButton(this.helpContent);
-        this.createBackHomeButton();
-        this.createTutorialButton();
-        this.createCommonSound();
-        this.createToggleSoundButton();
+      // リスタート
+      this.gameZone.setInteractive();
+      this.gameZone.on("pointerdown", () => {
+        this.dataInit();
+        this.gameZone.removeInteractive();
+        this.gameZone.removeAllListeners();
       });
     }
+  }
+
+  /**
+   * gameData初期化
+   */
+  private dataInit(): void {
+    // オブジェクト削除
+    const destroyList = this.children.list.filter(
+      (child) =>
+        child instanceof Card ||
+        child.name === "resultText" ||
+        child.name === "pots" ||
+        child.name === "roleName" ||
+        child.name === "action" ||
+        child.name === "dealer"
+    );
+    destroyList.forEach((element) => {
+      element.destroy();
+    });
+
+    // クラス変数初期化
+
+    // 現状のデータを初期化させる
+    this.addPlayerPositionX = 0;
+    this.addCpuPositionX = 0;
+    this.playerTotalhand = 0;
+    this.cpuTotalhand = 0;
+    // ベット額の更新
+    this.bet = 0;
+    this.setBetText();
+    // フラグを更新
+    this.gameStarted = false;
+    this.gameState = GameState.BETTING;
+    this.tableInit();
+
+    // betting
+    this.chipButtons.forEach((chip) => {
+      chip.disVisibleText();
+    });
+    this.clearButton?.disVisibleText();
+    this.dealButton?.disVisibleText();
+    this.enableBetItem();
+    this.fadeInBetItem();
   }
 
   /**
@@ -464,8 +485,8 @@ export default class BlackJackTableScene extends TableScene {
       this.surrenderBtn.enable();
       this.doubleBtn.enable();
     } else if (this.gameState === GameState.HIT) {
-      this.doubleBtn?.disable();
-      this.surrenderBtn?.disable();
+      this.doubleBtn.disable();
+      this.surrenderBtn.disable();
     } else if (this.gameState === GameState.END_GAME) {
       this.hitBtn.disable();
       this.standBtn.disable();
