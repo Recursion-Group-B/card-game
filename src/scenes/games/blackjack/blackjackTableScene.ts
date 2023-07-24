@@ -108,7 +108,7 @@ export default class BlackJackTableScene extends TableScene {
     }
 
     if (this.gameState === GameState.COMPARE) {
-      this.compareHands();
+      this.time.delayedCall(1300, this.compareHands);
       this.gameState = GameState.END_GAME;
     }
 
@@ -282,7 +282,7 @@ export default class BlackJackTableScene extends TableScene {
   /**
    * CPUとの手札を比較する
    */
-  private compareHands(): void {
+  private compareHands = (): void => {
     // BUSTした場合、強制的に負け
     if (this.playerTotalhand > 21) {
       this.displayResult("BUST", 0);
@@ -303,7 +303,7 @@ export default class BlackJackTableScene extends TableScene {
       // CREDITの更新
       this.players[0].setChips = this.players[0].getChips - this.bet;
     }
-  }
+  };
 
   private drawCard(playerType: PlayerType): void {
     let player;
