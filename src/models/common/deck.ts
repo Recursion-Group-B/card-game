@@ -4,6 +4,7 @@ import GAME from "./game";
 
 const SUITS = ["hearts", "diamonds", "clubs", "spades"];
 const RANKS = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
+// const RANKS = ["Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace", "Ace"];
 
 export default class Deck {
   private cards: Array<Card> = [];

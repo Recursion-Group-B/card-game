@@ -53,6 +53,8 @@ export default class BlackJackTableScene extends TableScene {
 
   private result: GameResult | undefined;
 
+  private aceCards: Card[] = [];
+
   // ここまで追加
   private cardSize = {
     x: 85,
@@ -96,6 +98,10 @@ export default class BlackJackTableScene extends TableScene {
     this.drawActionButtonControl();
     this.setCreditText(this.getPlayer.getChips);
 
+    console.log(
+      this.children.list.filter((child: Button) => child.type === "ace" && child.visible)
+    );
+
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
       // 手札の配布までの処理
@@ -105,9 +111,9 @@ export default class BlackJackTableScene extends TableScene {
       this.gameStarted = true;
     }
 
-    if (this.gameState === GameState.PLAYING) {
-      this.drawScore();
-    }
+    if (this.gameState === GameState.SELECT_ACE_VALUE) this.drawAceValueButton();
+
+    if (this.gameState === GameState.PLAYING) this.drawScore();
 
     if (this.gameState === GameState.COMPARE) {
       this.compareHands();
@@ -467,9 +473,8 @@ export default class BlackJackTableScene extends TableScene {
       this.setBetText();
 
       // １枚引く
-      this.drawCard(PlayerType.PLAYER);
       this.cpuAction();
-      this.gameState = GameState.COMPARE;
+      this.drawCard(PlayerType.PLAYER);
     });
   }
 
@@ -516,9 +521,6 @@ export default class BlackJackTableScene extends TableScene {
    * アクションボタンの描画コントロール
    */
   private drawActionButtonControl = (): void => {
-    // // ボタンサイズをリセットする
-    // this.resetButtonsSize();
-
     if (this.gameState === GameState.PLAYING) {
       this.hitBtn.enable();
       this.standBtn.enable();
@@ -541,46 +543,79 @@ export default class BlackJackTableScene extends TableScene {
   };
 
   /**
-   * Aの大きさを選択するボタンを生成
+   * Aceボタンの表示管理
    */
-  private createAceValueButton(card: Card): void {
-    // Aceを強調表示
-    this.gameState = GameState.SELECT_ACE_VALUE;
+  private drawAceValueButton(): void {
+    if (this.children.list.some((child: Button) => child.visible && child.type === "ace")) return;
+
+    const card = this.aceCards.pop();
+    this.children.list
+      .filter((child) => child.name === card.getCardKey)
+      .forEach((ele: Button) => ele.enable());
     this.children.bringToTop(card);
     card.moveTo(card.x, card.y - 10, 100);
     card.preFX.addGlow(0xff6347);
+  }
+
+  /**
+   * Aの大きさを選択するボタンを生成
+   */
+  private createAceValueButton(aceCard: Card): void {
+    // Aceを強調表示
+    const preGameState = this.gameState;
+
+    // Aceを保存
+    this.aceCards.unshift(aceCard);
+
+    const clickAction = (type: GameType) => () => {
+      this.playerTotalhand += aceCard.getRankNumber(type);
+      aceCard.moveTo(aceCard.getX, aceCard.getY + 10, 100);
+      aceCard.preFX.clear();
+      this.setDisplayTotal(PlayerType.PLAYER);
+      this.removeAceValueButton(aceCard);
+      if (this.playerTotalhand > 21) this.gameState = GameState.COMPARE;
+      else if (!this.aceCards.length)
+        this.gameState = preGameState === GameState.DOUBLE ? GameState.COMPARE : GameState.HIT;
+    };
 
     // Aceの大きさを選択するボタンを生成
-    this.oneBtn = new Button(this, card.getX - 100, card.getY + 100, "buttonRed", "1");
-    this.oneBtn.setScale(0.3);
-    this.oneBtn.setName("aceValue");
-    this.oneBtn.setClickHandler(() => {
-      this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK_ACE);
-      card.moveTo(card.getX, card.getY + 10, 100);
-      card.preFX.clear();
-      this.setDisplayTotal(PlayerType.PLAYER);
-      this.removeAceValueButton();
-      this.gameState = this.gameState === GameState.DOUBLE ? GameState.COMPARE : GameState.HIT;
-    });
+    const oneBtn = new Button(
+      this,
+      aceCard.getX - 100,
+      aceCard.getY + 100,
+      "buttonRed",
+      "1",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
+    );
+    oneBtn.type = "ace";
+    oneBtn.disable();
+    oneBtn.setName(aceCard.getCardKey);
+    oneBtn.setClickHandler(clickAction(GameType.BLACKJACK_ACE));
 
-    this.elevenBtn = new Button(this, card.getX + 100, card.getY + 100, "buttonRed", "11");
-    this.elevenBtn.setScale(0.3);
-    this.elevenBtn.setName("aceValue");
-    this.elevenBtn.setClickHandler(() => {
-      this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
-      this.setDisplayTotal(PlayerType.PLAYER);
-      card.moveTo(card.getX, card.getY + 10, 100);
-      card.preFX.clear();
-      this.removeAceValueButton();
-      this.gameState = this.gameState === GameState.DOUBLE ? GameState.COMPARE : GameState.HIT;
-    });
+    const elevenBtn = new Button(
+      this,
+      aceCard.getX + 100,
+      aceCard.getY + 100,
+      "buttonRed",
+      "11",
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
+    );
+    elevenBtn.type = "ace";
+    elevenBtn.disable();
+    elevenBtn.setName(aceCard.getCardKey);
+    elevenBtn.setClickHandler(clickAction(GameType.BLACKJACK));
+
+    this.gameState = GameState.SELECT_ACE_VALUE;
   }
 
   /**
    * AceValueButtonを削除する
    */
-  private removeAceValueButton(): void {
-    this.oneBtn.removeAll();
-    this.elevenBtn.removeAll();
+  private removeAceValueButton(card: Card): void {
+    this.children.list
+      .filter((child) => child.name === card.getCardKey)
+      .forEach((ele: Button) => ele.removeAll());
   }
 }
