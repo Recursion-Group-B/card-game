@@ -45,21 +45,11 @@ export default class BlackJackTableScene extends TableScene {
 
   private surrenderBtn: Button | undefined;
 
-  private oneBtn: Button | undefined;
-
-  private elevenBtn: Button | undefined;
-
   private actionButtons: Button[] = [];
 
   private result: GameResult | undefined;
 
   private aceCards: Card[] = [];
-
-  // ここまで追加
-  private cardSize = {
-    x: 85,
-    y: 150,
-  };
 
   private gameStarted = false;
 
@@ -97,8 +87,6 @@ export default class BlackJackTableScene extends TableScene {
   update(): void {
     this.drawActionButtonControl();
     this.setCreditText(this.getPlayer.getChips);
-
-    console.log(this.gameState);
 
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
