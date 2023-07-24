@@ -528,6 +528,8 @@ export default class BlackJackTableScene extends TableScene {
       this.doubleBtn.disable();
       this.surrenderBtn.disable();
     }
+
+    if (this.getPlayer.getChips < this.bet * 2) this.doubleBtn.disable();
   };
 
   /**
