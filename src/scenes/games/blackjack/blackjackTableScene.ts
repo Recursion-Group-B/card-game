@@ -98,9 +98,7 @@ export default class BlackJackTableScene extends TableScene {
     this.drawActionButtonControl();
     this.setCreditText(this.getPlayer.getChips);
 
-    console.log(
-      this.children.list.filter((child: Button) => child.type === "ace" && child.visible)
-    );
+    console.log(this.gameState);
 
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
@@ -447,6 +445,7 @@ export default class BlackJackTableScene extends TableScene {
       // 一枚引いてカードの表示を変える
       this.drawCard(PlayerType.PLAYER);
       this.setDisplayTotal(PlayerType.PLAYER);
+      this.gameState = GameState.HIT;
 
       if (this.playerTotalhand > 21) this.gameState = GameState.COMPARE;
     });
@@ -471,6 +470,7 @@ export default class BlackJackTableScene extends TableScene {
     this.doubleBtn.setClickHandler(() => {
       this.bet *= 2;
       this.setBetText();
+      this.gameState = GameState.DOUBLE;
 
       // １枚引く
       this.cpuAction();
