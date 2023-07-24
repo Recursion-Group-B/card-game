@@ -195,15 +195,7 @@ export default class BlackJackTableScene extends TableScene {
           card.moveTo(this.playerPositionX + this.addPlayerPositionX, this.playerPositionY, 500);
           setTimeout(() => {
             if (card.getRank === "Ace") {
-              this.gameState = GameState.SELECT_ACE_VALUE;
-              this.children.bringToTop(card);
-              card.setInteractive();
-              card.setClickHandler(() => {
-                card.moveTo(card.x, card.y - 10, 100);
-                this.createAceValueButton(card);
-                card.removeInteractive();
-              });
-              card.preFX.addGlow(0xff6347);
+              this.createAceValueButton(card);
             } else {
               this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
             }
@@ -337,27 +329,22 @@ export default class BlackJackTableScene extends TableScene {
         break;
     }
 
+    // 引いたカードを所定の位置に移動
     const drawCard = this.deck.draw();
     this.children.bringToTop(drawCard);
     player.addCardToHand(drawCard);
     drawCard.moveTo(positionX + addPositionX, positionY, 500);
     setTimeout(() => drawCard.flipToFront(), 800);
 
+    // 次のカードに渡す情報 / 現在のトータルスコアを更新
     if (playerType === PlayerType.CPU) {
-      this.cpuTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
       this.addCpuPositionX += 85;
+      this.cpuTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
     } else if (playerType === PlayerType.PLAYER && drawCard.getRank === "Ace") {
-      this.gameState = GameState.SELECT_ACE_VALUE;
       this.addPlayerPositionX += 85;
-      drawCard.setInteractive();
-      drawCard.setClickHandler(() => {
-        setTimeout(() => {
-          drawCard.moveTo(drawCard.x, drawCard.y - 10, 100);
-          this.createAceValueButton(drawCard);
-          drawCard.removeInteractive();
-        }, 600);
-      });
-      drawCard.preFX.addGlow(0xff6347);
+      setTimeout(() => {
+        this.createAceValueButton(drawCard);
+      }, 600);
     } else if (playerType === PlayerType.PLAYER) {
       this.addPlayerPositionX += 85;
       this.gameState = GameState.HIT;
@@ -499,8 +486,13 @@ export default class BlackJackTableScene extends TableScene {
    * Aの大きさを選択するボタンを生成
    */
   private createAceValueButton(card: Card): void {
+    // Aceを強調表示
     this.gameState = GameState.SELECT_ACE_VALUE;
+    this.children.bringToTop(card);
+    card.moveTo(card.x, card.y - 10, 100);
+    card.preFX.addGlow(0xff6347);
 
+    // Aceの大きさを選択するボタンを生成
     this.oneBtn = new Button(this, card.getX - 100, card.getY + 100, "buttonRed", "1");
     this.oneBtn.setScale(0.3);
     this.oneBtn.setName("aceValue");
