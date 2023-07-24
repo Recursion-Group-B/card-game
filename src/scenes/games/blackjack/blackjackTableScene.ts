@@ -9,6 +9,7 @@ import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
 import GameType from "../../../constants/gameType";
 import GAME from "../../../models/common/game";
+import GameResult from "../../../constants/gameResult";
 
 const D_WIDTH = 1320;
 const D_HEIGHT = 920;
@@ -49,6 +50,8 @@ export default class BlackJackTableScene extends TableScene {
   private elevenBtn: Button | undefined;
 
   private actionButtons: Button[] = [];
+
+  private result: GameResult | undefined;
 
   // ここまで追加
   private cardSize = {
@@ -107,21 +110,28 @@ export default class BlackJackTableScene extends TableScene {
     }
 
     if (this.gameState === GameState.COMPARE) {
-      this.time.delayedCall(1300, this.compareHands);
+      this.compareHands();
       this.gameState = GameState.END_GAME;
     }
 
     // ゲームが終わった際の条件
-    if (this.gameState === GameState.END_GAME) {
+    if (this.gameState === GameState.END_GAME && this.gameStarted) {
       // ハイスコア更新
       this.saveHighScore(this.getPlayer.getChips, GameType.BLACKJACK);
+      this.gameStarted = false;
 
-      // リスタート
-      this.gameZone.setInteractive();
-      this.gameZone.on("pointerdown", () => {
-        this.dataInit();
-        this.gameZone.removeInteractive();
-        this.gameZone.removeAllListeners();
+      this.time.delayedCall(1300, () => {
+        // リザルト
+        this.displayResult(this.result, 0);
+        this.payOut();
+
+        // リスタート
+        this.gameZone.setInteractive();
+        this.gameZone.on("pointerdown", () => {
+          this.dataInit();
+          this.gameZone.removeInteractive();
+          this.gameZone.removeAllListeners();
+        });
       });
     }
   }
@@ -283,27 +293,38 @@ export default class BlackJackTableScene extends TableScene {
    * CPUとの手札を比較する
    */
   private compareHands = (): void => {
-    // BUSTした場合、強制的に負け
+    if (this.result === GameResult.SURRENDER) return;
     if (this.playerTotalhand > 21) {
-      this.displayResult("BUST", 0);
-      this.players[0].setChips = this.players[0].getChips - this.bet;
-      return;
-    }
-
-    if (this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
-      // 勝利の表示
-      this.displayResult("WIN", 0);
-      this.players[0].setChips = this.players[0].getChips + this.bet;
+      this.result = GameResult.BUST;
+    } else if (this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
+      this.result = GameResult.WIN;
     } else if (this.playerTotalhand === this.cpuTotalhand) {
-      // 引き分けの表示
-      this.displayResult("DRAW", 0);
+      this.result = GameResult.DRAW;
     } else {
-      // 負けの表示
-      this.displayResult("LOSE", 0);
-      // CREDITの更新
-      this.players[0].setChips = this.players[0].getChips - this.bet;
+      this.result = GameResult.LOSE;
     }
   };
+
+  /**
+   * 配当を反映
+   */
+  private payOut(): void {
+    switch (this.result) {
+      case GameResult.WIN:
+        this.getPlayer.setChips = this.getPlayer.getChips + this.bet;
+        break;
+      case GameResult.LOSE:
+      case GameResult.BUST:
+      case GameResult.DRAW:
+        this.getPlayer.setChips = this.getPlayer.getChips - this.bet;
+        break;
+      case GameResult.SURRENDER:
+        this.getPlayer.setChips = this.getPlayer.getChips - this.bet / 2;
+        break;
+      default:
+        break;
+    }
+  }
 
   private cpuAction(): void {
     // ① CPUの手札を全てオープン
@@ -469,14 +490,8 @@ export default class BlackJackTableScene extends TableScene {
     this.actionButtons.push(this.surrenderBtn);
 
     this.surrenderBtn.setClickHandler(() => {
-      // 負けの表示
-      this.displayResult("LOSE", 0);
-
-      // CREDITの更新
-      this.players[0].setChips = this.players[0].getChips - this.bet / 2;
-
-      // 追加した、ゲームが終わったらGameStateを変更する
-      this.gameState = GameState.END_GAME;
+      this.result = GameResult.SURRENDER;
+      this.gameState = GameState.COMPARE;
     });
   }
 
