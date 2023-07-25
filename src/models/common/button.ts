@@ -22,10 +22,11 @@ export default class Button extends Phaser.GameObjects.Image {
     y: number,
     textureKey: string,
     text: string,
-    soundKey = ""
+    soundKey = "",
+    originScale?: number
   ) {
     super(scene, x, y, textureKey);
-    this.originScale = 0.35;
+    this.originScale = originScale ?? 0.35;
     this.textStr = text;
 
     scene.add.existing(this);
@@ -88,6 +89,11 @@ export default class Button extends Phaser.GameObjects.Image {
 
   visibleText(): void {
     this.text.setVisible(true);
+  }
+
+  removeAll(): void {
+    this.text.destroy(true);
+    this.destroy(true);
   }
 
   moveTo(toX: number, toY: number, delay: number): void {
