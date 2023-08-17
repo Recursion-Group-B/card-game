@@ -659,7 +659,6 @@ export default class TexasTableScene extends TableScene {
     this.gameState = GameState.BETTING;
     this.result = undefined;
     this.pot = [];
-    this.gameState = "firstCycle";
     this.cycleState = "notAllAction";
     this.handScoreList = [];
     this.gameStarted = false;
