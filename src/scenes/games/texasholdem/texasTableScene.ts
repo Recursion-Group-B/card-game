@@ -192,16 +192,18 @@ export default class TexasTableScene extends TableScene {
 
     // 手札を比較し、ゲーム終了
     if (this.gameState === GameState.COMPARE) {
-      this.gameState = GameState.END_GAME;
       this.disableAction();
-      this.checkResult();
+      this.time.delayedCall(500, () => {
+        this.checkResult();
+        this.gameState = GameState.END_GAME;
+      });
     }
 
     // リザルト表示し、リスタート
     if (this.gameState === GameState.END_GAME) {
       this.time.removeAllEvents();
 
-      this.time.delayedCall(2000, () => {
+      this.time.delayedCall(1500, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
         this.saveHighScore(this.getPlayer.getChips, GameType.TEXAS);
@@ -519,6 +521,7 @@ export default class TexasTableScene extends TableScene {
       scoreList.add(handScore.role);
     });
 
+    console.log(this.handScoreList);
     // 同等の役の場合、カードの強い順番
     if (scoreList.size === 1) {
       for (let i = 0; i < this.handScoreList[0].highCard.length; i += 1) {

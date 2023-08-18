@@ -82,10 +82,12 @@ export default class BlackJackTableScene extends TableScene {
     this.createToggleSoundButton();
     this.createActionButton();
     this.createScore();
+    this.createInfo();
   }
 
   update(): void {
     this.drawActionButtonControl();
+    this.drawInfo();
     this.setCreditText(this.getPlayer.getChips);
 
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
@@ -112,7 +114,7 @@ export default class BlackJackTableScene extends TableScene {
       this.saveHighScore(this.getPlayer.getChips, GameType.BLACKJACK);
       this.gameStarted = false;
 
-      this.time.delayedCall(1300, () => {
+      this.time.delayedCall(2000, () => {
         // リザルト
         this.displayResult(this.result, 0);
         this.payOut();

@@ -234,29 +234,31 @@ export default class PokerTableScene extends TableScene {
 
     // 手札を比較し、ゲーム終了
     if (this.gameState === GameState.COMPARE) {
-      this.gameState = GameState.END_GAME;
       this.deleteDoneAction();
       this.disableBtn();
-      this.checkResult();
+      this.time.delayedCall(500, () => {
+        this.checkResult();
+        this.gameState = GameState.END_GAME;
+      });
     }
 
     // リザルト表示し、リスタート
-    if (this.gameState === GameState.END_GAME) {
+    if (this.gameState === GameState.END_GAME && this.gameStarted) {
       this.time.removeAllEvents();
-      this.gameState = GameState.INIT_GAME;
+      this.gameStarted = false;
 
-      this.time.delayedCall(2000, () => {
+      this.time.delayedCall(1500, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
         this.saveHighScore(this.getPlayer.getChips, GameType.POKER);
-      });
 
-      // リスタート
-      this.gameZone.setInteractive();
-      this.gameZone.on("pointerdown", () => {
-        this.initGame();
-        this.gameZone.removeInteractive();
-        this.gameZone.removeAllListeners();
+        // リスタート
+        this.gameZone.setInteractive();
+        this.gameZone.on("pointerdown", () => {
+          this.initGame();
+          this.gameZone.removeInteractive();
+          this.gameZone.removeAllListeners();
+        });
       });
     }
   }

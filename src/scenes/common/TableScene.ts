@@ -610,7 +610,11 @@ export default abstract class TableScene extends Phaser.Scene {
       case GameState.INIT_GAME:
         this.infoContent = "画面をクリックしてベットに戻ります。";
         timeout =
-          this.gameSceneKey === GameType.POKER || this.gameSceneKey === GameType.TEXAS ? 2000 : 0;
+          this.gameSceneKey === GameType.POKER ||
+          this.gameSceneKey === GameType.TEXAS ||
+          this.gameSceneKey === GameType.BLACKJACK
+            ? 1500
+            : 0;
         break;
       case GameState.BETTING:
         this.infoContent = "ベットサイズを決めてください。";
