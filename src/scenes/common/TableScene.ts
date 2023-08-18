@@ -601,6 +601,7 @@ export default abstract class TableScene extends Phaser.Scene {
    */
   protected drawInfo(): void {
     let timeout = 0;
+
     switch (this.gameState) {
       case GameState.COMPARE:
         this.infoContent = "勝敗の確認中です。";
@@ -608,7 +609,8 @@ export default abstract class TableScene extends Phaser.Scene {
       case GameState.END_GAME:
       case GameState.INIT_GAME:
         this.infoContent = "画面をクリックしてベットに戻ります。";
-        timeout = 2000;
+        timeout =
+          this.gameSceneKey === GameType.POKER || this.gameSceneKey === GameType.TEXAS ? 2000 : 0;
         break;
       case GameState.BETTING:
         this.infoContent = "ベットサイズを決めてください。";
@@ -619,6 +621,7 @@ export default abstract class TableScene extends Phaser.Scene {
       default:
         this.infoContent = "プレイ中です。";
     }
+
     setTimeout(() => {
       (this.infoContainer.getByName("info_text") as Text).setText(this.infoContent);
     }, timeout);

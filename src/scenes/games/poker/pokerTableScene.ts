@@ -135,9 +135,10 @@ export default class PokerTableScene extends TableScene {
     // gameState管理
     this.cycleControl();
 
-    // 所持金等の更新
+    // 更新
     this.setBetText(GameType.POKER);
     this.setCreditText(this.getPlayer.getChips);
+    this.drawInfo();
   }
 
   private async cycleEvent(player: PokerPlayer, index: number): Promise<void> {
@@ -172,7 +173,6 @@ export default class PokerTableScene extends TableScene {
       this.gameStarted = true;
       this.startGame();
       this.disableBetItem();
-      this.drawInfo();
     }
     // レイズした場合、もう一周
     if (this.players.some((player: PokerPlayer) => player.getState === "raise")) {
@@ -246,7 +246,6 @@ export default class PokerTableScene extends TableScene {
       this.gameState = GameState.INIT_GAME;
 
       this.time.delayedCall(2000, () => {
-        this.drawInfo();
         this.displayResult(this.result as string, 0);
         this.resultView();
         this.saveHighScore(this.getPlayer.getChips, GameType.POKER);
@@ -706,7 +705,6 @@ export default class PokerTableScene extends TableScene {
     this.dealButton?.disVisibleText();
     this.enableBetItem();
     this.fadeInBetItem();
-    this.drawInfo();
   }
 
   private startGame(): void {
