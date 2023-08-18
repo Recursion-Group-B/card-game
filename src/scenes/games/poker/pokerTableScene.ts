@@ -111,6 +111,7 @@ export default class PokerTableScene extends TableScene {
   create() {
     this.add.image(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, "table");
     this.createGameZone();
+
     (this.players[0] as PokerPlayer).setIsDealer = true;
 
     this.helpContent = new HelpContainer(this, GameRule.POKER);
@@ -121,8 +122,8 @@ export default class PokerTableScene extends TableScene {
     this.createClearButton();
     this.createDealButton(true);
     this.createCreditField(GameType.POKER);
-    this.drawAction();
     this.createInfo();
+    this.drawAction();
 
     // アニメーション
     this.clickToUp();
@@ -133,7 +134,6 @@ export default class PokerTableScene extends TableScene {
   update(): void {
     // gameState管理
     this.cycleControl();
-    this.drawInfo();
 
     // 所持金等の更新
     this.setBetText(GameType.POKER);
@@ -168,10 +168,11 @@ export default class PokerTableScene extends TableScene {
 
     // ベット終了
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
-      this.gameState = "firstCycle";
+      this.gameState = GameState.FIRST_CYCLE;
       this.gameStarted = true;
       this.startGame();
       this.disableBetItem();
+      this.drawInfo();
     }
     // レイズした場合、もう一周
     if (this.players.some((player: PokerPlayer) => player.getState === "raise")) {
@@ -204,7 +205,7 @@ export default class PokerTableScene extends TableScene {
     }
 
     // 一巡目のアクション終了
-    if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.FIRST_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
         /* eslint-disable no-param-reassign */
@@ -216,35 +217,36 @@ export default class PokerTableScene extends TableScene {
         }
       });
       this.cycleState = "notAllDone";
-      this.gameState = "changeCycle";
+      this.gameState = GameState.CHANGE_CYCLE;
       this.deleteDoneAction();
     }
 
     // change
-    if (this.gameState === "changeCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.CHANGE_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
         /* eslint-disable no-param-reassign */
         (player as PokerPlayer).setState = "notAction";
       });
       this.cycleState = "notAllDone";
-      this.gameState = "compare";
+      this.gameState = GameState.COMPARE;
     }
 
     // 手札を比較し、ゲーム終了
-    if (this.gameState === "compare") {
-      this.gameState = "endGame";
+    if (this.gameState === GameState.COMPARE) {
+      this.gameState = GameState.END_GAME;
       this.deleteDoneAction();
       this.disableBtn();
       this.checkResult();
     }
 
     // リザルト表示し、リスタート
-    if (this.gameState === "endGame") {
+    if (this.gameState === GameState.END_GAME) {
       this.time.removeAllEvents();
-      this.gameState = "initGame";
+      this.gameState = GameState.INIT_GAME;
 
       this.time.delayedCall(2000, () => {
+        this.drawInfo();
         this.displayResult(this.result as string, 0);
         this.resultView();
         this.saveHighScore(this.getPlayer.getChips, GameType.POKER);
@@ -269,13 +271,13 @@ export default class PokerTableScene extends TableScene {
           this.drawDoneAction(player, "bet");
           this.drawPots();
           player.setState = "bet";
-        } else if (this.cycleState === "raise" || this.gameState === "firstCycle") {
+        } else if (this.cycleState === "raise" || this.gameState === GameState.FIRST_CYCLE) {
           // call
           this.setPot = player.call(this.getPreBet);
           this.drawDoneAction(player, "call");
           this.drawPots();
           player.setState = "call";
-        } else if (this.gameState === "changeCycle") {
+        } else if (this.gameState === GameState.CHANGE_CYCLE) {
           const changeList: Set<Card> = new Set();
           const changeAmount = Phaser.Math.RND.integerInRange(0, 5);
           for (let i = 0; i < changeAmount; i += 1) {
@@ -321,7 +323,7 @@ export default class PokerTableScene extends TableScene {
     const flipTime = 800;
     let cpuTime;
     switch (this.gameState) {
-      case "firstCycle":
+      case GameState.FIRST_CYCLE:
         cpuTime = 1000;
         break;
       default:
@@ -490,7 +492,7 @@ export default class PokerTableScene extends TableScene {
           this.drawDoneAction(player, "fold");
         }
       });
-      this.gameState = "compare";
+      this.gameState = GameState.COMPARE;
     });
   }
 
@@ -704,6 +706,7 @@ export default class PokerTableScene extends TableScene {
     this.dealButton?.disVisibleText();
     this.enableBetItem();
     this.fadeInBetItem();
+    this.drawInfo();
   }
 
   private startGame(): void {
@@ -765,16 +768,19 @@ export default class PokerTableScene extends TableScene {
       this.gameState === GameState.END_GAME
     ) {
       this.disableBtn();
-    } else if (this.gameState === "firstCycle" && (this.getPlayer as PokerPlayer).getIsDealer) {
+    } else if (
+      this.gameState === GameState.FIRST_CYCLE &&
+      (this.getPlayer as PokerPlayer).getIsDealer
+    ) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.betBtn?.enable();
-    } else if (this.gameState === "firstCycle") {
+    } else if (this.gameState === GameState.FIRST_CYCLE) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.callBtn?.enable();
       this.raiseBtn?.enable();
-    } else if (this.gameState === "changeCycle") {
+    } else if (this.gameState === GameState.CHANGE_CYCLE) {
       this.checkBtn?.disable();
       this.foldBtn?.disable();
       this.betBtn?.disable();

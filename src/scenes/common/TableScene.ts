@@ -592,6 +592,8 @@ export default abstract class TableScene extends Phaser.Scene {
 
     this.infoContainer = this.add.container(0, 0, [infoBackGround, infoText]).setName("info");
     Phaser.Display.Align.In.TopCenter(this.infoContainer, this.gameZone as Zone, -300, -5);
+
+    this.drawInfo();
   }
 
   /**
@@ -604,6 +606,7 @@ export default abstract class TableScene extends Phaser.Scene {
         this.infoContent = "勝敗の確認中です。";
         break;
       case GameState.END_GAME:
+      case GameState.INIT_GAME:
         this.infoContent = "画面をクリックしてベットに戻ります。";
         break;
       case GameState.BETTING:
