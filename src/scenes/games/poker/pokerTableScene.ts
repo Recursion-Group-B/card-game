@@ -131,7 +131,6 @@ export default class PokerTableScene extends TableScene {
   update(): void {
     // gameState管理
     this.cycleControl();
-    console.log(this.gameState);
 
     // 所持金等の更新
     this.setBetText(GameType.POKER);

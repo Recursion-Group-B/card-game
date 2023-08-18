@@ -9,7 +9,6 @@ import GAME from "../../../models/common/game";
 import Button from "../../../models/common/button";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
-import Chip from "../../../models/common/chip";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
 import GameType from "../../../constants/gameType";
