@@ -9,7 +9,6 @@ import GAME from "../../../models/common/game";
 import Button from "../../../models/common/button";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
-import Chip from "../../../models/common/chip";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
 import GameType from "../../../constants/gameType";
@@ -364,10 +363,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "check",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.checkBtn.disable();
-    this.checkBtn.setScale(0.3);
     this.checkBtn.setClickHandler(() => {
       // playerのstate変更
       this.players.forEach((player: TexasPlayer) => {
@@ -390,10 +389,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "fold",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.foldBtn.disable();
-    this.foldBtn.setScale(0.3);
     this.foldBtn.setClickHandler(() => {
       // カードを手放す
       this.players.forEach((player: TexasPlayer) => {
@@ -423,10 +422,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "bet",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.betBtn.disable();
-    this.betBtn.setScale(0.3);
     this.betBtn.setClickHandler(() => {
       this.players.forEach((player: TexasPlayer) => {
         // 100betする
@@ -453,10 +452,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "call",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.callBtn.disable();
-    this.callBtn.setScale(0.3);
     this.callBtn.setClickHandler(() => {
       this.players.forEach((player: TexasPlayer) => {
         // 前のbetSizeでbetする
@@ -483,10 +482,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "raise",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.raiseBtn.disable();
-    this.raiseBtn.setScale(0.3);
     this.raiseBtn.setClickHandler(() => {
       this.players.forEach((player: TexasPlayer) => {
         // 前のbetSizeでbetする
@@ -659,7 +658,6 @@ export default class TexasTableScene extends TableScene {
     this.gameState = GameState.BETTING;
     this.result = undefined;
     this.pot = [];
-    this.gameState = "firstCycle";
     this.cycleState = "notAllAction";
     this.handScoreList = [];
     this.gameStarted = false;
@@ -747,11 +745,13 @@ export default class TexasTableScene extends TableScene {
   }
 
   private disableAction(): void {
-    this.checkBtn.disable();
-    this.foldBtn.disable();
-    this.betBtn.disable();
-    this.callBtn.disable();
-    this.raiseBtn.disable();
+    setTimeout(() => {
+      this.checkBtn.disable();
+      this.foldBtn.disable();
+      this.betBtn.disable();
+      this.callBtn.disable();
+      this.raiseBtn.disable();
+    }, 100);
   }
 
   private actionControl(): void {
