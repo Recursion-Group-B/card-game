@@ -28,9 +28,9 @@ export default class BlackJackTableScene extends TableScene {
 
   private addCpuPositionX = 0;
 
-  private playerTotalhand = 0;
+  private playerTotalHand = 0;
 
-  private cpuTotalhand = 0;
+  private cpuTotalHand = 0;
 
   private playerScoreText: Phaser.GameObjects.Text;
 
@@ -114,7 +114,7 @@ export default class BlackJackTableScene extends TableScene {
       this.saveHighScore(this.getPlayer.getChips, GameType.BLACKJACK);
       this.gameStarted = false;
 
-      this.time.delayedCall(2000, () => {
+      this.time.delayedCall(1500, () => {
         // リザルト
         this.displayResult(this.result, 0);
         this.payOut();
@@ -137,8 +137,8 @@ export default class BlackJackTableScene extends TableScene {
     // 現状のデータを初期化させる
     this.addPlayerPositionX = 0;
     this.addCpuPositionX = 0;
-    this.playerTotalhand = 0;
-    this.cpuTotalhand = 0;
+    this.playerTotalHand = 0;
+    this.cpuTotalHand = 0;
     this.bet = 0;
     this.setBetText();
 
@@ -199,7 +199,7 @@ export default class BlackJackTableScene extends TableScene {
             if (card.getRank === "Ace") {
               this.createAceValueButton(card);
             } else {
-              this.playerTotalhand += card.getRankNumber(GameType.BLACKJACK);
+              this.playerTotalHand += card.getRankNumber(GameType.BLACKJACK);
             }
             this.setDisplayTotal(PlayerType.PLAYER);
             card.flipToFront();
@@ -211,7 +211,7 @@ export default class BlackJackTableScene extends TableScene {
           // ブラックジャックはCPUの一枚目を表面にする
           if (index === 0) {
             card.moveTo(this.cpuPositionX + this.addCpuPositionX, this.cpuPositionY, 500);
-            this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
+            this.cpuTotalHand += card.getRankNumber(GameType.BLACKJACK);
             setTimeout(() => {
               this.setDisplayTotal(PlayerType.CPU);
               card.flipToFront();
@@ -222,7 +222,7 @@ export default class BlackJackTableScene extends TableScene {
             card.moveTo(this.cpuPositionX + this.addCpuPositionX, this.cpuPositionY, 500);
             this.addCpuPositionX += 85;
             setTimeout(() => {
-              this.cpuTotalhand += card.getRankNumber(GameType.BLACKJACK);
+              this.cpuTotalHand += card.getRankNumber(GameType.BLACKJACK);
             }, 800);
           }
         }
@@ -236,7 +236,7 @@ export default class BlackJackTableScene extends TableScene {
   createScore(): void {
     // player
     this.playerScoreText = this.add
-      .text(this.playerPositionX + 120, this.playerPositionY - 95, `${this.playerTotalhand}`, {
+      .text(this.playerPositionX + 120, this.playerPositionY - 95, `${this.playerTotalHand}`, {
         fontFamily: "Arial Black",
         fontSize: 30,
       })
@@ -245,7 +245,7 @@ export default class BlackJackTableScene extends TableScene {
 
     // CPU
     this.cpuScoreText = this.add
-      .text(this.cpuPositionX + 120, this.cpuPositionY + 65, `${this.cpuTotalhand}`, {
+      .text(this.cpuPositionX + 120, this.cpuPositionY + 65, `${this.cpuTotalHand}`, {
         fontFamily: "Arial Black",
         fontSize: 30,
       })
@@ -263,14 +263,14 @@ export default class BlackJackTableScene extends TableScene {
   private setDisplayTotal(playerType?: PlayerType): void {
     switch (playerType) {
       case PlayerType.CPU:
-        this.cpuScoreText.setText(this.cpuTotalhand.toString());
+        this.cpuScoreText.setText(this.cpuTotalHand.toString());
         break;
       case PlayerType.PLAYER:
-        this.playerScoreText.setText(this.playerTotalhand.toString());
+        this.playerScoreText.setText(this.playerTotalHand.toString());
         break;
       default:
-        this.cpuScoreText.setText(this.cpuTotalhand.toString());
-        this.playerScoreText.setText(this.playerTotalhand.toString());
+        this.cpuScoreText.setText(this.cpuTotalHand.toString());
+        this.playerScoreText.setText(this.playerTotalHand.toString());
         break;
     }
   }
@@ -288,11 +288,11 @@ export default class BlackJackTableScene extends TableScene {
    */
   private compareHands = (): void => {
     if (this.result === GameResult.SURRENDER) return;
-    if (this.playerTotalhand > 21) {
+    if (this.playerTotalHand > 21) {
       this.result = GameResult.BUST;
-    } else if (this.playerTotalhand > this.cpuTotalhand || this.cpuTotalhand > 21) {
+    } else if (this.playerTotalHand > this.cpuTotalHand || this.cpuTotalHand > 21) {
       this.result = GameResult.WIN;
-    } else if (this.playerTotalhand === this.cpuTotalhand) {
+    } else if (this.playerTotalHand === this.cpuTotalHand) {
       this.result = GameResult.DRAW;
     } else {
       this.result = GameResult.LOSE;
@@ -327,7 +327,7 @@ export default class BlackJackTableScene extends TableScene {
     });
 
     // ② 17以上になるまでHitを行う
-    while (this.cpuTotalhand < 17) {
+    while (this.cpuTotalHand < 17) {
       // カードを一枚ドロー
       this.drawCard(PlayerType.CPU);
     }
@@ -372,7 +372,7 @@ export default class BlackJackTableScene extends TableScene {
     // 次のカードに渡す情報 / 現在のトータルスコアを更新
     if (playerType === PlayerType.CPU) {
       this.addCpuPositionX += 85;
-      this.cpuTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+      this.cpuTotalHand += drawCard.getRankNumber(GameType.BLACKJACK);
     } else if (playerType === PlayerType.PLAYER && drawCard.getRank === "Ace") {
       this.addPlayerPositionX += 85;
       setTimeout(() => {
@@ -380,11 +380,11 @@ export default class BlackJackTableScene extends TableScene {
       }, 600);
     } else if (this.gameState === GameState.HIT || this.gameState === GameState.PLAYING) {
       this.addPlayerPositionX += 85;
-      this.playerTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+      this.playerTotalHand += drawCard.getRankNumber(GameType.BLACKJACK);
       this.gameState = GameState.HIT;
     } else if (this.gameState === GameState.DOUBLE) {
       this.addPlayerPositionX += 85;
-      this.playerTotalhand += drawCard.getRankNumber(GameType.BLACKJACK);
+      this.playerTotalHand += drawCard.getRankNumber(GameType.BLACKJACK);
       this.gameState = GameState.COMPARE;
     }
 
@@ -437,7 +437,7 @@ export default class BlackJackTableScene extends TableScene {
       this.setDisplayTotal(PlayerType.PLAYER);
       this.gameState = GameState.HIT;
 
-      if (this.playerTotalhand > 21) this.gameState = GameState.COMPARE;
+      if (this.playerTotalHand > 21) this.gameState = GameState.COMPARE;
     });
   }
 
@@ -560,12 +560,12 @@ export default class BlackJackTableScene extends TableScene {
     this.aceCards.unshift(aceCard);
 
     const clickAction = (type: GameType) => () => {
-      this.playerTotalhand += aceCard.getRankNumber(type);
+      this.playerTotalHand += aceCard.getRankNumber(type);
       aceCard.moveTo(aceCard.getX, aceCard.getY + 10, 100);
       aceCard.preFX.clear();
       this.setDisplayTotal(PlayerType.PLAYER);
       this.removeAceValueButton(aceCard);
-      if (this.playerTotalhand > 21) this.gameState = GameState.COMPARE;
+      if (this.playerTotalHand > 21) this.gameState = GameState.COMPARE;
       else if (!this.aceCards.length)
         this.gameState = preGameState === GameState.DOUBLE ? GameState.COMPARE : GameState.HIT;
     };

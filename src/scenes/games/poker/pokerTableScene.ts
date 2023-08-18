@@ -1,5 +1,5 @@
 import "../../../style.scss";
-import Phaser, { Game } from "phaser";
+import Phaser from "phaser";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
 import Button from "../../../models/common/button";
@@ -565,7 +565,6 @@ export default class PokerTableScene extends TableScene {
 
     this.players.forEach((player: PokerPlayer) => {
       const handScore: HandScore = player.calculateHandScore();
-      console.log(`${player.getName} role: ${handScore.role}`);
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
     });

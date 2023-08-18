@@ -521,7 +521,6 @@ export default class TexasTableScene extends TableScene {
       scoreList.add(handScore.role);
     });
 
-    console.log(this.handScoreList);
     // 同等の役の場合、カードの強い順番
     if (scoreList.size === 1) {
       for (let i = 0; i < this.handScoreList[0].highCard.length; i += 1) {
