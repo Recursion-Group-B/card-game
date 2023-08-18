@@ -600,7 +600,6 @@ export default abstract class TableScene extends Phaser.Scene {
    * インフォメーションの更新
    */
   protected drawInfo(): void {
-    console.log(this.gameState);
     switch (this.gameState) {
       case GameState.COMPARE:
         this.infoContent = "勝敗の確認中です。";
