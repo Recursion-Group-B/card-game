@@ -8,6 +8,7 @@ import GameResult from "../../constants/gameResult";
 import GAME from "../../models/common/game";
 import Zone = Phaser.GameObjects.Zone;
 import Text = Phaser.GameObjects.Text;
+import Container = Phaser.GameObjects.Container;
 import GameObject = Phaser.GameObjects.GameObject;
 import HelpContainer from "./helpContainer";
 import { textStyle } from "../../constants/styles";
@@ -16,6 +17,8 @@ import Size from "../../constants/size";
 
 export default abstract class TableScene extends Phaser.Scene {
   protected gameZone: Zone | undefined;
+
+  protected infoContainer: Container | undefined;
 
   protected pot: number[];
 
@@ -76,6 +79,8 @@ export default abstract class TableScene extends Phaser.Scene {
   protected playerDrawSound: Phaser.Sound.BaseSound | undefined;
 
   protected isSoundOn = true;
+
+  protected infoContent: string | undefined;
 
   protected set setInitialTime(time: number) {
     this.initialTime = time;
@@ -562,6 +567,55 @@ export default abstract class TableScene extends Phaser.Scene {
       (child) => child.name === "pots_background" || child.name === "pots_text"
     );
     this.add.container(potsX, potsY, potsChildren).setName("pots");
+  }
+
+  /**
+   * インフォメーション
+   */
+  protected createInfo(): void {
+    // 背景
+    const infoBackGround = this.add
+      .graphics()
+      .fillRoundedRect(0, 0, 600, 40)
+      .fillStyle(0x000000, 0.9)
+      .setName("info_background");
+
+    // テキスト
+    const infoText = this.add
+      .text(0, 0, this.infoContent)
+      .setColor("white")
+      .setFontSize(20)
+      .setFontFamily("Arial")
+      .setPadding(20, 8)
+      .setOrigin(0, 0)
+      .setName("info_text");
+
+    this.infoContainer = this.add.container(0, 0, [infoBackGround, infoText]).setName("info");
+    Phaser.Display.Align.In.TopCenter(this.infoContainer, this.gameZone as Zone, -300, -5);
+  }
+
+  /**
+   * インフォメーションの更新
+   */
+  protected drawInfo(): void {
+    console.log(this.gameState);
+    switch (this.gameState) {
+      case GameState.COMPARE:
+        this.infoContent = "勝敗の確認中です。";
+        break;
+      case GameState.END_GAME:
+        this.infoContent = "画面をクリックしてベットに戻ります。";
+        break;
+      case GameState.BETTING:
+        this.infoContent = "ベットサイズを決めてください。";
+        break;
+      case GameState.SELECT_ACE_VALUE:
+        this.infoContent = "Aceの大きさを決めてください。";
+        break;
+      default:
+        this.infoContent = "プレイ中です。";
+    }
+    (this.infoContainer.getByName("info_text") as Text).setText(this.infoContent);
   }
 
   /**

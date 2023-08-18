@@ -59,6 +59,7 @@ export default class PokerTableScene extends TableScene {
     ];
     this.pot = [0];
     this.returnPot = 0;
+    this.gameState = GameState.BETTING;
     this.cycleState = "notAllAction";
     this.gameStarted = false;
   }
@@ -121,6 +122,7 @@ export default class PokerTableScene extends TableScene {
     this.createDealButton(true);
     this.createCreditField(GameType.POKER);
     this.drawAction();
+    this.createInfo();
 
     // アニメーション
     this.clickToUp();
@@ -131,6 +133,7 @@ export default class PokerTableScene extends TableScene {
   update(): void {
     // gameState管理
     this.cycleControl();
+    this.drawInfo();
 
     // 所持金等の更新
     this.setBetText(GameType.POKER);
@@ -152,7 +155,7 @@ export default class PokerTableScene extends TableScene {
     if (player.getState !== "notAction") return;
 
     // ゲーム終了時は何もしない
-    if (this.gameState === "endGame" || this.gameState === "compare") return;
+    if (this.gameState === GameState.END_GAME || this.gameState === GameState.COMPARE) return;
 
     // cpu
     if (player.getPlayerType === "cpu") {
