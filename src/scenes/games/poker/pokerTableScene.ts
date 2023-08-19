@@ -1,5 +1,5 @@
 import "../../../style.scss";
-import Phaser, { Game } from "phaser";
+import Phaser from "phaser";
 import Deck from "../../../models/common/deck";
 import Card from "../../../models/common/card";
 import Button from "../../../models/common/button";
@@ -59,6 +59,7 @@ export default class PokerTableScene extends TableScene {
     ];
     this.pot = [0];
     this.returnPot = 0;
+    this.gameState = GameState.BETTING;
     this.cycleState = "notAllAction";
     this.gameStarted = false;
   }
@@ -110,6 +111,7 @@ export default class PokerTableScene extends TableScene {
   create() {
     this.add.image(Size.D_WIDTH / 2, Size.D_HEIGHT / 2, "table");
     this.createGameZone();
+
     (this.players[0] as PokerPlayer).setIsDealer = true;
 
     this.helpContent = new HelpContainer(this, GameRule.POKER);
@@ -120,6 +122,7 @@ export default class PokerTableScene extends TableScene {
     this.createClearButton();
     this.createDealButton(true);
     this.createCreditField(GameType.POKER);
+    this.createInfo();
     this.drawAction();
 
     // アニメーション
@@ -132,9 +135,10 @@ export default class PokerTableScene extends TableScene {
     // gameState管理
     this.cycleControl();
 
-    // 所持金等の更新
+    // 更新
     this.setBetText(GameType.POKER);
     this.setCreditText(this.getPlayer.getChips);
+    this.drawInfo();
   }
 
   private async cycleEvent(player: PokerPlayer, index: number): Promise<void> {
@@ -152,11 +156,11 @@ export default class PokerTableScene extends TableScene {
     if (player.getState !== "notAction") return;
 
     // ゲーム終了時は何もしない
-    if (this.gameState === "endGame" || this.gameState === "compare") return;
+    if (this.gameState === GameState.END_GAME || this.gameState === GameState.COMPARE) return;
 
     // cpu
     if (player.getPlayerType === "cpu") {
-      await this.cpuAction(player);
+      await this.cpuAction(player, index);
     }
   }
 
@@ -165,7 +169,7 @@ export default class PokerTableScene extends TableScene {
 
     // ベット終了
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
-      this.gameState = "firstCycle";
+      this.gameState = GameState.FIRST_CYCLE;
       this.gameStarted = true;
       this.startGame();
       this.disableBetItem();
@@ -201,7 +205,7 @@ export default class PokerTableScene extends TableScene {
     }
 
     // 一巡目のアクション終了
-    if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.FIRST_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
         /* eslint-disable no-param-reassign */
@@ -213,51 +217,53 @@ export default class PokerTableScene extends TableScene {
         }
       });
       this.cycleState = "notAllDone";
-      this.gameState = "changeCycle";
+      this.gameState = GameState.CHANGE_CYCLE;
       this.deleteDoneAction();
     }
 
     // change
-    if (this.gameState === "changeCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.CHANGE_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
         /* eslint-disable no-param-reassign */
         (player as PokerPlayer).setState = "notAction";
       });
       this.cycleState = "notAllDone";
-      this.gameState = "compare";
+      this.gameState = GameState.COMPARE;
     }
 
     // 手札を比較し、ゲーム終了
-    if (this.gameState === "compare") {
-      this.gameState = "endGame";
+    if (this.gameState === GameState.COMPARE) {
       this.deleteDoneAction();
       this.disableBtn();
-      this.checkResult();
+      this.time.delayedCall(500, () => {
+        this.checkResult();
+        this.gameState = GameState.END_GAME;
+      });
     }
 
     // リザルト表示し、リスタート
-    if (this.gameState === "endGame") {
+    if (this.gameState === GameState.END_GAME && this.gameStarted) {
       this.time.removeAllEvents();
-      this.gameState = "initGame";
+      this.gameStarted = false;
 
-      this.time.delayedCall(2000, () => {
+      this.time.delayedCall(1500, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
         this.saveHighScore(this.getPlayer.getChips, GameType.POKER);
-      });
 
-      // リスタート
-      this.gameZone.setInteractive();
-      this.gameZone.on("pointerdown", () => {
-        this.initGame();
-        this.gameZone.removeInteractive();
-        this.gameZone.removeAllListeners();
+        // リスタート
+        this.gameZone.setInteractive();
+        this.gameZone.on("pointerdown", () => {
+          this.initGame();
+          this.gameZone.removeInteractive();
+          this.gameZone.removeAllListeners();
+        });
       });
     }
   }
 
-  private cpuAction(player: PokerPlayer): Promise<PokerPlayer> {
+  private cpuAction(player: PokerPlayer, index: number): Promise<PokerPlayer> {
     return new Promise(() => {
       setTimeout(() => {
         if (player.getIsDealer && this.cycleState === "notAllAction") {
@@ -266,13 +272,13 @@ export default class PokerTableScene extends TableScene {
           this.drawDoneAction(player, "bet");
           this.drawPots();
           player.setState = "bet";
-        } else if (this.cycleState === "raise" || this.gameState === "firstCycle") {
+        } else if (this.cycleState === "raise" || this.gameState === GameState.FIRST_CYCLE) {
           // call
           this.setPot = player.call(this.getPreBet);
           this.drawDoneAction(player, "call");
           this.drawPots();
           player.setState = "call";
-        } else if (this.gameState === "changeCycle") {
+        } else if (this.gameState === GameState.CHANGE_CYCLE) {
           const changeList: Set<Card> = new Set();
           const changeAmount = Phaser.Math.RND.integerInRange(0, 5);
           for (let i = 0; i < changeAmount; i += 1) {
@@ -282,7 +288,7 @@ export default class PokerTableScene extends TableScene {
             player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
             // phaser描画
             changeList.forEach((card) => card.destroy());
-            this.dealHand();
+            this.dealHand(index);
           }
           // state更新
           player.setState = "Done";
@@ -314,18 +320,20 @@ export default class PokerTableScene extends TableScene {
   /**
    * 手札配布
    */
-  private dealHand() {
+  private dealHand(): void;
+  private dealHand(playerIndex: number): void;
+  private dealHand(playerIndex?: number) {
     const flipTime = 800;
     let cpuTime;
     switch (this.gameState) {
-      case "firstCycle":
+      case GameState.FIRST_CYCLE:
         cpuTime = 1000;
         break;
       default:
         cpuTime = 0;
     }
 
-    this.players.forEach((player: PokerPlayer) => {
+    const deal = (player: PokerPlayer) => {
       player.getHand?.forEach((card, index) => {
         this.children.bringToTop(card);
         if (player.getPlayerType === "player") {
@@ -339,7 +347,10 @@ export default class PokerTableScene extends TableScene {
           }, cpuTime);
         }
       });
-    });
+    };
+
+    if (playerIndex === undefined) this.players.forEach((player: PokerPlayer) => deal(player));
+    else deal(this.players[playerIndex] as PokerPlayer);
   }
 
   /**
@@ -379,20 +390,20 @@ export default class PokerTableScene extends TableScene {
     );
     this.changeBtn.disable();
     this.changeBtn.setClickHandler(() => {
-      this.players.forEach((player) => {
+      this.players.forEach((player: PokerPlayer, index: number) => {
         if (player.getPlayerType !== "player") return;
         // data
-        const changeList = (player.getHand as Card[]).filter(
-          (child) => (child as Card).getClickStatus === true
+        const changeList = player.getHand.filter(
+          (child: Card) => child.getClickStatus === true
         ) as Card[];
-        if (changeList.length)
+        if (changeList.length) {
           (player as PokerPlayer).change(
             changeList,
             (this.deck as Deck).draw(changeList.length) as Card[]
           );
-        // phaser描画
-        changeList.forEach((card) => card.destroy());
-        this.dealHand();
+          changeList.forEach((card) => card.destroy());
+          this.dealHand(index);
+        }
         // state更新
         (player as PokerPlayer).setState = "Done";
         // action表示
@@ -487,7 +498,7 @@ export default class PokerTableScene extends TableScene {
           this.drawDoneAction(player, "fold");
         }
       });
-      this.gameState = "compare";
+      this.gameState = GameState.COMPARE;
     });
   }
 
@@ -559,7 +570,6 @@ export default class PokerTableScene extends TableScene {
 
     this.players.forEach((player: PokerPlayer) => {
       const handScore: HandScore = player.calculateHandScore();
-      console.log(`${player.getName} role: ${handScore.role}`);
       this.handScoreList.push(handScore);
       scoreList.add(handScore.role);
     });
@@ -762,16 +772,19 @@ export default class PokerTableScene extends TableScene {
       this.gameState === GameState.END_GAME
     ) {
       this.disableBtn();
-    } else if (this.gameState === "firstCycle" && (this.getPlayer as PokerPlayer).getIsDealer) {
+    } else if (
+      this.gameState === GameState.FIRST_CYCLE &&
+      (this.getPlayer as PokerPlayer).getIsDealer
+    ) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.betBtn?.enable();
-    } else if (this.gameState === "firstCycle") {
+    } else if (this.gameState === GameState.FIRST_CYCLE) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
       this.callBtn?.enable();
       this.raiseBtn?.enable();
-    } else if (this.gameState === "changeCycle") {
+    } else if (this.gameState === GameState.CHANGE_CYCLE) {
       this.checkBtn?.disable();
       this.foldBtn?.disable();
       this.betBtn?.disable();

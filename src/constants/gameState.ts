@@ -7,6 +7,11 @@ enum GameState {
   DOUBLE = "double",
   END_GAME = "endGame",
   GAME_OVER = "gameOver",
+  FIRST_CYCLE = "firstCycle",
+  SECOND_CYCLE = "secondCycle",
+  THIRD_CYCLE = "thirdCycle",
+  CHANGE_CYCLE = "changeCycle",
+  INIT_GAME = "initGame",
 }
 
 export default GameState;
