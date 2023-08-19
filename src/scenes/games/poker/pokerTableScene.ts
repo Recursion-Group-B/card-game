@@ -160,7 +160,7 @@ export default class PokerTableScene extends TableScene {
 
     // cpu
     if (player.getPlayerType === "cpu") {
-      await this.cpuAction(player);
+      await this.cpuAction(player, index);
     }
   }
 
@@ -263,7 +263,7 @@ export default class PokerTableScene extends TableScene {
     }
   }
 
-  private cpuAction(player: PokerPlayer): Promise<PokerPlayer> {
+  private cpuAction(player: PokerPlayer, index: number): Promise<PokerPlayer> {
     return new Promise(() => {
       setTimeout(() => {
         if (player.getIsDealer && this.cycleState === "notAllAction") {
@@ -288,7 +288,7 @@ export default class PokerTableScene extends TableScene {
             player.change([...changeList], this.deck?.draw(changeList.size) as Card[]);
             // phaser描画
             changeList.forEach((card) => card.destroy());
-            this.dealHand();
+            this.dealHand(index);
           }
           // state更新
           player.setState = "Done";
@@ -320,7 +320,9 @@ export default class PokerTableScene extends TableScene {
   /**
    * 手札配布
    */
-  private dealHand() {
+  private dealHand(): void;
+  private dealHand(playerIndex: number): void;
+  private dealHand(playerIndex?: number) {
     const flipTime = 800;
     let cpuTime;
     switch (this.gameState) {
@@ -331,7 +333,7 @@ export default class PokerTableScene extends TableScene {
         cpuTime = 0;
     }
 
-    this.players.forEach((player: PokerPlayer) => {
+    const deal = (player: PokerPlayer) => {
       player.getHand?.forEach((card, index) => {
         this.children.bringToTop(card);
         if (player.getPlayerType === "player") {
@@ -345,7 +347,10 @@ export default class PokerTableScene extends TableScene {
           }, cpuTime);
         }
       });
-    });
+    };
+
+    if (playerIndex === undefined) this.players.forEach((player: PokerPlayer) => deal(player));
+    else deal(this.players[playerIndex] as PokerPlayer);
   }
 
   /**
@@ -385,7 +390,7 @@ export default class PokerTableScene extends TableScene {
     );
     this.changeBtn.disable();
     this.changeBtn.setClickHandler(() => {
-      this.players.forEach((player: PokerPlayer) => {
+      this.players.forEach((player: PokerPlayer, index: number) => {
         if (player.getPlayerType !== "player") return;
         // data
         const changeList = player.getHand.filter(
@@ -397,7 +402,7 @@ export default class PokerTableScene extends TableScene {
             (this.deck as Deck).draw(changeList.length) as Card[]
           );
           changeList.forEach((card) => card.destroy());
-          this.dealHand();
+          this.dealHand(index);
         }
         // state更新
         (player as PokerPlayer).setState = "Done";
