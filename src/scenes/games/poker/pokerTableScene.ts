@@ -385,20 +385,20 @@ export default class PokerTableScene extends TableScene {
     );
     this.changeBtn.disable();
     this.changeBtn.setClickHandler(() => {
-      this.players.forEach((player) => {
+      this.players.forEach((player: PokerPlayer) => {
         if (player.getPlayerType !== "player") return;
         // data
-        const changeList = (player.getHand as Card[]).filter(
-          (child) => (child as Card).getClickStatus === true
+        const changeList = player.getHand.filter(
+          (child: Card) => child.getClickStatus === true
         ) as Card[];
-        if (changeList.length)
+        if (changeList.length) {
           (player as PokerPlayer).change(
             changeList,
             (this.deck as Deck).draw(changeList.length) as Card[]
           );
-        // phaser描画
-        changeList.forEach((card) => card.destroy());
-        this.dealHand();
+          changeList.forEach((card) => card.destroy());
+          this.dealHand();
+        }
         // state更新
         (player as PokerPlayer).setState = "Done";
         // action表示
