@@ -775,6 +775,8 @@ export default class TexasTableScene extends TableScene {
     }
 
     if (this.bet > this.getPlayer.getChips) {
+      this.callBtn.disable();
+      this.raiseBtn.disable();
       this.betBtn.disable();
     }
   }
