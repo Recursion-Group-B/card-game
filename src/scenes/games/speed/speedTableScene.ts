@@ -67,9 +67,12 @@ export default class SpeedTableScene extends TableScene {
     this.createTutorialButton();
     this.helpContent = new HelpContainer(this, GameRule.SPEED);
     this.createHelpButton(this.helpContent);
+    this.createInfo();
   }
 
   update(): void {
+    this.drawInfo();
+
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
       this.startGame();

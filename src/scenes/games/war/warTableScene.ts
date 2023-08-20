@@ -49,9 +49,12 @@ export default class WarTableScene extends TableScene {
     this.createHelpButton(this.helpContent);
     this.createCommonSound();
     this.createToggleSoundButton();
+    this.createInfo();
   }
 
   update(): void {
+    this.drawInfo();
+
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
       this.disableBetItem();
       this.startGame();

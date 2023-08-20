@@ -9,7 +9,6 @@ import GAME from "../../../models/common/game";
 import Button from "../../../models/common/button";
 import GameState from "../../../constants/gameState";
 import GameResult from "../../../constants/gameResult";
-import Chip from "../../../models/common/chip";
 import HelpContainer from "../../common/helpContainer";
 import GameRule from "../../../constants/gameRule";
 import GameType from "../../../constants/gameType";
@@ -65,7 +64,7 @@ export default class TexasTableScene extends TableScene {
     this.dealer = new TexasPlayer("Dealer", "dealer", 0, 0);
     this.pot = [0];
     this.returnPot = 0;
-    this.gameState = "firstCycle";
+    this.gameState = GameState.FIRST_CYCLE;
     this.gameStarted = false;
   }
 
@@ -88,6 +87,7 @@ export default class TexasTableScene extends TableScene {
     this.createDealButton(true);
     this.createCreditField(GameType.TEXAS);
     this.createToggleSoundButton();
+    this.createInfo();
   }
 
   /**
@@ -97,15 +97,16 @@ export default class TexasTableScene extends TableScene {
     // gameState管理
     this.cycleControl();
 
-    // 所持金等の更新
+    // 更新
     this.setBetText(GameType.TEXAS);
     this.setCreditText(this.getPlayer.getChips);
+    this.drawInfo();
   }
 
   private cycleControl(): void {
     // ベット終了
     if (this.gameState === GameState.PLAYING && !this.gameStarted) {
-      this.gameState = "firstCycle";
+      this.gameState = GameState.FIRST_CYCLE;
       this.gameStarted = true;
       this.startGame();
       this.disableBetItem();
@@ -143,13 +144,13 @@ export default class TexasTableScene extends TableScene {
     }
 
     // 一巡目のアクション終了
-    if (this.gameState === "firstCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.FIRST_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player: TexasPlayer) => {
         player.setState = "notAction";
       });
       this.cycleState = "notAllAction";
-      this.gameState = "secondCycle";
+      this.gameState = GameState.SECOND_CYCLE;
 
       // 場札配布
       this.time.delayedCall(500, () => {
@@ -158,14 +159,14 @@ export default class TexasTableScene extends TableScene {
     }
 
     // 二巡目のアクション終了
-    if (this.gameState === "secondCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.SECOND_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player: TexasPlayer) => {
         /* eslint-disable no-param-reassign */
         player.setState = "notAction";
       });
       this.cycleState = "notAllAction";
-      this.gameState = "thirdCycle";
+      this.gameState = GameState.THIRD_CYCLE;
 
       // 場札配布
       this.time.delayedCall(500, () => {
@@ -175,14 +176,14 @@ export default class TexasTableScene extends TableScene {
     }
 
     // 三巡目のアクション終了
-    if (this.gameState === "thirdCycle" && this.cycleState === "allDone") {
+    if (this.gameState === GameState.THIRD_CYCLE && this.cycleState === "allDone") {
       // 各stateセット
       this.players.forEach((player) => {
         /* eslint-disable no-param-reassign */
         (player as TexasPlayer).setState = "notAction";
       });
       this.cycleState = "notAllAction";
-      this.gameState = "compare";
+      this.gameState = GameState.COMPARE;
 
       // 場札配布
       this.dealer.addCardToHand(this.deck?.draw() as Card);
@@ -190,18 +191,19 @@ export default class TexasTableScene extends TableScene {
     }
 
     // 手札を比較し、ゲーム終了
-    if (this.gameState === "compare") {
-      this.gameState = "endGame";
+    if (this.gameState === GameState.COMPARE) {
       this.disableAction();
-      this.checkResult();
+      this.time.delayedCall(500, () => {
+        this.checkResult();
+        this.gameState = GameState.END_GAME;
+      });
     }
 
     // リザルト表示し、リスタート
-    if (this.gameState === "endGame") {
+    if (this.gameState === GameState.END_GAME) {
       this.time.removeAllEvents();
-      this.gameState = "firstCycle";
 
-      this.time.delayedCall(2000, () => {
+      this.time.delayedCall(1500, () => {
         this.displayResult(this.result as string, 0);
         this.resultView();
         this.saveHighScore(this.getPlayer.getChips, GameType.TEXAS);
@@ -214,6 +216,7 @@ export default class TexasTableScene extends TableScene {
         this.gameZone.removeInteractive();
         this.gameZone.removeAllListeners();
       });
+      this.gameState = GameState.INIT_GAME;
     }
   }
 
@@ -233,7 +236,7 @@ export default class TexasTableScene extends TableScene {
     if (player.getState !== "notAction") return;
 
     // ゲーム終了時は何もしない
-    if (this.gameState === "endGame" || this.gameState === "compare") return;
+    if (this.gameState === GameState.END_GAME || this.gameState === GameState.COMPARE) return;
 
     // cpu
     if (player.getPlayerType === "cpu") {
@@ -339,9 +342,9 @@ export default class TexasTableScene extends TableScene {
           player.setState = "bet";
         } else if (
           this.cycleState === "raise" ||
-          this.gameState === "firstCycle" ||
-          this.gameState === "secondCycle" ||
-          this.gameState === "thirdCycle"
+          this.gameState === GameState.FIRST_CYCLE ||
+          this.gameState === GameState.SECOND_CYCLE ||
+          this.gameState === GameState.THIRD_CYCLE
         ) {
           // call
           this.payOutToPots(player, this.getPreBet);
@@ -364,10 +367,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "check",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.checkBtn.disable();
-    this.checkBtn.setScale(0.3);
     this.checkBtn.setClickHandler(() => {
       // playerのstate変更
       this.players.forEach((player: TexasPlayer) => {
@@ -390,10 +393,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "fold",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.foldBtn.disable();
-    this.foldBtn.setScale(0.3);
     this.foldBtn.setClickHandler(() => {
       // カードを手放す
       this.players.forEach((player: TexasPlayer) => {
@@ -408,7 +411,7 @@ export default class TexasTableScene extends TableScene {
           this.drawDoneAction(player, "fold");
         }
       });
-      this.gameState = "compare";
+      this.gameState = GameState.COMPARE;
       this.disableAction();
     });
   }
@@ -423,10 +426,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "bet",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.betBtn.disable();
-    this.betBtn.setScale(0.3);
     this.betBtn.setClickHandler(() => {
       this.players.forEach((player: TexasPlayer) => {
         // 100betする
@@ -453,10 +456,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "call",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.callBtn.disable();
-    this.callBtn.setScale(0.3);
     this.callBtn.setClickHandler(() => {
       this.players.forEach((player: TexasPlayer) => {
         // 前のbetSizeでbetする
@@ -483,10 +486,10 @@ export default class TexasTableScene extends TableScene {
       this.scale.height / 2 + 250,
       "buttonRed",
       "raise",
-      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY
+      GAME.SOUNDS_KEY.BUTTON_CLICK_KEY,
+      0.3
     );
     this.raiseBtn.disable();
-    this.raiseBtn.setScale(0.3);
     this.raiseBtn.setClickHandler(() => {
       this.players.forEach((player: TexasPlayer) => {
         // 前のbetSizeでbetする
@@ -659,7 +662,6 @@ export default class TexasTableScene extends TableScene {
     this.gameState = GameState.BETTING;
     this.result = undefined;
     this.pot = [];
-    this.gameState = "firstCycle";
     this.cycleState = "notAllAction";
     this.handScoreList = [];
     this.gameStarted = false;
@@ -747,11 +749,13 @@ export default class TexasTableScene extends TableScene {
   }
 
   private disableAction(): void {
-    this.checkBtn.disable();
-    this.foldBtn.disable();
-    this.betBtn.disable();
-    this.callBtn.disable();
-    this.raiseBtn.disable();
+    setTimeout(() => {
+      this.checkBtn.disable();
+      this.foldBtn.disable();
+      this.betBtn.disable();
+      this.callBtn.disable();
+      this.raiseBtn.disable();
+    }, 100);
   }
 
   private actionControl(): void {
@@ -760,9 +764,9 @@ export default class TexasTableScene extends TableScene {
       this.foldBtn?.enable();
       this.betBtn?.enable();
     } else if (
-      this.gameState === "firstCycle" ||
-      this.gameState === "secondCycle" ||
-      this.gameState === "thirdCycle"
+      this.gameState === GameState.FIRST_CYCLE ||
+      this.gameState === GameState.SECOND_CYCLE ||
+      this.gameState === GameState.THIRD_CYCLE
     ) {
       this.checkBtn?.enable();
       this.foldBtn?.enable();
