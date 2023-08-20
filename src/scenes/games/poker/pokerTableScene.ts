@@ -792,5 +792,11 @@ export default class PokerTableScene extends TableScene {
       this.raiseBtn?.disable();
       this.changeBtn?.enable();
     }
+
+    if (this.bet > this.getPlayer.getChips) {
+      this.callBtn.disable();
+      this.raiseBtn.disable();
+      this.betBtn.disable();
+    }
   }
 }
